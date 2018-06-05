@@ -1,0 +1,13 @@
+<div fxLayout="column" fxLayoutAlign="start center" fxLayoutGap="0px">
+  <div fxLayout="row" fxLayoutAlign="space-between center" fxLayoutGap="20px" fxFlexFill>
+    <h5>{{ contestInfo.startTime | date:'yyyy-MM-dd HH:mm:ss' }}</h5>
+    <h1>{{ contestInfo.name }}</h1>
+    <h5>{{ contestInfo.endTime | date:'yyyy-MM-dd HH:mm:ss' }}</h5>
+  </div>
+  <mat-progress-bar mode="determinate" [value]="contestProgress"></mat-progress-bar>
+  <ng-container [ngSwitch]="contestInfo.state">
+    <h5 *ngSwitchCase='0'>未开始</h5>
+    <h5 *ngSwitchCase='1'>{{ restTime | date:'HH:mm:ss':'+0000' }}</h5>
+    <h5 *ngSwitchCase='2'>已结束</h5>
+  </ng-container>
+</div>

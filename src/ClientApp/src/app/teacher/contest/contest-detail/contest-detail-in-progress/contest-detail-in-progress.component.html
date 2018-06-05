@@ -1,0 +1,28 @@
+<div fxLayout="column" fxLayoutAlign="start stretch" fxLayoutGap="25px">
+  <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="0px">
+    <button mat-raised-button (click)="goBack()">返回</button>
+  </div>
+  <div fxLayout="column" fxLayoutAlign="start stretch" fxLayoutGap="10px">
+    <mat-card>
+      <mat-card-content>
+        <app-contest-progress [contestInfo]="contestInfo" [update]="updateContestInfo"></app-contest-progress>
+      </mat-card-content>
+    </mat-card>
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>基本信息</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <app-contest-basic-info></app-contest-basic-info>
+      </mat-card-content>
+    </mat-card>
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>学生信息</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <app-contest-student-info></app-contest-student-info>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

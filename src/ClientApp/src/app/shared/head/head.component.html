@@ -1,0 +1,24 @@
+<div fxLayout="column" fxLayoutAlign="start stretch" fxLayoutGap="50px">
+  <div fxLayout="row" fxLayoutAlign="space-between center" fxLayoutGap="0px">
+    <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="0px">
+      <header>
+        <a routerLink="/">
+          <div class="head-logo">VoidJudge</div>
+        </a>
+      </header>
+      <nav>
+        <a *ngFor="let i of navItems" mat-button color="primary" routerLink="{{i.link}}" routerLinkActive="active">
+          <div class="head-label">{{i.label}}</div>
+        </a>
+      </nav>
+    </div>
+    <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="0px">
+      <ng-container [ngSwitch]="authService.user.userType?authService.user.userType:0">
+        <button class="head-label" *ngSwitchCase="2" matTooltip="{{group}}" mat-button>{{authService.user.name}}</button>
+        <button class="head-label" *ngSwitchDefault mat-button>{{authService.user.name}}</button>
+      </ng-container>
+      <button class="head-label" mat-button color="warn" (click)="logout()">注销</button>
+    </div>
+  </div>
+  <mat-divider></mat-divider>
+</div>

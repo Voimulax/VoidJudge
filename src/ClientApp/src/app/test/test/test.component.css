@@ -1,0 +1,30 @@
+.test-container {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+nav a{
+  display: inline-block;
+  margin-right: 10px;
+  text-decoration: none;
+}
+
+nav a:link {
+  color: white;
+}
+
+nav a:visited {
+  color: white;
+}
+
+nav a:focus {
+  color: deeppink;
+}
+
+nav a:hover {
+  color: crimson;
+}
+
+nav a:active {
+  color: lightcoral;
+}

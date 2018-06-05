@@ -1,0 +1,39 @@
+header a {
+  text-decoration: none;
+  color: #222222;
+  font-size: 2em;
+  font-weight: bold;
+  padding: 20px 0;
+}
+
+header a:link {
+  color: #222222;
+}
+
+header a:visited {
+  color: #222222;
+}
+
+header a:focus {
+  color: #222222;
+}
+
+header a:hover {
+  color: #222222;
+}
+
+header a:active {
+  color: #222222;
+}
+
+.head-logo {
+  margin-top: -10px;
+}
+
+nav {
+  margin-left: 20px;
+}
+
+.head-label{
+  font-size: 20px;
+}

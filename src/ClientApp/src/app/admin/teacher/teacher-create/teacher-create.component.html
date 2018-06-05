@@ -1,0 +1,25 @@
+<div fxLayout="column" fxLayoutAlign="start stretch" fxLayoutGap="25px">
+  <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="0px">
+    <button mat-raised-button (click)="goBack()">返回</button>
+  </div>
+  <mat-tab-group>
+    <mat-tab label="单人">
+      <mat-card>
+        <mat-card-content>
+          <div fxLayout="column" fxLayoutAlign="start start" fxLayoutGap="25px">
+            <app-teacher-create-single></app-teacher-create-single>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </mat-tab>
+    <mat-tab label="多人">
+      <mat-card>
+        <mat-card-content>
+          <div fxLayout="column" fxLayoutAlign="start stretch" fxLayoutGap="25px">
+            <app-teacher-create-multi></app-teacher-create-multi>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </mat-tab>
+  </mat-tab-group>
+</div>

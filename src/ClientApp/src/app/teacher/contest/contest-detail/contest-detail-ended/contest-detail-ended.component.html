@@ -1,0 +1,34 @@
+<div fxLayout="column" fxLayoutAlign="start stretch" fxLayoutGap="25px">
+  <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="0px">
+    <button mat-raised-button (click)="goBack()">返回</button>
+  </div>
+  <div fxLayout="column" fxLayoutAlign="start stretch" fxLayoutGap="10px">
+    <mat-card>
+      <mat-card-content>
+        <app-contest-progress [contestInfo]="contestInfo" [update]="updateContestInfo"></app-contest-progress>
+      </mat-card-content>
+    </mat-card>
+    <div fxLayout="row" fxLayoutAlign="space-between stretch" fxLayoutGap="10px">
+      <mat-card fxFlex="50%">
+        <mat-card-header>
+          <mat-card-title>提交答案</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="0px">
+            <button mat-raised-button color="accent" (click)="downloadSubmission()">下载提交答案</button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+      <mat-card fxFlex="50%">
+        <mat-card-header>
+          <mat-card-title>提交信息</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="0px">
+            <button mat-raised-button color="primary" (click)="downloadSubmissionInfo()">下载提交信息</button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>

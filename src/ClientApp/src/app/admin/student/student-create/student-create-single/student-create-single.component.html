@@ -1,0 +1,66 @@
+<form (ngSubmit)="create()" [formGroup]="studentForm">
+  <div fxLayout="column" fxLayoutAlign="space-between center" fxLayoutGap="10px">
+    <mat-form-field class="studentFormControl">
+      <input #userNameBox matInput placeholder="用户名" formControlName="userName" [errorStateMatcher]="matcher" [readOnly]="isLoading"
+        required>
+      <mat-error *ngIf="studentForm.get('userName').hasError('pattern') && !studentForm.get('userName').hasError('required')">
+        请输入无空字符的用户名
+      </mat-error>
+      <mat-error *ngIf="!studentForm.get('userName').hasError('required') && !studentForm.get('userName').hasError('pattern') && !studentForm.get('userName').hasError('maxLength')">
+        请输入长度不大于32个字符的用户名
+      </mat-error>
+      <mat-error *ngIf="studentForm.get('userName').hasError('required')">
+        姓名是
+        <strong>必须</strong>的
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field class="studentFormControl">
+      <input matInput placeholder="姓名" formControlName="name" type="text" [errorStateMatcher]="matcher" [readOnly]="isLoading"
+        required>
+      <mat-error *ngIf="studentForm.get('name').hasError('pattern') && !studentForm.get('name').hasError('required')">
+        请输入无空字符的姓名
+      </mat-error>
+      <mat-error *ngIf="!studentForm.get('name').hasError('required') && !studentForm.get('name').hasError('pattern') && !studentForm.get('name').hasError('maxLength')">
+        请输入长度不大于32个字符的姓名
+      </mat-error>
+      <mat-error *ngIf="studentForm.get('name').hasError('required')">
+        姓名是
+        <strong>必须</strong>的
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field class="studentFormControl">
+        <input matInput placeholder="班级" formControlName="group" type="text" [errorStateMatcher]="matcher" [readOnly]="isLoading"
+          required>
+        <mat-error *ngIf="studentForm.get('group').hasError('pattern') && !studentForm.get('group').hasError('required')">
+          请输入无空字符的班级
+        </mat-error>
+        <mat-error *ngIf="!studentForm.get('group').hasError('required') && !studentForm.get('group').hasError('pattern') && !studentForm.get('group').hasError('maxLength')">
+          请输入长度不大于32个字符的班级
+        </mat-error>
+        <mat-error *ngIf="studentForm.get('group').hasError('required')">
+          班级是
+          <strong>必须</strong>的
+        </mat-error>
+      </mat-form-field>
+
+    <mat-form-field class="studentFormControl">
+      <input matInput placeholder="初始密码" formControlName="password" type="password" [errorStateMatcher]="matcher" [readOnly]="isLoading"
+        required>
+      <mat-error *ngIf="studentForm.get('password').hasError('pattern') && !studentForm.get('password').hasError('required')">
+        请输入无空字符的初始密码
+      </mat-error>
+      <mat-error *ngIf="!studentForm.get('password').hasError('required') && !studentForm.get('password').hasError('pattern') && (!studentForm.get('password').hasError('maxLength') || studentForm.get('password').hasError('minLength'))">
+          请输入长度为6到32的初始密码
+      </mat-error>
+      <mat-error *ngIf="studentForm.get('password').hasError('required')">
+        初始密码是
+        <strong>必须</strong>的
+      </mat-error>
+    </mat-form-field>
+
+    <button class="studentFormControl" mat-raised-button color="primary" type="submit" [disabled]="studentForm.invalid" *ngIf="!isLoading">创建</button>
+    <mat-progress-bar mode="indeterminate" color="primary" *ngIf="isLoading"></mat-progress-bar>
+  </div>
+</form>

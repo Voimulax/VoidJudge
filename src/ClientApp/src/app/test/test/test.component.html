@@ -1,0 +1,12 @@
+<div class="test-container mat-elevation-z1" fxLayout="column" fxLayoutAlign="start center" fxLayoutGap="0px">
+  <nav style="background-color: #3F51B5;height: 60px;display: flex;padding: 0 20px;">
+    <div style="margin:auto 0">
+      <a matLine [routerLink]="[ '/test/dashboard' ]" routerLinkActive="active">dashboard</a>
+      <a matLine [routerLink]="[ '/test/nav' ]" routerLinkActive="active">nav</a>
+      <a matLine [routerLink]="[ '/test/table' ]" routerLinkActive="active">table</a>
+    </div>
+  </nav>
+  <div>
+    <router-outlet></router-outlet>
+  </div>
+</div>

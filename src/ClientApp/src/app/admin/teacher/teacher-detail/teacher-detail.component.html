@@ -1,0 +1,72 @@
+<mat-spinner *ngIf="getIsLoading()" style="margin: 0 auto"></mat-spinner>
+
+<div fxLayout="column" fxLayoutAlign="start stretch" fxLayoutGap="25px" *ngIf="!getIsLoading()">
+  <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="0px">
+    <button mat-raised-button (click)="goBack()">返回</button>
+  </div>
+  <mat-card>
+    <mat-card-content>
+      <div fxLayout="column" fxLayoutAlign="space-evenly start" fxLayoutGap="25px">
+        <div fxLayout="column" fxLayoutAlign="start start" fxLayoutGap="25px">
+          <h2>基本信息</h2>
+          <form (ngSubmit)="save()" [formGroup]="teacherForm">
+            <div fxLayout="column" fxLayoutAlign="space-between center" fxLayoutGap="10px">
+              <mat-form-field class="teacherFormControl">
+                <input #userNameBox matInput placeholder="用户名" formControlName="userName" [errorStateMatcher]="matcher" [readOnly]="isFormLoading"
+                  required>
+                <mat-error *ngIf="teacherForm.get('userName').hasError('pattern') && !teacherForm.get('userName').hasError('required')">
+                  请输入无空字符的用户名
+                </mat-error>
+                <mat-error *ngIf="!teacherForm.get('userName').hasError('required') && !teacherForm.get('userName').hasError('pattern') && !teacherForm.get('userName').hasError('maxLength')">
+                  请输入长度不大于32个字符的用户名
+                </mat-error>
+                <mat-error *ngIf="teacherForm.get('userName').hasError('required')">
+                  姓名是
+                  <strong>必须</strong>的
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field class="teacherFormControl">
+                <input matInput placeholder="姓名" formControlName="name" type="text" [errorStateMatcher]="matcher" [readOnly]="isFormLoading"
+                  required>
+                <mat-error *ngIf="teacherForm.get('name').hasError('pattern') && !teacherForm.get('name').hasError('required')">
+                  请输入无空字符的姓名
+                </mat-error>
+                <mat-error *ngIf="!teacherForm.get('name').hasError('required') && !teacherForm.get('name').hasError('pattern') && !teacherForm.get('name').hasError('maxLength')">
+                  请输入长度不大于32个字符的姓名
+                </mat-error>
+                <mat-error *ngIf="teacherForm.get('name').hasError('required')">
+                  姓名是
+                  <strong>必须</strong>的
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field class="teacherFormControl">
+                <mat-select #userTypeSelect placeholder="用户类型" formControlName="userType" type="text" [errorStateMatcher]="matcher" required>
+                  <mat-option value="1">教师</mat-option>
+                  <mat-option value="0">管理员</mat-option>
+                </mat-select>
+                <mat-error *ngIf="teacherForm.get('userType').hasError('required')">
+                  用户类型是
+                  <strong>必须</strong>的
+                </mat-error>
+              </mat-form-field>
+
+              <button class="teacherFormControl" mat-raised-button color="primary" type="submit" [disabled]="teacherForm.invalid" *ngIf="!isFormLoading">保存</button>
+              <mat-progress-bar mode="indeterminate" color="primary" *ngIf="isFormLoading"></mat-progress-bar>
+            </div>
+          </form>
+        </div>
+        <div>
+          <mat-divider></mat-divider>
+        </div>
+        <div fxLayout="column" fxLayoutAlign="start start" fxLayoutGap="25px">
+          <h2>其他操作</h2>
+          <button mat-raised-button color="accent" *ngIf="!isOtherLoading" (click)="resetPassword()">重置密码</button>
+          <button mat-raised-button color="warn" *ngIf="!isOtherLoading" (click)="delete()">删除账号</button>
+          <mat-spinner *ngIf="isOtherLoading" style="margin: 0 auto"></mat-spinner>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

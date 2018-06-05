@@ -1,0 +1,44 @@
+<mat-tab-group>
+  <mat-tab label="个人">
+    <mat-card>
+      <mat-card-content>
+        <div fxLayout="column" fxLayoutAlign="start start" fxLayoutGap="25px">
+          <app-change-password></app-change-password>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </mat-tab>
+  <mat-tab label="系统">
+    <mat-card>
+      <mat-card-content>
+        <div fxLayout="column" fxLayoutAlign="start start" fxLayoutGap="25px">
+          <div fxLayout="column" fxLayoutAlign="start start" fxLayoutGap="25px">
+            <h2>一般</h2>
+            <form (ngSubmit)="save()" [formGroup]="settingsForm">
+              <div fxLayout="column" fxLayoutAlign="space-between center" fxLayoutGap="10px">
+                <mat-form-field class="settingsFormControl">
+                  <input #uploadLimit matInput placeholder="上传文件大小限制" formControlName="uploadLimit" [errorStateMatcher]="matcher" [readOnly]="isLoading"
+                    required>
+                  <span matSuffix>KB</span>
+                  <mat-error *ngIf="settingsForm.get('uploadLimit').hasError('pattern') && !settingsForm.get('uploadLimit').hasError('required')">
+                    请输入合法的数字
+                  </mat-error>
+                  <mat-error *ngIf="!settingsForm.get('uploadLimit').hasError('required') && !settingsForm.get('uploadLimit').hasError('pattern') && !settingsForm.get('uploadLimit').hasError('maxLength')">
+                    请输入一个较小的数值
+                  </mat-error>
+                  <mat-error *ngIf="settingsForm.get('uploadLimit').hasError('required')">
+                    上传文件大小限制是
+                    <strong>必须</strong>的
+                  </mat-error>
+                </mat-form-field>
+
+                <button class="settingsFormControl" mat-raised-button color="accent" type="submit" [disabled]="settingsForm.invalid" *ngIf="!isLoading">保存</button>
+                <mat-progress-bar mode="indeterminate" color="accent" *ngIf="isLoading"></mat-progress-bar>
+              </div>
+            </form>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </mat-tab>
+</mat-tab-group>

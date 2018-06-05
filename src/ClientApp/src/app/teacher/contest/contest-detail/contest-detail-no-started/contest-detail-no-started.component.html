@@ -1,0 +1,79 @@
+<form (ngSubmit)="save()" [formGroup]="contestForm">
+  <div fxLayout="column" fxLayoutAlign="start stretch" fxLayoutGap="25px">
+    <div fxLayout="row" fxLayoutAlign="space-between center" fxLayoutGap="0px">
+      <button mat-raised-button (click)="goBack()">返回</button>
+      <button mat-raised-button color="accent" type="submit" [disabled]="contestForm.invalid">保存</button>
+    </div>
+    <mat-vertical-stepper [linear]="true" #stepper>
+      <mat-step label="输入考试的基本信息" [stepControl]="contestForm">
+        <div class="matStepContent" fxLayout="column" fxLayoutAlign="start stretch" fxLayoutGap="25px">
+          <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="25px">
+            <mat-form-field class="contestFormControl">
+              <mat-label>名称</mat-label>
+              <input matInput placeholder="请输入考试名称" type="text" required formControlName="name" [errorStateMatcher]="matcher" required>
+              <mat-error *ngIf="!contestForm.get('name').hasError('required') && (contestForm.get('name').hasError('mixLength') || !contestForm.get('name').hasError('maxLength'))">
+                请输入一个长度为3到255的名称
+              </mat-error>
+              <mat-error *ngIf="contestForm.get('name').hasError('required')">
+                名称是
+                <strong>必须</strong>的
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field class="contestFormControl">
+              <mat-label>开始时间</mat-label>
+              <mat-datetimepicker-toggle [for]="startDTP" matSuffix></mat-datetimepicker-toggle>
+              <mat-datetimepicker #startDTP type="datetime" openOnFocus="true" timeInterval="1"></mat-datetimepicker>
+              <input matInput placeholder="请输入开始时间" autocomplete="false" required formControlName="startTime" [matDatetimepicker]="startDTP"
+                [errorStateMatcher]="matcher" required>
+              <mat-error *ngIf="!contestForm.get('startTime').hasError('required') && contestForm.get('startTime').invalid">
+                请输入一个合法的时间
+              </mat-error>
+              <mat-error *ngIf="contestForm.get('startTime').hasError('required')">
+                开始时间是
+                <strong>必须</strong>的
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field class="contestFormControl">
+              <mat-label>结束时间</mat-label>
+              <mat-datetimepicker-toggle [for]="endDTP" matSuffix></mat-datetimepicker-toggle>
+              <mat-datetimepicker #endDTP type="datetime" openOnFocus="true" timeInterval="1"></mat-datetimepicker>
+              <input matInput placeholder="请输入结束时间" autocomplete="false" required formControlName="endTime" [matDatetimepicker]="endDTP"
+                [errorStateMatcher]="matcher" required>
+              <mat-error *ngIf="!contestForm.get('endTime').hasError('required') && contestForm.get('endTime').invalid">
+                请输入一个合法的时间
+              </mat-error>
+              <mat-error *ngIf="contestForm.get('endTime').hasError('required') ">
+                结束时间是
+                <strong>必须</strong>的
+              </mat-error>
+            </mat-form-field>
+          </div>
+          <mat-form-field class="contestFormControl" fxFlexFill>
+            <mat-label>公告</mat-label>
+            <textarea class="noticeTextArea" matInput placeholder="请输入考试公告" type="text" formControlName="notice"></textarea>
+          </mat-form-field>
+        </div>
+      </mat-step>
+
+      <mat-step label="选择参加考试的学生">
+        <div class="matStepContent" fxLayout="column" fxLayoutAlign="start stretch" fxLayoutGap="0px">
+          <app-contest-student-create #studentCreate></app-contest-student-create>
+        </div>
+      </mat-step>
+
+      <mat-step label="确认">
+        <div class="matStepContent" fxLayout="column" fxLayoutAlign="start stretch" fxLayoutGap="12.5px">
+          <p>请在确认好后请点击右上角的“保存”。</p>
+          <p>如有需要可以
+            <button mat-raised-button color="warn" (click)="reset()">重置</button>
+          </p>
+        </div>
+      </mat-step>
+    </mat-vertical-stepper>
+    <div fxLayout="row" fxLayoutAlign="end center" fxLayoutGap="0px">
+      <button mat-raised-button color="warn" (click)="delete()">删除</button>
+    </div>
+  </div>
+</form>

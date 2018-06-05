@@ -1,0 +1,8 @@
+.contestFormControl {
+  width: 200px;
+}
+
+.noticeTextArea {
+  min-height: 50px;
+  max-height: 200px;
+}

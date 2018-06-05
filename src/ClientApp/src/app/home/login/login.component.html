@@ -1,0 +1,38 @@
+<mat-card>
+  <mat-card-content>
+    <form (ngSubmit)="login()" [formGroup]="loginForm">
+      <div fxLayout="column" fxLayoutAlign="space-between center" fxLayoutGap="10px">
+        <mat-form-field class="loginFormControl">
+          <input #userNameBox matInput placeholder="用户名" formControlName="userName" [errorStateMatcher]="matcher" [readOnly]="isLoading">
+          <mat-error *ngIf="loginForm.get('userName').hasError('pattern') && !loginForm.get('userName').hasError('required')">
+            请输入无空字符的用户名
+          </mat-error>
+          <mat-error *ngIf="!loginForm.get('userName').hasError('required') && !loginForm.get('userName').hasError('pattern') && !loginForm.get('userName').hasError('maxLength')">
+            请输入长度不大于32个字符的用户名
+          </mat-error>
+          <mat-error *ngIf="loginForm.get('userName').hasError('required')">
+            用户名是
+            <strong>必须</strong>的
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field class="loginFormControl">
+          <input matInput placeholder="密码" formControlName="password" type="password" [errorStateMatcher]="matcher" [readOnly]="isLoading">
+          <mat-error *ngIf="loginForm.get('password').hasError('pattern') && !loginForm.get('password').hasError('required')">
+            请输入无空字符的密码
+          </mat-error>
+          <mat-error *ngIf="!loginForm.get('password').hasError('required') && !loginForm.get('password').hasError('pattern') && !loginForm.get('password').hasError('maxLength')">
+            请输入长度不大于32个字符的密码
+          </mat-error>
+          <mat-error *ngIf="loginForm.get('password').hasError('required')">
+            密码是
+            <strong>必须</strong>的
+          </mat-error>
+        </mat-form-field>
+
+        <button class="loginFormControl" mat-raised-button color="accent" type="submit" [disabled]="loginForm.invalid" *ngIf="!isLoading">登录</button>
+        <mat-progress-bar mode="indeterminate" color="accent" *ngIf="isLoading"></mat-progress-bar>
+      </div>
+    </form>
+  </mat-card-content>
+</mat-card>
