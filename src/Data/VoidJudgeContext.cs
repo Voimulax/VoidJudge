@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using VoidJudge.Models;
+using VoidJudge.Models.Auth;
 
 namespace VoidJudge.Data
 {
@@ -10,5 +10,8 @@ namespace VoidJudge.Data
         }
 
         public DbSet<User> Users { get; set; }
+        public DbSet<Role> Roles { get; set; }
+        public DbSet<UserRole> UserRoles { get; set; }
+
     }
 }

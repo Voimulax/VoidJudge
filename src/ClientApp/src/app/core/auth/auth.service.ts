@@ -43,10 +43,9 @@ export class AuthService {
         { headers: new HttpHeaders({ 'Content-Type': 'application/json' }) }
       )
       .pipe(
-        tap(x => console.log(x)),
-        map(x => {
-          if (x['token']) {
-            this.tokenService.token = x['token'];
+      map(x => {
+          if (x['data']['token']) {
+            this.tokenService.token = x['data']['token'];
             this.user = this.tokenService.user;
             this.isLoggedIn = true;
             this.resetRedirectUrl();

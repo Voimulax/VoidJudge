@@ -1,9 +1,9 @@
-﻿using VoidJudge.Models;
+﻿using VoidJudge.Models.Auth;
 
 namespace VoidJudge.Services.Auth
 {
     public interface IAuthService
     {
-        string Login(LoginUser loginUser);
+        LoginResult Login(LoginUser loginUser, string ipAddress);
     }
 }

@@ -1,6 +1,9 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using VoidJudge.Models;
+using VoidJudge.Models.Auth;
 using VoidJudge.Services.Auth;
 
 namespace VoidJudge.Controllers
@@ -23,9 +26,26 @@ namespace VoidJudge.Controllers
         [HttpPost]
         public IActionResult Login([FromBody] LoginUser loginUser)
         {
-            var token = _authService.Login(loginUser);
-            if (token == null) return Unauthorized();
-            return Ok(new {token});
+            var ipAddress = Request.HttpContext.Connection.RemoteIpAddress.ToString();
+            var result = _authService.Login(loginUser, ipAddress);
+            if (result.Type == LoginType.Wrong)
+            {
+                return new ObjectResult(new GeneralResult { Error = $"{(int)result.Type}" })
+                {
+                    StatusCode = StatusCodes.Status401Unauthorized
+                };
+            }
+            else if (result.Type == LoginType.Error)
+            {
+                return new ObjectResult(new GeneralResult {Error = $"{(int) result.Type}"})
+                {
+                    StatusCode = StatusCodes.Status503ServiceUnavailable
+                };
+            }
+            else
+            {
+                return Ok(new GeneralResult { Error = $"{(int)result.Type}", Data = new { result.Token } });
+            }
         }
     }
 }
