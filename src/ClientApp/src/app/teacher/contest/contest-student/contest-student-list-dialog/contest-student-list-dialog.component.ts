@@ -10,7 +10,7 @@ import { ContestStudentListDialogData } from '../contest-student.model';
   styleUrls: ['./contest-student-list-dialog.component.css']
 })
 export class ContestStudentListDialogComponent implements OnInit {
-  displayedColumns = ['userName', 'name', 'group'];
+  displayedColumns = ['loginName', 'userName', 'group'];
   repeatSource = new MatTableDataSource<ContestStudentInfo>();
   errorSource = new MatTableDataSource<ContestStudentInfo>();
 

@@ -10,7 +10,7 @@ import { TeacherListDialogData } from '../../teacher.model';
   styleUrls: ['./teacher-list-dialog.component.css']
 })
 export class TeacherListDialogComponent implements OnInit {
-  displayedColumns = ['userName', 'name', 'password', 'userType'];
+  displayedColumns = ['loginName', 'userName', 'password', 'userType'];
   repeatSource = new MatTableDataSource<TeacherInfoWithSymbol>();
   errorSource = new MatTableDataSource<TeacherInfoWithSymbol>();
 

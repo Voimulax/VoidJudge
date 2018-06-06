@@ -13,7 +13,7 @@ import { StudentService } from '../student.service';
   styleUrls: ['./student-list.component.css']
 })
 export class StudentListComponent implements OnInit, AfterViewInit {
-  displayedColumns = ['select', 'userName', 'name', 'group', 'id'];
+  displayedColumns = ['select', 'loginName', 'userName', 'group', 'id'];
   dataSource = new MatTableDataSource<StudentInfo>();
   selection = new SelectionModel<StudentInfo>(true, []);
   isLoading = true;

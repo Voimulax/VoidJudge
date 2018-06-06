@@ -2,15 +2,15 @@ import { UserType } from '../../core/auth/user.model';
 
 export interface TeacherInfo {
   id?: number;
+  loginName: string;
   userName: string;
-  name: string;
   userType: UserType;
   password?: string;
 }
 
 export interface TeacherInfoWithSymbol {
+  loginName: string;
   userName: string;
-  name: string;
   userType: UserType;
   password?: string;
   sid: symbol;

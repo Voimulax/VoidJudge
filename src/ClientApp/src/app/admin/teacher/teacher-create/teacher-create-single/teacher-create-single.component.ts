@@ -32,8 +32,8 @@ export class TeacherCreateSingleComponent implements OnInit {
   ) {
     if (!this.teacherService.currentTeacherInfo) {
       this.teacherService.currentTeacherInfo = {
+        loginName: '',
         userName: '',
-        name: '',
         password: '',
         userType: 1
       };
@@ -46,12 +46,12 @@ export class TeacherCreateSingleComponent implements OnInit {
 
   createForm() {
     this.teacherForm = this.fb.group({
-      userName: new FormControl(this.teacherService.currentTeacherInfo.userName, [
+      loginName: new FormControl(this.teacherService.currentTeacherInfo.loginName, [
         Validators.required,
         Validators.maxLength(32),
         Validators.pattern(/^\S+$/)
       ]),
-      name: new FormControl(this.teacherService.currentTeacherInfo.name, [
+      userName: new FormControl(this.teacherService.currentTeacherInfo.userName, [
         Validators.required,
         Validators.maxLength(32),
         Validators.pattern(/^\S+$/)

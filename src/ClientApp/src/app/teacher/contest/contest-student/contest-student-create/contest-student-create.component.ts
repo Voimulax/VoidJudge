@@ -14,7 +14,7 @@ import { FileService } from '../../../../shared/file/file.service';
   styleUrls: ['./contest-student-create.component.css']
 })
 export class ContestStudentCreateComponent implements OnInit {
-  displayedColumns = ['select', 'userName', 'name', 'group'];
+  displayedColumns = ['select', 'loginName', 'userName', 'group'];
   dataSource = new MatTableDataSource<ContestStudentInfo>();
   selection = new SelectionModel<ContestStudentInfo>(true, []);
   isLoading = false;
@@ -50,10 +50,10 @@ export class ContestStudentCreateComponent implements OnInit {
 
   import(evt: any, fileForm: HTMLFormElement) {
     const header = ['用户名', '姓名', '班级'];
-    const propertys = ['userName', 'name', 'group'];
+    const propertys = ['loginName', 'userName', 'group'];
     this.fileService.readExcelFile<ContestStudentInfo>(
       evt,
-      { key: 'userName', header: header, propertys: propertys },
+      { key: 'loginName', header: header, propertys: propertys },
       this.importCallback(fileForm)
     );
   }
@@ -65,7 +65,7 @@ export class ContestStudentCreateComponent implements OnInit {
         fileForm.reset();
       } else {
         const repeatList = this.dataSource.data.filter(x =>
-          data.find(y => y.userName === x.userName)
+          data.find(y => y.loginName === x.loginName)
         );
         if (repeatList.length > 0) {
           this.dialog.open(ContestStudentListDialogComponent, {
@@ -80,7 +80,7 @@ export class ContestStudentCreateComponent implements OnInit {
             })
           );
           list.sort((a, b) => {
-            return Number(a.userName) - Number(b.userName);
+            return Number(a.loginName) - Number(b.loginName);
           });
           this.dataSource.data = list;
           this.contestService.contestInfo.students = list.map(x => {

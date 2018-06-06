@@ -3,28 +3,28 @@
   <form [formGroup]="studentForm">
     <div fxLayout="column" fxLayoutAlign="space-between center" fxLayoutGap="10px">
       <mat-form-field class="studentFormControl">
-        <input #userNameBox matInput placeholder="用户名" formControlName="userName" [errorStateMatcher]="matcher" required>
-        <mat-error *ngIf="studentForm.get('userName').hasError('pattern') && !studentForm.get('userName').hasError('required')">
+        <input #loginNameBox matInput placeholder="用户名" formControlName="loginName" [errorStateMatcher]="matcher" required>
+        <mat-error *ngIf="studentForm.get('loginName').hasError('pattern') && !studentForm.get('loginName').hasError('required')">
           请输入无空字符的用户名
         </mat-error>
-        <mat-error *ngIf="!studentForm.get('userName').hasError('required') && !studentForm.get('userName').hasError('pattern') && !studentForm.get('userName').hasError('maxLength')">
+        <mat-error *ngIf="!studentForm.get('loginName').hasError('required') && !studentForm.get('loginName').hasError('pattern') && !studentForm.get('loginName').hasError('maxLength')">
           请输入长度不大于32个字符的用户名
         </mat-error>
-        <mat-error *ngIf="studentForm.get('userName').hasError('required')">
+        <mat-error *ngIf="studentForm.get('loginName').hasError('required')">
           姓名是
           <strong>必须</strong>的
         </mat-error>
       </mat-form-field>
 
       <mat-form-field class="studentFormControl">
-        <input matInput placeholder="姓名" formControlName="name" type="text" [errorStateMatcher]="matcher" required>
-        <mat-error *ngIf="studentForm.get('name').hasError('pattern') && !studentForm.get('name').hasError('required')">
+        <input matInput placeholder="姓名" formControlName="userName" type="text" [errorStateMatcher]="matcher" required>
+        <mat-error *ngIf="studentForm.get('userName').hasError('pattern') && !studentForm.get('userName').hasError('required')">
           请输入无空字符的姓名
         </mat-error>
-        <mat-error *ngIf="!studentForm.get('name').hasError('required') && !studentForm.get('name').hasError('pattern') && !studentForm.get('name').hasError('maxLength')">
+        <mat-error *ngIf="!studentForm.get('userName').hasError('required') && !studentForm.get('userName').hasError('pattern') && !studentForm.get('userName').hasError('maxLength')">
           请输入长度不大于32个字符的姓名
         </mat-error>
-        <mat-error *ngIf="studentForm.get('name').hasError('required')">
+        <mat-error *ngIf="studentForm.get('userName').hasError('required')">
           姓名是
           <strong>必须</strong>的
         </mat-error>

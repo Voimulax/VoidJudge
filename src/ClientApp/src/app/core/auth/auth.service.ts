@@ -1,9 +1,15 @@
 import { Injectable } from '@angular/core';
+import {
+  HttpClient,
+  HttpHeaders,
+  HttpErrorResponse
+} from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { tap, delay } from 'rxjs/operators';
+import { tap, delay, map, catchError } from 'rxjs/operators';
+import { JwtHelperService } from '@auth0/angular-jwt';
 
-import { AuthModule } from './auth.module';
-import { User, UserType, Users } from './user.model';
+import { TokenService } from './token.service';
+import { User, UserType, getUserType } from './user.model';
 
 @Injectable({
   providedIn: 'root'
@@ -13,28 +19,51 @@ export class AuthService {
   isLoggedIn = false;
   redirectUrl: string;
 
-  constructor() {
+  private baseUrl = '/api/auth';
+
+  constructor(
+    private http: HttpClient,
+    private jwtHelperService: JwtHelperService,
+    private tokenService: TokenService
+  ) {
     this.checkLogin();
   }
 
-  login({ userName, password }: { userName: string; password: string }): Observable<boolean> {
-    const user = Users.find((x: User) => x.userName === userName);
-    let flag = false;
-    if (user && user.userName[0] === password) {
-      flag = true;
-    }
-
-    return of(flag).pipe(
-      delay(1000),
-      tap(val => {
-        this.isLoggedIn = val;
-        this.user = user;
-        if (val) {
-          localStorage.setItem('access_token', user.userName);
-          this.resetRedirectUrl();
-        }
-      })
-    );
+  login({
+    loginName,
+    password
+  }: {
+    loginName: string;
+    password: string;
+  }): Observable<LoginResult> {
+    return this.http
+      .post(
+        `${this.baseUrl}/login`,
+        { loginName: loginName, password: password },
+        { headers: new HttpHeaders({ 'Content-Type': 'application/json' }) }
+      )
+      .pipe(
+        tap(x => console.log(x)),
+        map(x => {
+          if (x['token']) {
+            this.tokenService.token = x['token'];
+            this.user = this.tokenService.user;
+            this.isLoggedIn = true;
+            this.resetRedirectUrl();
+            return LoginResult.ok;
+          } else {
+            this.logout();
+            return LoginResult.wrong;
+          }
+        }),
+        catchError((e: HttpErrorResponse) => {
+          if (e.status === 401) {
+            return of(LoginResult.wrong);
+          } else {
+            return of(LoginResult.error);
+          }
+        })
+      );
   }
 
   logout(): void {
@@ -45,13 +74,19 @@ export class AuthService {
   }
 
   private checkLogin() {
-    const token = localStorage.getItem('access_token');
+    const token = this.tokenService.token;
     if (token) {
-      this.user = Users.find((x: User) => x.userName === token);
-      if (this.user) {
-        this.isLoggedIn = true;
-        this.resetRedirectUrl();
-      } else {
+      let flag: boolean;
+      try {
+        flag = this.jwtHelperService.isTokenExpired();
+        if (!flag) {
+          this.user = this.tokenService.user;
+          this.isLoggedIn = true;
+          this.resetRedirectUrl();
+        } else {
+          this.logout();
+        }
+      } catch (error) {
         this.logout();
       }
     }
@@ -79,6 +114,8 @@ export class AuthService {
   }
 }
 
-export function tokenGetter() {
-  return localStorage.getItem('access_token');
+export enum LoginResult {
+  ok,
+  wrong,
+  error
 }

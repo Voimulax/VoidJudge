@@ -58,12 +58,12 @@ export class StudentDetailComponent
 
   createForm(): void {
     this.studentForm = this.fb.group({
-      userName: new FormControl(this.studentInfo.userName, [
+      loginName: new FormControl(this.studentInfo.loginName, [
         Validators.required,
         Validators.maxLength(32),
         Validators.pattern(/^\S+$/)
       ]),
-      name: new FormControl(this.studentInfo.name, [
+      userName: new FormControl(this.studentInfo.userName, [
         Validators.required,
         Validators.maxLength(32),
         Validators.pattern(/^\S+$/)

@@ -8,7 +8,7 @@ import {
 import { MatDialog } from '@angular/material';
 import { Router } from '@angular/router';
 
-import { AuthService } from '../../core/auth/auth.service';
+import { AuthService, LoginResult } from '../../core/auth/auth.service';
 import { DialogService } from '../../shared/dialog/dialog.service';
 import { FormErrorStateMatcher } from '../../shared/form-error-state-matcher';
 
@@ -21,7 +21,7 @@ export class LoginComponent implements OnInit {
   isLoading = false;
   matcher = new FormErrorStateMatcher();
   loginForm: FormGroup;
-  @ViewChild('userNameBox') userNameBox;
+  @ViewChild('loginNameBox') loginNameBox;
 
   constructor(
     private authService: AuthService,
@@ -36,7 +36,7 @@ export class LoginComponent implements OnInit {
 
   createForm(): void {
     this.loginForm = this.fb.group({
-      userName: new FormControl('', [
+      loginName: new FormControl('', [
         Validators.required,
         Validators.maxLength(32),
         Validators.pattern(/^\S+$/)
@@ -52,13 +52,19 @@ export class LoginComponent implements OnInit {
   login() {
     this.isLoading = true;
     this.authService.login(this.loginForm.value).subscribe(b => {
-      if (b) {
+      if (b === LoginResult.ok) {
         this.router.navigate([this.authService.redirectUrl]);
       } else {
-        this.dialogService.showErrorMessage('用户名或密码错误', () => {
+        let str = '';
+        if (b === LoginResult.error) {
+          str = '网络错误';
+        } else {
+          str = '用户名或密码错误';
+        }
+        this.dialogService.showErrorMessage(str, () => {
           this.isLoading = false;
           this.loginForm.reset();
-          this.userNameBox.nativeElement.focus();
+          this.loginNameBox.nativeElement.focus();
         });
       }
     });

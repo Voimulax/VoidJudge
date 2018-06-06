@@ -15,7 +15,7 @@ import { StudentListDialogComponent } from '../student-list-dialog/student-list-
   styleUrls: ['./student-create-multi.component.css']
 })
 export class StudentCreateMultiComponent implements OnInit {
-  displayedColumns = ['select', 'userName', 'name', 'group', 'password', 'sid'];
+  displayedColumns = ['select', 'loginName', 'userName', 'group', 'password', 'sid'];
   dataSource = new MatTableDataSource<StudentInfoWithSymbol>();
   selection = new SelectionModel<StudentInfoWithSymbol>(true, []);
   isLoading = false;
@@ -52,17 +52,17 @@ export class StudentCreateMultiComponent implements OnInit {
   create() {
     console.log(
       this.dataSource.data.map(x => {
-        return { userName: x.userName, name: x.name, password: x.password };
+        return { loginName: x.loginName, userName: x.userName, password: x.password };
       })
     );
   }
 
   import(evt: any, fileForm: HTMLFormElement) {
     const header = ['用户名', '姓名', '班级', '初始密码'];
-    const propertys = ['userName', 'name', 'group', 'password'];
+    const propertys = ['loginName', 'userName', 'group', 'password'];
     this.fileService.readExcelFile<StudentInfoWithSymbol>(
       evt,
-      { key: 'userName', header: header, propertys: propertys },
+      { key: 'loginName', header: header, propertys: propertys },
       this.importCallback(fileForm)
     );
   }
@@ -74,7 +74,7 @@ export class StudentCreateMultiComponent implements OnInit {
         fileForm.reset();
       } else {
         const repeatList = this.dataSource.data.filter(x =>
-          data.find(y => y.userName === x.userName)
+          data.find(y => y.loginName === x.loginName)
         );
         if (repeatList.length > 0) {
           this.dialog.open(StudentListDialogComponent, {
@@ -89,7 +89,7 @@ export class StudentCreateMultiComponent implements OnInit {
             })
           );
           list.sort((a, b) => {
-            return Number(a.userName) - Number(b.userName);
+            return Number(a.loginName) - Number(b.loginName);
           });
           this.dataSource.data = list;
         }
@@ -105,8 +105,8 @@ export class StudentCreateMultiComponent implements OnInit {
     dialog.afterClosed().subscribe(r => {
       if (r) {
         r = r as StudentInfo;
+        x.loginName = r.loginName;
         x.userName = r.userName;
-        x.name = r.name;
         x.group = r.group;
         x.password = r.password;
         const data = this.dataSource.data;

@@ -1,14 +1,14 @@
 export interface StudentInfo {
   id?: number;
+  loginName: string;
   userName: string;
-  name: string;
   group: string;
   password?: string;
 }
 
 export interface StudentInfoWithSymbol {
+  loginName: string;
   userName: string;
-  name: string;
   group: string;
   password?: string;
   sid: symbol;

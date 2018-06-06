@@ -10,7 +10,7 @@ import { StudentListDialogData } from '../../student.model';
   styleUrls: ['./student-list-dialog.component.css']
 })
 export class StudentListDialogComponent implements OnInit {
-  displayedColumns = ['userName', 'name', 'group', 'password'];
+  displayedColumns = ['loginName', 'userName', 'group', 'password'];
   repeatSource = new MatTableDataSource<StudentInfoWithSymbol>();
   errorSource = new MatTableDataSource<StudentInfoWithSymbol>();
 

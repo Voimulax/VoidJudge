@@ -13,7 +13,7 @@ import { TeacherService } from '../teacher.service';
   styleUrls: ['./teacher-list.component.css']
 })
 export class TeacherListComponent implements OnInit, AfterViewInit {
-  displayedColumns = ['select', 'userName', 'name', 'userType', 'id'];
+  displayedColumns = ['select', 'loginName', 'userName', 'userType', 'id'];
   dataSource = new MatTableDataSource<TeacherInfo>();
   selection = new SelectionModel<TeacherInfo>(true, []);
   isLoading = true;

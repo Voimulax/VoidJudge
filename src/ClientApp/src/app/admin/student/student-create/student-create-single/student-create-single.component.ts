@@ -31,8 +31,8 @@ export class StudentCreateSingleComponent implements OnInit {
   ) {
     if (!this.studentService.currentStudentInfo) {
       this.studentService.currentStudentInfo = {
+        loginName: '',
         userName: '',
-        name: '',
         group: '',
         password: ''
       };
@@ -45,12 +45,12 @@ export class StudentCreateSingleComponent implements OnInit {
 
   createForm() {
     this.studentForm = this.fb.group({
-      userName: new FormControl(this.studentService.currentStudentInfo.userName, [
+      loginName: new FormControl(this.studentService.currentStudentInfo.loginName, [
         Validators.required,
         Validators.maxLength(32),
         Validators.pattern(/^\S+$/)
       ]),
-      name: new FormControl(this.studentService.currentStudentInfo.name, [
+      userName: new FormControl(this.studentService.currentStudentInfo.userName, [
         Validators.required,
         Validators.maxLength(32),
         Validators.pattern(/^\S+$/)

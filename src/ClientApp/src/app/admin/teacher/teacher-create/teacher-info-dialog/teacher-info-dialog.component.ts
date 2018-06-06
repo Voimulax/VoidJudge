@@ -29,12 +29,12 @@ export class TeacherInfoDialogComponent implements OnInit {
   ngOnInit() {}
   createForm() {
     this.teacherForm = this.fb.group({
-      userName: new FormControl(this.data.userName, [
+      loginName: new FormControl(this.data.loginName, [
         Validators.required,
         Validators.maxLength(32),
         Validators.pattern(/^\S+$/)
       ]),
-      name: new FormControl(this.data.name, [
+      userName: new FormControl(this.data.userName, [
         Validators.required,
         Validators.maxLength(32),
         Validators.pattern(/^\S+$/)

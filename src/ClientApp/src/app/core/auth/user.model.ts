@@ -6,8 +6,8 @@ export enum UserType {
 
 export interface User {
   id: number;
+  loginName: string;
   userName: string;
-  name: string;
   userType: UserType;
 }
 
@@ -15,8 +15,12 @@ export interface StudentUser extends User {
   group: string;
 }
 
-export const Users: Array<User> = [
-  { id: 1, userName: 'admin', name: 'admin', userType: UserType.admin },
-  { id: 2, userName: 'teacher', name: 'teacher', userType: UserType.teacher },
-  { id: 3, userName: '123', name: 'student', userType: UserType.student }
-];
+export function getUserType(str: string) {
+  if (str === '0') {
+    return UserType.admin;
+  } else if (str === '1') {
+    return UserType.teacher;
+  } else {
+    return UserType.student;
+  }
+}

@@ -17,8 +17,8 @@ import { ContestService } from '../../contest.service';
 })
 export class ContestStudentInfoComponent implements OnInit, AfterViewInit {
   displayedColumns = [
+    'loginName',
     'userName',
-    'name',
     'group',
     'isLogged',
     'isSubmitted',
@@ -37,8 +37,8 @@ export class ContestStudentInfoComponent implements OnInit, AfterViewInit {
     this.dataSource.data = [
       {
         id: 3,
-        userName: '123',
-        name: 'student',
+        loginName: '123',
+        userName: 'student',
         group: '15-1',
         isLogged: LoginType.Logged,
         isSubmitted: SubmitType.NoSubmitted

@@ -10,8 +10,8 @@ export enum SubmitType {
 
 export interface ContestStudentInfo {
   id?: number;
+  loginName: string;
   userName: string;
-  name: string;
   group: string;
   isLogged?: LoginType;
   isSubmitted?: SubmitType;
