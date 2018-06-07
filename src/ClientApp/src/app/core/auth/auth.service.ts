@@ -9,7 +9,13 @@ import { tap, delay, map, catchError } from 'rxjs/operators';
 import { JwtHelperService } from '@auth0/angular-jwt';
 
 import { TokenService } from './token.service';
-import { User, UserType, getUserType } from './user.model';
+import {
+  User,
+  UserType,
+  getUserType,
+  LoginUser,
+  ResetUser
+} from './user.model';
 
 @Injectable({
   providedIn: 'root'
@@ -29,37 +35,29 @@ export class AuthService {
     this.checkLogin();
   }
 
-  login({
-    loginName,
-    password
-  }: {
-    loginName: string;
-    password: string;
-  }): Observable<LoginResult> {
+  login(loginUser: LoginUser): Observable<AuthResult> {
     return this.http
-      .post(
-        `${this.baseUrl}/login`,
-        { loginName: loginName, password: password },
-        { headers: new HttpHeaders({ 'Content-Type': 'application/json' }) }
-      )
+      .post<LoginUser>(`${this.baseUrl}/login`, loginUser, {
+        headers: new HttpHeaders({ 'Content-Type': 'application/json' })
+      })
       .pipe(
-      map(x => {
+        map(x => {
           if (x['data']['token']) {
             this.tokenService.token = x['data']['token'];
             this.user = this.tokenService.user;
             this.isLoggedIn = true;
             this.resetRedirectUrl();
-            return LoginResult.ok;
+            return AuthResult.ok;
           } else {
             this.logout();
-            return LoginResult.wrong;
+            return AuthResult.wrong;
           }
         }),
         catchError((e: HttpErrorResponse) => {
           if (e.status === 401) {
-            return of(LoginResult.wrong);
+            return of(AuthResult.wrong);
           } else {
-            return of(LoginResult.error);
+            return of(AuthResult.error);
           }
         })
       );
@@ -70,6 +68,27 @@ export class AuthService {
     this.user = undefined;
     this.resetRedirectUrl();
     localStorage.removeItem('access_token');
+  }
+
+  resetPassword(resetUser: ResetUser) {
+    return this.http
+      .post<ResetUser>(`${this.baseUrl}/resetpassword`, resetUser, {
+        headers: new HttpHeaders({ 'Content-Type': 'application/json' })
+      })
+      .pipe(
+        map(x => {
+          if (x['error'] === '0') {
+            return AuthResult.ok;
+          }
+        }),
+        catchError((e: HttpErrorResponse) => {
+          if (e.status === 401) {
+            return of(AuthResult.wrong);
+          } else {
+            return of(AuthResult.error);
+          }
+        })
+      );
   }
 
   private checkLogin() {
@@ -113,7 +132,7 @@ export class AuthService {
   }
 }
 
-export enum LoginResult {
+export enum AuthResult {
   ok,
   wrong,
   error

@@ -7,7 +7,7 @@ import {
 } from '@angular/forms';
 import { Router } from '@angular/router';
 
-import { AuthService } from '../../core/auth/auth.service';
+import { AuthService, AuthResult } from '../../core/auth/auth.service';
 import { DialogService } from '../dialog/dialog.service';
 import { FormErrorStateMatcher } from '../form-error-state-matcher';
 
@@ -76,6 +76,33 @@ export class ChangePasswordComponent implements OnInit {
     try {
       this.checkOldNew(oldPass, newPass1);
       this.checkNew1New2(newPass1, newPass2);
+      this.authService
+        .resetPassword({
+          loginName: this.authService.user.userName,
+          password: oldPass,
+          newPassword: newPass2
+        })
+        .subscribe(x => {
+          if (x === AuthResult.ok) {
+            this.dialogService.showOkMessage('修改密码成功，即将退出登录...');
+            setTimeout(() => {
+              this.authService.logout();
+              this.router.navigate([`${this.authService.redirectUrl}`]);
+            }, 200);
+          } else if (x === AuthResult.wrong) {
+            this.dialogService.showErrorMessage('旧密码错误', () => {
+              this.isLoading = false;
+              this.resetForm.reset();
+              this.oldPass.nativeElement.focus();
+            });
+          } else {
+            this.dialogService.showErrorMessage('网络错误', () => {
+              this.isLoading = false;
+              this.resetForm.reset();
+              this.oldPass.nativeElement.focus();
+            });
+          }
+        });
     } catch (e) {
       this.dialogService.showErrorMessage((<Error>e).message, () => {
         this.isLoading = false;

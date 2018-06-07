@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using VoidJudge.Data;
 using VoidJudge.Models.Auth;
+using Claim = System.Security.Claims.Claim;
 
 namespace VoidJudge.Services.Auth
 {
@@ -29,15 +30,15 @@ namespace VoidJudge.Services.Auth
 
             var user = _context.Users.FirstOrDefault(u =>
                 u.LoginName == loginUser.LoginName && u.Password == loginUser.Password);
-            if (user == null) return new LoginResult { Type = LoginType.Wrong };
+            if (user == null) return new LoginResult { Type = AuthResult.Wrong };
 
-            var role = (from ur in _context.UserRoles
-                        from u in _context.Users
-                        from r in _context.Roles
-                        where u.Id == user.Id && ur.UserId == u.Id && ur.RoleId == r.Id
+            var role = (from u in _context.Users
+                        join ur in _context.UserRoles on u.Id equals ur.UserId
+                        join r in _context.Roles on ur.RoleId equals r.Id
+                        where u.Id == user.Id
                         select r).FirstOrDefault();
 
-            if (role == null) return new LoginResult { Type = LoginType.Error };
+            if (role == null) return new LoginResult { Type = AuthResult.Error };
 
             // push the user’s name into a claim, so we can identify the user later on.
             var claims = new[]
@@ -74,7 +75,17 @@ namespace VoidJudge.Services.Auth
             user.LastLoginTime = DateTime.Now;
             _context.SaveChanges();
 
-            return new LoginResult { Type = LoginType.Ok, Token = token };
+            return new LoginResult { Type = AuthResult.Ok, Token = token };
+        }
+
+        public AuthResult ResetPassword(ResetUser resetUser)
+        {
+            var user = _context.Users.FirstOrDefault(u =>
+                u.LoginName == resetUser.LoginName && u.Password == resetUser.Password);
+            if (user == null) return AuthResult.Wrong;
+            user.Password = resetUser.NewPassword;
+            _context.SaveChanges();
+            return AuthResult.Ok;
         }
     }
 }

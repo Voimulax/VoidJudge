@@ -15,6 +15,15 @@ export interface StudentUser extends User {
   group: string;
 }
 
+export interface LoginUser {
+  loginName: string;
+  password: string;
+}
+
+export interface ResetUser extends LoginUser {
+  newPassword: string;
+}
+
 export function getUserType(str: string) {
   if (str === '0') {
     return UserType.admin;

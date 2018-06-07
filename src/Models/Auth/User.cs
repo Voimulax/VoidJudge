@@ -8,6 +8,13 @@ namespace VoidJudge.Models.Auth
         public string Password { get; set; }
     }
 
+    public class ResetUser
+    {
+        public string LoginName { get; set; }
+        public string Password { get; set; }
+        public string NewPassword { get; set; }
+    }
+
     public class User
     {
         public long Id { get; set; }

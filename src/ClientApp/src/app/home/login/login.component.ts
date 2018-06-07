@@ -8,7 +8,7 @@ import {
 import { MatDialog } from '@angular/material';
 import { Router } from '@angular/router';
 
-import { AuthService, LoginResult } from '../../core/auth/auth.service';
+import { AuthService, AuthResult } from '../../core/auth/auth.service';
 import { DialogService } from '../../shared/dialog/dialog.service';
 import { FormErrorStateMatcher } from '../../shared/form-error-state-matcher';
 
@@ -52,11 +52,11 @@ export class LoginComponent implements OnInit {
   login() {
     this.isLoading = true;
     this.authService.login(this.loginForm.value).subscribe(b => {
-      if (b === LoginResult.ok) {
+      if (b === AuthResult.ok) {
         this.router.navigate([this.authService.redirectUrl]);
       } else {
         let str = '';
-        if (b === LoginResult.error) {
+        if (b === AuthResult.error) {
           str = '网络错误';
         } else {
           str = '用户名或密码错误';

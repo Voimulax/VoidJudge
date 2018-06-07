@@ -52,6 +52,16 @@ namespace VoidJudge.Data
                 context.UserRoles.Add(userRole);
             }
 
+            var claims = new Claim[]
+            {
+                new Claim {Name = "班级", Type = "group"}
+            };
+
+            foreach (var claim in claims)
+            {
+                context.Claims.Add(claim);
+            }
+
             context.SaveChanges();
         }
     }
