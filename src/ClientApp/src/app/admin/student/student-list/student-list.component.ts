@@ -55,20 +55,22 @@ export class StudentListComponent implements OnInit, AfterViewInit {
         this.selection.clear();
       });
     } else {
-      const id = this.selection.selected[0].id;
-      this.studentService.deleteStudent(id).subscribe(x => {
-        if (x === DeleteStudentResultType.ok) {
-          this.dialogService.showOkMessage('删除成功', () => {
-            this.selection.clear();
-            this.getStudents();
-          });
-        } else if (x === DeleteStudentResultType.forbiddance) {
-          this.dialogService.showErrorMessage('暂时无法进行删除');
-        } else if (x === DeleteStudentResultType.userNotFound) {
-          this.dialogService.showErrorMessage('此用户不存在');
-        } else {
-          this.dialogService.showErrorMessage('网络错误');
-        }
+      this.dialogService.showOkMessage(`请问你确定要删除学号为“${this.selection.selected[0].loginName}”的学生吗`, () => {
+        const id = this.selection.selected[0].id;
+        this.studentService.deleteStudent(id).subscribe(x => {
+          if (x === DeleteStudentResultType.ok) {
+            this.dialogService.showNoticeMessage('删除成功', () => {
+              this.selection.clear();
+              this.getStudents();
+            });
+          } else if (x === DeleteStudentResultType.forbiddance) {
+            this.dialogService.showErrorMessage('暂时无法进行删除');
+          } else if (x === DeleteStudentResultType.userNotFound) {
+            this.dialogService.showErrorMessage('此用户不存在');
+          } else {
+            this.dialogService.showErrorMessage('网络错误');
+          }
+        });
       });
     }
   }

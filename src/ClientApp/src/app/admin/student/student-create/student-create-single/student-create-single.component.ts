@@ -75,7 +75,7 @@ export class StudentCreateSingleComponent implements OnInit {
     si.userType = UserType.student;
     this.studentService.addStudent(si).subscribe(x => {
       if (x.type === StudentResultType.ok) {
-        this.dialogService.showOkMessage('创建成功');
+        this.dialogService.showNoticeMessage('创建成功');
       } else if (x.type === StudentResultType.wrong) {
         this.dialogService.showErrorMessage('创建失败, 上传内容有错');
       } else if (x.type === StudentResultType.repeat) {

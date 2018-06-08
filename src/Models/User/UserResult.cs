@@ -18,9 +18,26 @@ namespace VoidJudge.Models.User
         public IEnumerable<AddResultUser> Repeat { get; set; } = null;
     }
 
+    public enum GetResult
+    {
+        Ok, Unauthorized, UserNotFound, Error
+    }
+
+    public class GetUserResult
+    {
+        public GetResult Type { get; set; }
+        public User<GetUserBasicInfo> User { get; set; } = null;
+    }
+
     public enum PutResult
     {
         Ok, ConcurrencyException, UserNotFound, Error
+    }
+
+    public class PutUserResult
+    {
+        public PutResult Type { get; set; }
+        public User<PutUserBasicInfo> User { get; set; } = null;
     }
 
     public enum DeleteResult

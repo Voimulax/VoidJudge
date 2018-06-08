@@ -18,9 +18,9 @@ namespace VoidJudge.Data
 
             var users = new[]
             {
-                new User {LoginName = "admin", UserName = "admin", Password = "a", CreateTime = DateTime.Now},
-                new User {LoginName = "teacher", UserName = "teacher", Password = "t", CreateTime = DateTime.Now},
-                new User {LoginName = "123", UserName = "student", Password = "1", CreateTime = DateTime.Now},
+                new User {LoginName = "admin", UserName = "admin", Password = "AQAAAAEAACcQAAAAEJdVGeOLJzje7DKUb+XA7cqs5mH0pmgfdB2MGO/nYsSRSD003NwRj3rPf9TyRmU5OA==", CreateTime = DateTime.Now},
+                new User {LoginName = "teacher", UserName = "teacher", Password = "AQAAAAEAACcQAAAAEJ060Eht26I7v5b3tsYm4b5piPHt5bMK1nURUwf9Ns4yLxwts1KIdlZPV/Xw3rTXFw==", CreateTime = DateTime.Now},
+                new User {LoginName = "123", UserName = "student", Password = "AQAAAAEAACcQAAAAEK5iiQiTMuTeBaTfsqlr5PUjQcWQPcg2W9b7RliK6MjiFnWekvMQOCbkFTGDMZZbqQ==", CreateTime = DateTime.Now},
             };
 
             context.Users.AddRange(users);

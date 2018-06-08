@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.27703.2026
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VoidJudge", "src\VoidJudge.csproj", "{35037D4D-0516-4D30-A36A-D15556209BD4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VoidJudge.Test", "VoidJudge.Test\VoidJudge.Test.csproj", "{F42C35D2-EBDB-42D5-A91F-08481C76115C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{35037D4D-0516-4D30-A36A-D15556209BD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{35037D4D-0516-4D30-A36A-D15556209BD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{35037D4D-0516-4D30-A36A-D15556209BD4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F42C35D2-EBDB-42D5-A91F-08481C76115C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F42C35D2-EBDB-42D5-A91F-08481C76115C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F42C35D2-EBDB-42D5-A91F-08481C76115C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F42C35D2-EBDB-42D5-A91F-08481C76115C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

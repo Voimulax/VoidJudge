@@ -84,7 +84,7 @@ export class ChangePasswordComponent implements OnInit {
         })
         .subscribe(x => {
           if (x === AuthResult.ok) {
-            this.dialogService.showOkMessage('修改密码成功，即将退出登录...');
+            this.dialogService.showNoticeMessage('修改密码成功，即将退出登录...');
             setTimeout(() => {
               this.authService.logout();
               this.router.navigate([`${this.authService.redirectUrl}`]);

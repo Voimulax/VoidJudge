@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using VoidJudge.Data;
 using VoidJudge.Models.Auth;
@@ -14,10 +14,14 @@ namespace VoidJudge.Services
     public class UserService : IUserService
     {
         private readonly VoidJudgeContext _context;
+        private readonly PasswordHasher<User> _passwordHasher;
+        private readonly IAuthService _authService;
 
-        public UserService(VoidJudgeContext context)
+        public UserService(VoidJudgeContext context, PasswordHasher<User> passwordHasher, IAuthService authService)
         {
             _context = context;
+            _passwordHasher = passwordHasher;
+            _authService = authService;
         }
 
         public async Task<AddUserResult> AddUsers(IEnumerable<User<AddUserBasicInfo>> addUsers)
@@ -40,22 +44,20 @@ namespace VoidJudge.Services
                         {
                             LoginName = u.BasicInfo.LoginName,
                             UserName = u.BasicInfo.UserName,
-                            Password = u.BasicInfo.Password,
+                            Password = _passwordHasher.HashPassword(null, u.BasicInfo.Password),
                             CreateTime = time
                         };
 
             await _context.Users.AddRangeAsync(users);
             await _context.SaveChangesAsync();
 
-            IEnumerable<ClaimWithLoginName> claimWithLoginNames = new List<ClaimWithLoginName>();
-            claimWithLoginNames = addUsers.Aggregate(claimWithLoginNames, (current, cu) => current.Concat(GetClaimWithLoginNames(cu)));
+            var userClaims = (from au in addUsers
+                              from uc in au.ClaimInfos
+                              join c in _context.Claims on uc.Type equals c.Type
+                              join u in _context.Users on au.BasicInfo.LoginName equals u.LoginName
+                              select new UserClaim { UserId = u.Id, ClaimId = c.Id, Value = uc.Value }).ToList();
 
-            var userClaims = (from cwl in claimWithLoginNames
-                              join c in _context.Claims on cwl.Type equals c.Type
-                              join u in _context.Users on cwl.LoginName equals u.LoginName
-                              select new UserClaim { UserId = u.Id, ClaimId = c.Id, Value = cwl.Value }).ToList();
-
-            if (userClaims.Count != claimWithLoginNames.Count())
+            if (userClaims.Count != addUsers.Sum(x => x.ClaimInfos.Count()))
             {
                 return new AddUserResult { Type = AddResult.Error };
             }
@@ -78,68 +80,94 @@ namespace VoidJudge.Services
             return new AddUserResult { Type = AddResult.Ok };
         }
 
-        public async Task<User<IdUserBasicInfo>> GetUser(long id, string roleCode)
+        public async Task<GetUserResult> GetUser(long id, string roleCode = null)
         {
             var user = await _context.Users.FindAsync(id);
-            if (user == null) return null;
+            if (user == null) return new GetUserResult { Type = GetResult.UserNotFound };
             var role = await (from ur in _context.UserRoles
                               where user.Id == ur.UserId
                               join r in _context.Roles on ur.RoleId equals r.Id
                               select r).FirstOrDefaultAsync();
 
-            if (roleCode == "2" && role.Code != roleCode) return null;
-            if (roleCode == "1" && role.Code == "2") return null;
+            if (roleCode != null && !_authService.CompareRoleAuth(roleCode, role.Code))
 
-            var claims = await (from uc in _context.UserClaims
-                                where uc.UserId == user.Id
-                                join u in _context.Users on uc.UserId equals u.Id
-                                join c in _context.Claims on uc.ClaimId equals c.Id
-                                select new UserClaimInfo { Type = c.Type, Value = uc.Value }).ToListAsync();
-
-            return new User<IdUserBasicInfo>
             {
-                BasicInfo = new IdUserBasicInfo { Id = user.Id, LoginName = user.LoginName, UserName = user.UserName },
-                RoleCode = role.Code,
-                ClaimInfos = claims
+                return new GetUserResult { Type = GetResult.Unauthorized };
+            }
+
+            var userClaims = await (from uc in _context.UserClaims
+                                    where uc.UserId == user.Id
+                                    join u in _context.Users on uc.UserId equals u.Id
+                                    join c in _context.Claims on uc.ClaimId equals c.Id
+                                    select new UserClaimInfo { Type = c.Type, Value = uc.Value }).ToListAsync();
+
+            return new GetUserResult
+            {
+                Type = GetResult.Ok,
+                User = new User<GetUserBasicInfo>
+                {
+                    BasicInfo =
+                        new GetUserBasicInfo { Id = user.Id, LoginName = user.LoginName, UserName = user.UserName },
+                    RoleCode = role.Code,
+                    ClaimInfos = userClaims
+                }
             };
         }
 
-        public async Task<IEnumerable<User<IdUserBasicInfo>>> GetUsers(string roleCode)
+        public async Task<IEnumerable<User<GetUserBasicInfo>>> GetUsers(string roleCode)
         {
-            var role = CheckRoleCode(roleCode);
+            var role = _authService.CheckRoleCode(roleCode);
             if (role == null) return null;
             var userIds = await (from ur in _context.UserRoles
                                  where ur.RoleId == role.Id
                                  select ur.UserId).ToListAsync();
 
-            var users = new ConcurrentBag<User<IdUserBasicInfo>>();
+            var users = new ConcurrentBag<User<GetUserBasicInfo>>();
+            var tasks = new List<Task>();
             foreach (var id in userIds)
             {
-                users.Add(await GetUser(id, roleCode));
+                var iid = id;
+                tasks.Add(Task.Run(async () =>
+                {
+                    var result = await GetUser(iid);
+                    if (result.Type == GetResult.Ok) users.Add((result.User));
+                }));
+            }
+            foreach (var task in tasks)
+            {
+                await task;
             }
 
             return users.ToList();
         }
 
-        public async Task<PutResult> PutUser(User<IdUserBasicInfo> putUser)
+        public async Task<PutUserResult> PutUser(User<PutUserBasicInfo> putUser)
         {
             var user = await _context.Users.FindAsync(putUser.BasicInfo.Id);
-            if (user == null) return PutResult.UserNotFound;
+            if (user == null) return new PutUserResult { Type = PutResult.UserNotFound };
 
             var userRole = _context.UserRoles.FirstOrDefault(x => x.UserId == user.Id);
-            if (userRole == null) return PutResult.Error;
+            if (userRole == null) return new PutUserResult { Type = PutResult.Error };
 
             var userClaims = (from pc in putUser.ClaimInfos
                               join uc in _context.UserClaims on user.Id equals uc.UserId
                               join c in _context.Claims on uc.ClaimId equals c.Id
                               where c.Type == pc.Type
                               select uc).ToList();
-            if (userClaims.Count() != putUser.ClaimInfos.Count()) return PutResult.Error;
+            if (userClaims.Count() != putUser.ClaimInfos.Count()) return new PutUserResult { Type = PutResult.Error }; ;
 
             user.LoginName = putUser.BasicInfo.LoginName;
             user.UserName = putUser.BasicInfo.UserName;
+            if (putUser.BasicInfo.Password != null)
+            {
+                putUser.BasicInfo.Password = GetRandomPassword();
+                user.Password = _passwordHasher.HashPassword(user, putUser.BasicInfo.Password);
+            }
 
-            userRole.RoleId = _context.Roles.FirstOrDefault(x => x.Code == putUser.RoleCode).Id;
+            var role = _authService.CheckRoleCode(putUser.RoleCode);
+            if (role == null) return new PutUserResult { Type = PutResult.Error };
+
+            userRole.RoleId = role.Id;
 
             foreach (var userClaim in userClaims)
             {
@@ -159,11 +187,11 @@ namespace VoidJudge.Services
             try
             {
                 await _context.SaveChangesAsync();
-                return PutResult.Ok;
+                return new PutUserResult { Type = PutResult.Ok, User = putUser };
             }
             catch (DbUpdateConcurrencyException)
             {
-                return PutResult.ConcurrencyException;
+                return new PutUserResult { Type = PutResult.ConcurrencyException };
             }
         }
 
@@ -186,48 +214,15 @@ namespace VoidJudge.Services
             return DeleteResult.Ok;
         }
 
-        public bool CheckAuth(IEnumerable<System.Security.Claims.Claim> claims, string roleCode)
+        private string GetRandomPassword()
         {
-            var claim = claims.FirstOrDefault(x => x.Type == ClaimTypes.Role);
-            if (claim == null) return false;
-            var role = _context.Roles.FirstOrDefault(x => x.Name == claim.Value);
-            if (role == null) return false;
-            var r = CheckRoleCode(roleCode);
-            if (r == null) return false;
-            return int.Parse(roleCode) >= int.Parse(role.Code);
-        }
-
-        public Role CheckRoleCode(string roleCode)
-        {
-            return _context.Roles.FirstOrDefault(x => x.Code == roleCode);
-        }
-
-        private class ClaimWithLoginName
-        {
-            public string LoginName { get; set; }
-            public string Type { get; set; }
-            public string Value { get; set; }
-        }
-
-        private class RoleCodeWithLoginName
-        {
-            public string LoginName { get; set; }
-            public string RoleCode { get; set; }
-        }
-
-        private static IEnumerable<ClaimWithLoginName> GetClaimWithLoginNames(User<AddUserBasicInfo> addUser)
-        {
-            if (addUser.ClaimInfos == null) return new List<ClaimWithLoginName>();
-            var loginName = addUser.BasicInfo.LoginName;
-            return addUser.ClaimInfos.Select(x =>
-                new ClaimWithLoginName { LoginName = loginName, Type = x.Type, Value = x.Value });
-        }
-
-        private static RoleCodeWithLoginName GetRoleCodeWithLoginNames(User<AddUserBasicInfo> addUser)
-        {
-            if (addUser.RoleCode == null) return null;
-            var loginName = addUser.BasicInfo.LoginName;
-            return new RoleCodeWithLoginName { LoginName = addUser.BasicInfo.LoginName, RoleCode = addUser.RoleCode };
+            var r = new Random();
+            var res = new List<int>();
+            for (var i = 0; i < 6; i++)
+            {
+                res.Add(r.Next(10));
+            }
+            return string.Join("", res);
         }
     }
 }

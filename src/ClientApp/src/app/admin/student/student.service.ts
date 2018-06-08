@@ -12,8 +12,9 @@ import {
   StudentInfo,
   StudentResultType,
   StudentResult,
-  PutStudentResultType,
-  DeleteStudentResultType
+  PutStudentResult,
+  DeleteStudentResultType,
+  PutStudentResultType
 } from './student.model';
 
 const httpOptions = {
@@ -30,28 +31,24 @@ export class StudentService {
   constructor(private http: HttpClient) {}
 
   getStudent(id: number): Observable<StudentInfo> {
-    return this.http
-      .get(`${this.baseUrl}/${id}`, {
-        params: new HttpParams().set('roleCode', '2')
+    return this.http.get(`${this.baseUrl}/${id}`).pipe(
+      map(x => {
+        const b = x['data']['basicInfo'];
+        const g = x['data']['claimInfos'].find(y => y['type'] === 'group');
+        return {
+          id: b['id'],
+          loginName: b['loginName'],
+          userName: b['userName'],
+          group: g['value']
+        };
+      }),
+      tap(x => {
+        this.studentInfo = x;
+      }),
+      catchError((e: HttpErrorResponse) => {
+        return of(null);
       })
-      .pipe(
-        map(x => {
-          const b = x['data']['basicInfo'];
-          const g = x['data']['claimInfos'].find(y => y['type'] === 'group');
-          return {
-            id: b['id'],
-            loginName: b['loginName'],
-            userName: b['userName'],
-            group: g['value']
-          };
-        }),
-        tap(x => {
-          this.studentInfo = x;
-        }),
-        catchError((e: HttpErrorResponse) => {
-          return of(null);
-        })
-      );
+    );
   }
 
   getStudents(): Observable<StudentInfo[]> {
@@ -78,12 +75,13 @@ export class StudentService {
       );
   }
 
-  putStudent(studentInfo: StudentInfo): Observable<PutStudentResultType> {
+  putStudent(studentInfo: StudentInfo): Observable<PutStudentResult> {
     const s = {
       basicInfo: {
         id: studentInfo.id,
         loginName: studentInfo.loginName,
-        userName: studentInfo.userName
+        userName: studentInfo.userName,
+        password: studentInfo.password
       },
       roleCode: studentInfo.userType,
       claimInfos: [{ type: 'group', value: studentInfo.group }]
@@ -93,16 +91,30 @@ export class StudentService {
       .pipe(
         map(x => {
           if (x['error'] === '0') {
-            return PutStudentResultType.ok;
+            const b = x['data']['basicInfo'];
+            const g = x['data']['claimInfos'].find(y => y['type'] === 'group');
+            const user: StudentInfo = {
+              id: b['id'],
+              loginName: b['loginName'],
+              userName: b['userName'],
+              group: g['value'],
+              password: b['password']
+            };
+            this.studentInfo = { loginName: '', userName: '', group: '' };
+            this.studentInfo.id = user.id;
+            this.studentInfo.loginName = user.loginName;
+            this.studentInfo.userName = user.userName;
+            this.studentInfo.group = user.group;
+            return { type: PutStudentResultType.ok, user: user };
           }
         }),
         catchError((e: HttpErrorResponse) => {
           if (e.status === 400 && e.error['error'] === '1') {
-            return of(PutStudentResultType.concurrencyException);
+            return of({ type: PutStudentResultType.concurrencyException });
           } else if (e.status === 404 && e.error['error'] === '2') {
-            return of(PutStudentResultType.userNotFound);
+            return of({ type: PutStudentResultType.userNotFound });
           } else {
-            return of(PutStudentResultType.error);
+            return of({ type: PutStudentResultType.error });
           }
         })
       );

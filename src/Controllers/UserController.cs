@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -22,7 +24,7 @@ namespace VoidJudge.Controllers
             _userService = userService;
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "0")]
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] IEnumerable<User<AddUserBasicInfo>> addUsers)
         {
@@ -43,7 +45,7 @@ namespace VoidJudge.Controllers
             }
             else if (result.Type == AddResult.Error)
             {
-                return BadRequest(new GeneralResult {Error = $"{(int) result.Type}"});
+                return BadRequest(new GeneralResult { Error = $"{(int)result.Type}" });
             }
             else
             {
@@ -53,21 +55,32 @@ namespace VoidJudge.Controllers
 
         [Authorize]
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetUser([FromRoute] long id, [FromQuery] string roleCode)
+        public async Task<IActionResult> GetUser([FromRoute] long id)
         {
-            var claims = Request.HttpContext.User.Claims;
-            if (!_userService.CheckAuth(claims, roleCode)) return new ObjectResult(new GeneralResult { Error = "1" }) { StatusCode = StatusCodes.Status401Unauthorized };
-            var user = await _userService.GetUser(id, roleCode);
-
-            if (user == null)
+            var roleCode = Request.HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Role)?.Value;
+            if (roleCode == null)
             {
-                return NotFound(new GeneralResult { Error = "2" });
+                return BadRequest(new GeneralResult { Error = $"{(int)GetResult.Error}" });
             }
 
-            return Ok(new GeneralResult { Error = "0", Data = user });
+            var result = await _userService.GetUser(id, roleCode);
+
+            switch (result.Type)
+            {
+                case GetResult.Unauthorized:
+                    return new ObjectResult(new GeneralResult { Error = "1" }) { StatusCode = StatusCodes.Status401Unauthorized };
+                case GetResult.UserNotFound:
+                    return NotFound(new GeneralResult { Error = $"{(int)result.Type}" });
+                case GetResult.Ok:
+                    return Ok(new GeneralResult { Error = $"{(int)result.Type}", Data = result.User });
+                case GetResult.Error:
+                    return BadRequest(new GeneralResult { Error = $"{(int)result.Type}" });
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "0")]
         [HttpGet]
         public async Task<IActionResult> GetUsers([FromQuery] string roleCode)
         {
@@ -81,13 +94,13 @@ namespace VoidJudge.Controllers
             return Ok(new GeneralResult { Error = "0", Data = user });
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "0")]
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser([FromRoute] long id, [FromBody] User<IdUserBasicInfo> putUser)
+        public async Task<IActionResult> PutUser([FromRoute] long id, [FromBody] User<PutUserBasicInfo> putUser)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(new GeneralResult { Error = "3" , Data = ModelState });
+                return BadRequest(new GeneralResult { Error = "3", Data = ModelState });
             }
 
             if (id != putUser.BasicInfo.Id)
@@ -96,32 +109,29 @@ namespace VoidJudge.Controllers
             }
 
             var result = await _userService.PutUser(putUser);
-            if (result == PutResult.ConcurrencyException)
+            switch (result.Type)
             {
-                return BadRequest(new GeneralResult {Error = $"{(int)result}" });
-            } 
-            else if (result == PutResult.UserNotFound)
-            {
-                return NotFound(new GeneralResult { Error = $"{(int)result}" });
-            }
-            else if (result == PutResult.Error)
-            {
-                return BadRequest(new GeneralResult { Error = $"{(int)result}" });
-            }
-            else
-            {
-                return Ok(new GeneralResult {Error = $"{(int) result}"});
+                case PutResult.ConcurrencyException:
+                    return BadRequest(new GeneralResult { Error = $"{(int)result.Type}" });
+                case PutResult.UserNotFound:
+                    return NotFound(new GeneralResult { Error = $"{(int)result.Type}" });
+                case PutResult.Error:
+                    return BadRequest(new GeneralResult { Error = $"{(int)result.Type}" });
+                case PutResult.Ok:
+                    return Ok(new GeneralResult { Error = $"{(int)result.Type}", Data = result.User });
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
         }
 
-        [Authorize]
+        [Authorize(Roles = "0")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser([FromRoute] long id)
         {
             var result = await _userService.DeleteUser(id);
             if (result == DeleteResult.Forbiddance)
             {
-                return new ObjectResult(new GeneralResult { Error = $"{(int)result}"})
+                return new ObjectResult(new GeneralResult { Error = $"{(int)result}" })
                 {
                     StatusCode = StatusCodes.Status403Forbidden
                 };

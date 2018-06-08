@@ -3,6 +3,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using VoidJudge.Data;
@@ -15,11 +16,13 @@ namespace VoidJudge.Services
     {
         private readonly IConfiguration _configuration;
         private readonly VoidJudgeContext _context;
+        private readonly PasswordHasher<User> _passwordHasher;
 
-        public AuthService(IConfiguration configuration, VoidJudgeContext context)
+        public AuthService(IConfiguration configuration, VoidJudgeContext context, PasswordHasher<User> passwordHasher)
         {
             _configuration = configuration;
             _context = context;
+            _passwordHasher = passwordHasher;
         }
 
         public LoginResult Login(LoginUser loginUser, string ipAddress)
@@ -27,8 +30,10 @@ namespace VoidJudge.Services
             var jwsth = new JwtSecurityTokenHandler();
 
             var user = _context.Users.FirstOrDefault(u =>
-                u.LoginName == loginUser.LoginName && u.Password == loginUser.Password);
+                u.LoginName == loginUser.LoginName);
             if (user == null) return new LoginResult { Type = AuthResult.Wrong };
+            if (_passwordHasher.VerifyHashedPassword(user, user.Password, loginUser.Password) !=
+                PasswordVerificationResult.Success) return new LoginResult { Type = AuthResult.Wrong };
 
             var role = (from u in _context.Users
                         join ur in _context.UserRoles on u.Id equals ur.UserId
@@ -41,11 +46,9 @@ namespace VoidJudge.Services
             // push the user’s name into a claim, so we can identify the user later on.
             var claims = new[]
             {
-                new Claim(ClaimTypes.Role, role.Name),
+                new Claim(ClaimTypes.Role, role.Code),
                 new Claim("id", user.Id.ToString()),
-                new Claim("loginName", user.LoginName),
-                new Claim("userName", user.UserName),
-                new Claim("userType", role.Code)
+                new Claim("ipAddress", ipAddress)
             };
             //sign the token using a secret key.This secret will be shared between your API and anything that needs to check that the token is legit.
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["SecurityKey"]));
@@ -79,11 +82,23 @@ namespace VoidJudge.Services
         public AuthResult ResetPassword(ResetUser resetUser)
         {
             var user = _context.Users.FirstOrDefault(u =>
-                u.LoginName == resetUser.LoginName && u.Password == resetUser.Password);
+                u.LoginName == resetUser.LoginName);
             if (user == null) return AuthResult.Wrong;
-            user.Password = resetUser.NewPassword;
+            if (_passwordHasher.VerifyHashedPassword(user, user.Password, resetUser.Password) !=
+                PasswordVerificationResult.Success) return AuthResult.Wrong;
+            user.Password = _passwordHasher.HashPassword(user, resetUser.NewPassword);
             _context.SaveChanges();
             return AuthResult.Ok;
+        }
+
+        public bool CompareRoleAuth(string roleCodeA, string roleCodeB)
+        {
+            return int.Parse(roleCodeA) <= int.Parse(roleCodeB);
+        }
+
+        public Role CheckRoleCode(string roleCode)
+        {
+            return _context.Roles.FirstOrDefault(x => x.Code == roleCode);
         }
     }
 }

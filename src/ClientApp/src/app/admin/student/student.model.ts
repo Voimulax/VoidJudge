@@ -26,6 +26,11 @@ export enum PutStudentResultType {
   ok, concurrencyException, userNotFound, error
 }
 
+export interface PutStudentResult {
+  type: PutStudentResultType;
+  user?: StudentInfo;
+}
+
 export enum DeleteStudentResultType {
   ok, forbiddance, userNotFound, error
 }

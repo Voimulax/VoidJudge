@@ -74,7 +74,7 @@ export class StudentCreateMultiComponent implements OnInit {
     });
     this.studentService.addStudents(sis).subscribe(x => {
       if (x.type === StudentResultType.ok) {
-        this.dialogService.showOkMessage('创建成功', () => {
+        this.dialogService.showNoticeMessage('创建成功', () => {
           this.selection.clear();
           this.dataSource.data = [];
         });

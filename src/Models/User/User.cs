@@ -13,9 +13,15 @@ namespace VoidJudge.Models.User
         public string Password { get; set; }
     }
 
-    public class IdUserBasicInfo : UserBasicInfo
+    public class GetUserBasicInfo : UserBasicInfo
     {
         public long Id { get; set; }
+    }
+
+    public class PutUserBasicInfo : UserBasicInfo
+    {
+        public long Id { get; set; }
+        public string Password { get; set; } = null;
     }
 
     public class UserClaimInfo

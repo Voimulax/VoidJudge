@@ -5,7 +5,7 @@ import {
   HttpErrorResponse
 } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { tap, delay, map, catchError } from 'rxjs/operators';
+import { tap, delay, map, catchError, switchMap } from 'rxjs/operators';
 import { JwtHelperService } from '@auth0/angular-jwt';
 
 import { TokenService } from './token.service';
@@ -26,13 +26,43 @@ export class AuthService {
   redirectUrl: string;
 
   private baseUrl = '/api/auth';
+  private userBaseUrl = '/api/user';
 
   constructor(
     private http: HttpClient,
     private jwtHelperService: JwtHelperService,
     private tokenService: TokenService
   ) {
-    this.checkLogin();
+    if (this.checkLogin()) {
+      this.getUser(this.tokenService.userId).subscribe(x => {
+        this.afterLoginSuccess(x);
+      });
+    }
+  }
+
+  getUser<T extends User>(id: number): Observable<T> {
+    return this.http.get(`${this.userBaseUrl}/${id}`).pipe(
+      map(x => {
+        if (x['error'] === '0') {
+          const basicInfo = x['data']['basicInfo'];
+          const roleCode = x['data']['roleCode'];
+          const claimInfos = x['data']['claimInfos'];
+          const user: T = <T>{
+            id: Number(basicInfo['id']),
+            loginName: String(basicInfo['loginName']),
+            userName: String(basicInfo['userName']),
+            userType: getUserType(roleCode)
+          };
+          claimInfos.forEach(c => {
+            user[c['type']] = c['value'];
+          });
+          return user;
+        }
+      }),
+      catchError((e: HttpErrorResponse) => {
+        return of(null);
+      })
+    );
   }
 
   login(loginUser: LoginUser): Observable<AuthResult> {
@@ -44,16 +74,23 @@ export class AuthService {
         map(x => {
           if (x['data']['token']) {
             this.tokenService.token = x['data']['token'];
-            this.user = this.tokenService.user;
-            this.isLoggedIn = true;
-            this.resetRedirectUrl();
             return AuthResult.ok;
-          } else {
-            this.logout();
-            return AuthResult.wrong;
+          }
+        }),
+        switchMap(res => {
+          if (res === AuthResult.ok) {
+            return this.getUser(this.tokenService.userId).pipe(
+              map(y => {
+                if (y) {
+                  this.afterLoginSuccess(y);
+                  return AuthResult.ok;
+                }
+              })
+            );
           }
         }),
         catchError((e: HttpErrorResponse) => {
+          this.logout();
           if (e.status === 401) {
             return of(AuthResult.wrong);
           } else {
@@ -67,7 +104,7 @@ export class AuthService {
     this.isLoggedIn = false;
     this.user = undefined;
     this.resetRedirectUrl();
-    localStorage.removeItem('access_token');
+    this.tokenService.remove();
   }
 
   resetPassword(resetUser: ResetUser) {
@@ -91,23 +128,32 @@ export class AuthService {
       );
   }
 
-  private checkLogin() {
+  private checkLogin(): boolean {
     const token = this.tokenService.token;
     if (token) {
       let flag: boolean;
       try {
         flag = this.jwtHelperService.isTokenExpired();
         if (!flag) {
-          this.user = this.tokenService.user;
-          this.isLoggedIn = true;
-          this.resetRedirectUrl();
+          return true;
         } else {
           this.logout();
+          return false;
         }
       } catch (error) {
         this.logout();
+        return false;
       }
+    } else {
+      this.logout();
+      return false;
     }
+  }
+
+  afterLoginSuccess(user: User) {
+    this.user = user;
+    this.isLoggedIn = true;
+    this.resetRedirectUrl();
   }
 
   private resetRedirectUrl(): void {

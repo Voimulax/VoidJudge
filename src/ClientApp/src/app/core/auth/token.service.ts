@@ -19,14 +19,9 @@ export class TokenService {
     localStorage.removeItem('access_token');
   }
 
-  get user(): User {
+  get userId(): number {
     const data = this.jwtHelper.decodeToken(this.token);
-    return {
-      id: Number(data['id']),
-      loginName: String(data['loginName']),
-      userName: String(data['userName']),
-      userType: getUserType(data['userType'])
-    };
+    return  Number(data['id']);
   }
 
   constructor(private jwtHelper: JwtHelperService) {}

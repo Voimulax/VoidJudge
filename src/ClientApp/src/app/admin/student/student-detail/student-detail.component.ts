@@ -12,8 +12,9 @@ import { DialogService } from '../../../shared/dialog/dialog.service';
 import { FormErrorStateMatcher } from '../../../shared/form-error-state-matcher';
 import {
   StudentInfo,
-  PutStudentResultType,
-  DeleteStudentResultType
+  PutStudentResult,
+  DeleteStudentResultType,
+  PutStudentResultType
 } from '../student.model';
 import { StudentService } from '../student.service';
 import { UserType } from '../../../core/auth/user.model';
@@ -87,13 +88,13 @@ export class StudentDetailComponent
     studentInfo.id = this.studentInfo.id;
     studentInfo.userType = UserType.student;
     this.studentService.putStudent(studentInfo).subscribe(x => {
-      if (x === PutStudentResultType.ok) {
-        this.dialogService.showOkMessage('修改成功', () => {
-          this.getStudent(this.studentService.studentInfo.id);
+      if (x.type === PutStudentResultType.ok) {
+        this.dialogService.showNoticeMessage('修改成功', () => {
+          this.createForm();
         });
-      } else if (x === PutStudentResultType.concurrencyException) {
+      } else if (x.type === PutStudentResultType.concurrencyException) {
         this.dialogService.showErrorMessage('暂时无法进行修改');
-      } else if (x === PutStudentResultType.userNotFound) {
+      } else if (x.type === PutStudentResultType.userNotFound) {
         this.dialogService.showErrorMessage('此用户不存在');
       } else {
         this.dialogService.showErrorMessage('网络错误');
@@ -102,23 +103,42 @@ export class StudentDetailComponent
   }
 
   delete() {
-    const id = this.studentInfo.id;
-    this.studentService.deleteStudent(id).subscribe(x => {
-      if (x === DeleteStudentResultType.ok) {
-        this.dialogService.showOkMessage('删除成功', () => {
-          this.goBack();
+    this.dialogService.showOkMessage(`请问你确定删除学号为“${this.studentInfo.loginName}”的学生吗`, () => {
+      const id = this.studentInfo.id;
+      this.studentService.deleteStudent(id).subscribe(x => {
+        if (x === DeleteStudentResultType.ok) {
+          this.dialogService.showNoticeMessage('删除成功', () => {
+            this.goBack();
+          });
+        } else if (x === DeleteStudentResultType.forbiddance) {
+          this.dialogService.showErrorMessage('暂时无法进行删除');
+        } else if (x === DeleteStudentResultType.userNotFound) {
+          this.dialogService.showErrorMessage('此用户不存在');
+        } else {
+          this.dialogService.showErrorMessage('网络错误');
+        }
+      });
+    });
+  }
+
+  resetPassword() {
+    const studentInfo = this.studentInfo;
+    studentInfo.password = '';
+    studentInfo.userType = UserType.student;
+    this.studentService.putStudent(studentInfo).subscribe(x => {
+      if (x.type === PutStudentResultType.ok) {
+        this.dialogService.showNoticeMessage(`重置成功，新密码是“${x.user.password}”, 请保存好！`, () => {
+          this.createForm();
         });
-      } else if (x === DeleteStudentResultType.forbiddance) {
-        this.dialogService.showErrorMessage('暂时无法进行删除');
-      } else if (x === DeleteStudentResultType.userNotFound) {
+      } else if (x.type === PutStudentResultType.concurrencyException) {
+        this.dialogService.showErrorMessage('暂时无法进行修改');
+      } else if (x.type === PutStudentResultType.userNotFound) {
         this.dialogService.showErrorMessage('此用户不存在');
       } else {
         this.dialogService.showErrorMessage('网络错误');
       }
     });
   }
-
-  resetPassword() {}
 
   goBack() {
     this.router.navigate([this.url]);
