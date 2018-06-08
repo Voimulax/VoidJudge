@@ -7,7 +7,7 @@ import { OkDialogComponent } from './ok-dialog/ok-dialog.component';
 
 @NgModule({
   imports: [CommonModule],
-  exports: [ErrorDialogComponent],
+  exports: [ErrorDialogComponent, OkDialogComponent],
   entryComponents: [ErrorDialogComponent, OkDialogComponent],
   declarations: [ErrorDialogComponent, OkDialogComponent],
   providers: [DialogService]

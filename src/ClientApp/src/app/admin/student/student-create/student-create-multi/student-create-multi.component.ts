@@ -4,10 +4,16 @@ import { MatDialog, MatTableDataSource } from '@angular/material';
 
 import { DialogService } from '../../../../shared/dialog/dialog.service';
 import { FileService } from '../../../../shared/file/file.service';
-import { StudentInfo, StudentInfoWithSymbol } from '../../student.model';
-import { StudentInfoDialogComponent } from '../student-info-dialog/student-info-dialog.component';
+import {
+  StudentInfo,
+  StudentInfoWithSymbol,
+  StudentResultType,
+  StudentListDialogData
+} from '../../student.model';
 import { StudentService } from '../../student.service';
+import { StudentInfoDialogComponent } from '../student-info-dialog/student-info-dialog.component';
 import { StudentListDialogComponent } from '../student-list-dialog/student-list-dialog.component';
+import { UserType } from '../../../../core/auth/user.model';
 
 @Component({
   selector: 'app-student-create-multi',
@@ -15,7 +21,14 @@ import { StudentListDialogComponent } from '../student-list-dialog/student-list-
   styleUrls: ['./student-create-multi.component.css']
 })
 export class StudentCreateMultiComponent implements OnInit {
-  displayedColumns = ['select', 'loginName', 'userName', 'group', 'password', 'sid'];
+  displayedColumns = [
+    'select',
+    'loginName',
+    'userName',
+    'group',
+    'password',
+    'sid'
+  ];
   dataSource = new MatTableDataSource<StudentInfoWithSymbol>();
   selection = new SelectionModel<StudentInfoWithSymbol>(true, []);
   isLoading = false;
@@ -50,11 +63,33 @@ export class StudentCreateMultiComponent implements OnInit {
   }
 
   create() {
-    console.log(
-      this.dataSource.data.map(x => {
-        return { loginName: x.loginName, userName: x.userName, password: x.password };
-      })
-    );
+    const sis: StudentInfo[] = this.dataSource.data.map(x => {
+      return {
+        loginName: x.loginName,
+        userName: x.userName,
+        password: x.password,
+        group: x.group,
+        userType: UserType.student
+      };
+    });
+    this.studentService.addStudents(sis).subscribe(x => {
+      if (x.type === StudentResultType.ok) {
+        this.dialogService.showOkMessage('创建成功', () => {
+          this.selection.clear();
+          this.dataSource.data = [];
+        });
+      } else if (x.type === StudentResultType.wrong) {
+        this.dialogService.showErrorMessage('创建失败, 上传内容有错');
+      } else if (x.type === StudentResultType.repeat) {
+        const s = new Set(x.repeat.map(xx => xx.loginName));
+        this.showStudentListDialog({
+          type: '创建',
+          repeatList: this.dataSource.data.filter(d => s.has(d.loginName))
+        });
+      } else {
+        this.dialogService.showErrorMessage('网络错误');
+      }
+    });
   }
 
   import(evt: any, fileForm: HTMLFormElement) {
@@ -77,9 +112,9 @@ export class StudentCreateMultiComponent implements OnInit {
           data.find(y => y.loginName === x.loginName)
         );
         if (repeatList.length > 0) {
-          this.dialog.open(StudentListDialogComponent, {
-            data: { repeatList: repeatList },
-            minWidth: '430px'
+          this.showStudentListDialog({
+            type: '导入',
+            repeatList: repeatList
           });
         } else {
           const list = this.dataSource.data.concat(
@@ -99,10 +134,7 @@ export class StudentCreateMultiComponent implements OnInit {
 
   edit(x: StudentInfoWithSymbol, event: MouseEvent) {
     event.stopPropagation();
-    const dialog = this.dialog.open(StudentInfoDialogComponent, {
-      data: x
-    });
-    dialog.afterClosed().subscribe(r => {
+    this.showStudentInfoDialog(x, r => {
       if (r) {
         r = r as StudentInfo;
         x.loginName = r.loginName;
@@ -125,5 +157,23 @@ export class StudentCreateMultiComponent implements OnInit {
     const select = new Set(this.selection.selected);
     this.dataSource.data = this.dataSource.data.filter(x => !select.has(x));
     this.selection.clear();
+  }
+
+  private showStudentListDialog(data: StudentListDialogData) {
+    this.dialog.open(StudentListDialogComponent, {
+      data: data,
+      minWidth: '430px'
+    });
+  }
+
+  private showStudentInfoDialog(data: StudentInfoWithSymbol, callback?: Function) {
+    const dialog = this.dialog.open(StudentInfoDialogComponent, {
+      data: data
+    });
+    dialog.afterClosed().subscribe(r => {
+      if (callback) {
+        callback();
+      }
+    });
   }
 }

@@ -1,6 +1,6 @@
 ﻿using VoidJudge.Models.Auth;
 
-namespace VoidJudge.Services.Auth
+namespace VoidJudge.Services
 {
     public interface IAuthService
     {

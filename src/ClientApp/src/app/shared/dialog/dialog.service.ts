@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, TemplateRef } from '@angular/core';
 import { MatDialog } from '@angular/material';
 
 import { ErrorDialogComponent } from './error-dialog/error-dialog.component';

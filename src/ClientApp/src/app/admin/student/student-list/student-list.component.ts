@@ -4,7 +4,8 @@ import { MatTableDataSource } from '@angular/material';
 import { Router } from '@angular/router';
 import { catchError, finalize, map, startWith } from 'rxjs/operators';
 
-import { StudentInfo } from '../student.model';
+import { DialogService } from '../../../shared/dialog/dialog.service';
+import { StudentInfo, DeleteStudentResultType } from '../student.model';
 import { StudentService } from '../student.service';
 
 @Component({
@@ -20,22 +21,16 @@ export class StudentListComponent implements OnInit, AfterViewInit {
 
   private url = '/admin/student';
 
-  constructor(private studentService: StudentService, private router: Router) {}
+  constructor(
+    private dialogService: DialogService,
+    private studentService: StudentService,
+    private router: Router
+  ) {}
 
   ngOnInit() {}
 
   ngAfterViewInit() {
-    this.isLoading = true;
-    this.studentService
-      .getStudentList()
-      .pipe(
-        finalize(() => {
-          this.isLoading = false;
-        })
-      )
-      .subscribe(data => {
-        this.dataSource.data = data;
-      });
+    this.getStudents();
   }
 
   isSelected() {
@@ -54,14 +49,55 @@ export class StudentListComponent implements OnInit, AfterViewInit {
       : this.dataSource.data.forEach(row => this.selection.select(row));
   }
 
-  delete() {}
+  delete() {
+    if (this.selection.selected.length > 1) {
+      this.dialogService.showErrorMessage('暂无批量删除功能', () => {
+        this.selection.clear();
+      });
+    } else {
+      const id = this.selection.selected[0].id;
+      this.studentService.deleteStudent(id).subscribe(x => {
+        if (x === DeleteStudentResultType.ok) {
+          this.dialogService.showOkMessage('删除成功', () => {
+            this.selection.clear();
+            this.getStudents();
+          });
+        } else if (x === DeleteStudentResultType.forbiddance) {
+          this.dialogService.showErrorMessage('暂时无法进行删除');
+        } else if (x === DeleteStudentResultType.userNotFound) {
+          this.dialogService.showErrorMessage('此用户不存在');
+        } else {
+          this.dialogService.showErrorMessage('网络错误');
+        }
+      });
+    }
+  }
 
   goCreate() {
     this.router.navigate([`${this.url}/create`]);
   }
 
   goDetail(x: StudentInfo) {
-    this.studentService.currentStudentInfo = x;
+    this.studentService.studentInfo = x;
     this.router.navigate([`${this.url}/${x.id}`]);
+  }
+
+  private getStudents() {
+    this.isLoading = true;
+    this.studentService
+      .getStudents()
+      .pipe(
+        finalize(() => {
+          this.isLoading = false;
+        })
+      )
+      .subscribe(data => {
+        this.dataSource.data = data;
+        if (data === null) {
+          setTimeout(() => {
+            this.dialogService.showErrorMessage('获取失败');
+          }, 0);
+        }
+      });
   }
 }

@@ -15,7 +15,8 @@ import { MaterialViewModule } from './material-view/material-view.module';
     MaterialViewModule,
     RouterModule,
     FormsModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    DialogModule
   ],
   exports: [
     DialogModule,

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { catchError, finalize, map, startWith, tap } from 'rxjs/operators';
+import { catchError, finalize, map, startWith, tap, delay } from 'rxjs/operators';
 import { of } from 'rxjs';
 
 import { ContestInfo } from './contest.model';
@@ -14,8 +14,9 @@ export class ContestService {
   constructor(private http: HttpClient) {}
 
   getContestList() {
-    return this.http
-      .get<ContestInfo[]>(this.contestUrl)
-      .pipe(startWith(Array<ContestInfo>()));
+    return of(Array<ContestInfo>()).pipe(delay(1000));
+    // return this.http
+    //   .get<ContestInfo[]>(this.contestUrl)
+    //   .pipe(startWith(Array<ContestInfo>()));
   }
 }

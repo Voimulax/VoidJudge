@@ -3,15 +3,13 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using VoidJudge.Data;
 using VoidJudge.Models.Auth;
 using Claim = System.Security.Claims.Claim;
 
-namespace VoidJudge.Services.Auth
+namespace VoidJudge.Services
 {
     public class AuthService : IAuthService
     {

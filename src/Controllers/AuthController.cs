@@ -1,14 +1,14 @@
-﻿using System;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using VoidJudge.Models;
 using VoidJudge.Models.Auth;
-using VoidJudge.Services.Auth;
+using VoidJudge.Services;
 
 namespace VoidJudge.Controllers
 {
     [Route("api/[controller]")]
+    [Produces("application/json")]
     [Authorize]
     [ApiController]
     public class AuthController : Controller
@@ -21,7 +21,6 @@ namespace VoidJudge.Controllers
         }
 
         [AllowAnonymous]
-        [Produces("application/json")]
         [Route("[action]")]
         [HttpPost]
         public IActionResult Login([FromBody] LoginUser loginUser)
@@ -39,7 +38,7 @@ namespace VoidJudge.Controllers
             {
                 return new ObjectResult(new GeneralResult { Error = $"{(int)result.Type}" })
                 {
-                    StatusCode = StatusCodes.Status500InternalServerError
+                    StatusCode = StatusCodes.Status400BadRequest
                 };
             }
             else
@@ -48,8 +47,6 @@ namespace VoidJudge.Controllers
             }
         }
 
-        [Authorize]
-        [Produces("application/json")]
         [Route("[action]")]
         [HttpPost]
         public IActionResult ResetPassword([FromBody] ResetUser resetUser)
@@ -66,7 +63,7 @@ namespace VoidJudge.Controllers
             {
                 return new ObjectResult(new GeneralResult { Error = $"{(int)result}" })
                 {
-                    StatusCode = StatusCodes.Status500InternalServerError
+                    StatusCode = StatusCodes.Status400BadRequest
                 };
             }
             else
