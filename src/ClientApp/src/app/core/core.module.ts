@@ -6,6 +6,8 @@ import { AuthModule } from './auth/auth.module';
 import { JwtModule } from '@auth0/angular-jwt';
 import { throwIfAlreadyLoaded } from './module-import-guard';
 import { tokenGetter } from './auth/token.service';
+import { MaterialViewModule } from '../shared/material-view/material-view.module';
+import { DialogModule } from '../shared/dialog/dialog.module';
 
 @NgModule({
   imports: [
@@ -19,7 +21,7 @@ import { tokenGetter } from './auth/token.service';
       }
     }),
   ],
-  exports: [HttpClientModule, AuthModule],
+  exports: [HttpClientModule, AuthModule, JwtModule, MaterialViewModule, DialogModule],
   declarations: []
 })
 export class CoreModule {

@@ -1,5 +1,5 @@
 <h1 mat-dialog-title>编辑</h1>
-<div mat-dialog-content>
+<mat-dialog-content>
   <form [formGroup]="teacherForm">
     <div fxLayout="column" fxLayoutAlign="space-between center" fxLayoutGap="10px">
       <mat-form-field class="teacherFormControl">
@@ -56,8 +56,8 @@
       </mat-form-field>
     </div>
   </form>
-</div>
-<div mat-dialog-actions>
+</mat-dialog-content>
+<mat-dialog-actions>
   <button class="teacherFormControl" mat-raised-button color="primary" [mat-dialog-close]="teacherForm.value" [disabled]="teacherForm.invalid"
     cdkFocusInitial>保存</button>
-</div>
+</mat-dialog-actions>

@@ -2,11 +2,11 @@ import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatTableDataSource } from '@angular/material';
 import { Router } from '@angular/router';
-import { catchError, finalize, map, startWith } from 'rxjs/operators';
+import { finalize } from 'rxjs/operators';
 
 import { DialogService } from '../../../shared/dialog/dialog.service';
-import { StudentInfo, DeleteStudentResultType } from '../student.model';
 import { StudentService } from '../student.service';
+import { StudentInfo, DeleteResultType } from '../../../core/auth/user.model';
 
 @Component({
   selector: 'app-student-list',
@@ -27,7 +27,8 @@ export class StudentListComponent implements OnInit, AfterViewInit {
     private router: Router
   ) {}
 
-  ngOnInit() {}
+  ngOnInit() {
+  }
 
   ngAfterViewInit() {
     this.getStudents();
@@ -55,23 +56,28 @@ export class StudentListComponent implements OnInit, AfterViewInit {
         this.selection.clear();
       });
     } else {
-      this.dialogService.showOkMessage(`请问你确定要删除学号为“${this.selection.selected[0].loginName}”的学生吗`, () => {
-        const id = this.selection.selected[0].id;
-        this.studentService.deleteStudent(id).subscribe(x => {
-          if (x === DeleteStudentResultType.ok) {
-            this.dialogService.showNoticeMessage('删除成功', () => {
-              this.selection.clear();
-              this.getStudents();
-            });
-          } else if (x === DeleteStudentResultType.forbiddance) {
-            this.dialogService.showErrorMessage('暂时无法进行删除');
-          } else if (x === DeleteStudentResultType.userNotFound) {
-            this.dialogService.showErrorMessage('此用户不存在');
-          } else {
-            this.dialogService.showErrorMessage('网络错误');
-          }
-        });
-      });
+      this.dialogService.showOkMessage(
+        `请问你确定要删除用户名为“${
+          this.selection.selected[0].loginName
+        }”的学生吗`,
+        () => {
+          const id = this.selection.selected[0].id;
+          this.studentService.delete(id).subscribe(x => {
+            if (x === DeleteResultType.ok) {
+              this.dialogService.showNoticeMessage('删除成功', () => {
+                this.selection.clear();
+                this.getStudents();
+              });
+            } else if (x === DeleteResultType.forbiddance) {
+              this.dialogService.showErrorMessage('暂时无法进行删除');
+            } else if (x === DeleteResultType.userNotFound) {
+              this.dialogService.showErrorMessage('此用户不存在');
+            } else {
+              this.dialogService.showErrorMessage('网络错误');
+            }
+          });
+        }
+      );
     }
   }
 
@@ -87,7 +93,7 @@ export class StudentListComponent implements OnInit, AfterViewInit {
   private getStudents() {
     this.isLoading = true;
     this.studentService
-      .getStudents()
+      .gets()
       .pipe(
         finalize(() => {
           this.isLoading = false;

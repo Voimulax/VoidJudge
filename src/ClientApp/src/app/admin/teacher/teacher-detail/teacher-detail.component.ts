@@ -1,18 +1,32 @@
-import { Component, OnInit, AfterViewInit, OnDestroy, ViewChild } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  AfterViewInit,
+  OnDestroy,
+  ViewChild
+} from '@angular/core';
 import {
   FormBuilder,
   FormControl,
   FormGroup,
   Validators
 } from '@angular/forms';
-import { MatDialog, MatSelect } from '@angular/material';
+import { MatSelect } from '@angular/material';
 import { ActivatedRoute, Router } from '@angular/router';
 import { isNumber } from 'util';
 
 import { DialogService } from '../../../shared/dialog/dialog.service';
 import { FormErrorStateMatcher } from '../../../shared/form-error-state-matcher';
-import { TeacherInfo } from '../teacher.model';
 import { TeacherService } from '../teacher.service';
+import {
+  UserInfo,
+  DeleteResultType,
+  PutResultType,
+  UserType,
+  getUserType,
+  getUserTypeName
+} from '../../../core/auth/user.model';
+import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-teacher-detail',
@@ -27,8 +41,8 @@ export class TeacherDetailComponent
   matcher = new FormErrorStateMatcher();
   teacherForm: FormGroup;
   @ViewChild('userTypeSelect') userTypeSelect: MatSelect;
-  get teacherInfo(): TeacherInfo {
-    return this.teacherService.currentTeacherInfo;
+  get teacherInfo(): UserInfo {
+    return this.teacherService.teacherInfo;
   }
 
   private url = '/admin/teacher';
@@ -40,7 +54,7 @@ export class TeacherDetailComponent
     private route: ActivatedRoute,
     private router: Router
   ) {
-    if (this.teacherService.currentTeacherInfo) {
+    if (this.teacherService.teacherInfo) {
       this.createForm();
     }
   }
@@ -50,11 +64,11 @@ export class TeacherDetailComponent
   ngAfterViewInit() {
     this.isLoading = true;
     this.isFormLoading = true;
-    this.initStudentInfo();
+    this.initTeacherInfo();
   }
 
   ngOnDestroy() {
-    this.teacherService.currentTeacherInfo = undefined;
+    this.teacherService.teacherInfo = undefined;
   }
 
   createForm(): void {
@@ -77,11 +91,69 @@ export class TeacherDetailComponent
     this.isFormLoading = false;
   }
 
-  save() {}
+  save() {
+    const teacherInfo = this.teacherForm.value;
+    teacherInfo.id = this.teacherInfo.id;
+    teacherInfo.userType = getUserType(teacherInfo.userType);
+    this.teacherService.put(teacherInfo).subscribe(x => {
+      if (x.type === PutResultType.ok) {
+        this.dialogService.showNoticeMessage('修改成功', () => {
+          this.createForm();
+        });
+      } else if (x.type === PutResultType.concurrencyException) {
+        this.dialogService.showErrorMessage('暂时无法进行修改');
+      } else if (x.type === PutResultType.userNotFound) {
+        this.dialogService.showErrorMessage('此用户不存在');
+      } else {
+        this.dialogService.showErrorMessage('网络错误');
+      }
+    });
+  }
 
-  delete() {}
+  delete() {
+    this.dialogService.showOkMessage(
+      `请问你确定删除用户名为“${this.teacherInfo.loginName}”的${getUserTypeName(
+        this.teacherInfo.userType
+      )}吗`,
+      () => {
+        const id = this.teacherInfo.id;
+        this.teacherService.delete(id).subscribe(x => {
+          if (x === DeleteResultType.ok) {
+            this.dialogService.showNoticeMessage('删除成功', () => {
+              this.goBack();
+            });
+          } else if (x === DeleteResultType.forbiddance) {
+            this.dialogService.showErrorMessage('暂时无法进行删除');
+          } else if (x === DeleteResultType.userNotFound) {
+            this.dialogService.showErrorMessage('此用户不存在');
+          } else {
+            this.dialogService.showErrorMessage('网络错误');
+          }
+        });
+      }
+    );
+  }
 
-  resetPassword() {}
+  resetPassword() {
+    const teacherInfo = this.teacherInfo;
+    teacherInfo.password = '';
+    this.teacherService.put(teacherInfo).subscribe(x => {
+      if (x.type === PutResultType.ok) {
+        this.dialogService.showNoticeMessage(
+          `重置成功，新密码是“${x.user.password}”, 请保存好！`,
+          () => {
+            this.createForm();
+          }
+        );
+      } else if (x.type === PutResultType.concurrencyException) {
+        this.dialogService.showErrorMessage('暂时无法进行修改');
+      } else if (x.type === PutResultType.userNotFound) {
+        this.dialogService.showErrorMessage('此用户不存在');
+      } else {
+        this.dialogService.showErrorMessage('网络错误');
+      }
+    });
+  }
 
   goBack() {
     this.router.navigate([this.url]);
@@ -96,23 +168,12 @@ export class TeacherDetailComponent
     this.userTypeSelect.disabled = b;
   }
 
-  private initStudentInfo() {
-    if (!this.teacherService.currentTeacherInfo) {
+  private initTeacherInfo() {
+    if (!this.teacherService.teacherInfo) {
       const id = this.route.snapshot.paramMap.get('id');
       const nid = Number(id);
       if (isNumber(nid) && !isNaN(nid)) {
-        this.teacherService.getTeacher(nid).subscribe(
-          x => {
-            if (x) {
-              this.createForm();
-            } else {
-              this.goBack();
-            }
-          },
-          error => {
-            this.goBack();
-          }
-        );
+        this.getTeacher(nid);
       } else {
         this.goBack();
       }
@@ -120,5 +181,21 @@ export class TeacherDetailComponent
       this.isLoading = false;
       this.isFormLoading = false;
     }
+  }
+
+  private getTeacher(nid: number) {
+    this.teacherService.get(nid).subscribe(
+      x => {
+        if (x) {
+          this.teacherService.teacherInfo.id = nid;
+          this.createForm();
+        } else {
+          this.goBack();
+        }
+      },
+      error => {
+        this.goBack();
+      }
+    );
   }
 }

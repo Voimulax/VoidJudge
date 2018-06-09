@@ -1,19 +1,19 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatDialog, MatTableDataSource } from '@angular/material';
 
 import { DialogService } from '../../../../shared/dialog/dialog.service';
 import { FileService } from '../../../../shared/file/file.service';
-import {
-  StudentInfo,
-  StudentInfoWithSymbol,
-  StudentResultType,
-  StudentListDialogData
-} from '../../student.model';
 import { StudentService } from '../../student.service';
 import { StudentInfoDialogComponent } from '../student-info-dialog/student-info-dialog.component';
 import { StudentListDialogComponent } from '../student-list-dialog/student-list-dialog.component';
-import { UserType } from '../../../../core/auth/user.model';
+import {
+  UserType,
+  StudentInfoWithSymbol,
+  StudentInfo,
+  UserResultType,
+  UserListDialogData
+} from '../../../../core/auth/user.model';
 
 @Component({
   selector: 'app-student-create-multi',
@@ -21,6 +21,7 @@ import { UserType } from '../../../../core/auth/user.model';
   styleUrls: ['./student-create-multi.component.css']
 })
 export class StudentCreateMultiComponent implements OnInit {
+  @ViewChild('fileForm') fileForm: ElementRef;
   displayedColumns = [
     'select',
     'loginName',
@@ -43,7 +44,11 @@ export class StudentCreateMultiComponent implements OnInit {
   ngOnInit() {}
 
   isImported() {
-    return this.dataSource.data.length > 0;
+    const flag = this.dataSource.data.length > 0;
+    if (!flag) {
+      this.fileForm.nativeElement.reset();
+    }
+    return flag;
   }
 
   isSelected() {
@@ -72,15 +77,15 @@ export class StudentCreateMultiComponent implements OnInit {
         userType: UserType.student
       };
     });
-    this.studentService.addStudents(sis).subscribe(x => {
-      if (x.type === StudentResultType.ok) {
+    this.studentService.adds(sis).subscribe(x => {
+      if (x.type === UserResultType.ok) {
         this.dialogService.showNoticeMessage('创建成功', () => {
           this.selection.clear();
           this.dataSource.data = [];
         });
-      } else if (x.type === StudentResultType.wrong) {
+      } else if (x.type === UserResultType.wrong) {
         this.dialogService.showErrorMessage('创建失败, 上传内容有错');
-      } else if (x.type === StudentResultType.repeat) {
+      } else if (x.type === UserResultType.repeat) {
         const s = new Set(x.repeat.map(xx => xx.loginName));
         this.showStudentListDialog({
           type: '创建',
@@ -159,20 +164,25 @@ export class StudentCreateMultiComponent implements OnInit {
     this.selection.clear();
   }
 
-  private showStudentListDialog(data: StudentListDialogData) {
+  private showStudentListDialog(
+    data: UserListDialogData<StudentInfoWithSymbol>
+  ) {
     this.dialog.open(StudentListDialogComponent, {
       data: data,
       minWidth: '430px'
     });
   }
 
-  private showStudentInfoDialog(data: StudentInfoWithSymbol, callback?: Function) {
+  private showStudentInfoDialog(
+    data: StudentInfoWithSymbol,
+    callback?: Function
+  ) {
     const dialog = this.dialog.open(StudentInfoDialogComponent, {
       data: data
     });
     dialog.afterClosed().subscribe(r => {
       if (callback) {
-        callback();
+        callback(r);
       }
     });
   }

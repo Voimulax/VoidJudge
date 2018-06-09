@@ -1,14 +1,21 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatDialog, MatTableDataSource } from '@angular/material';
 
 import { DialogService } from '../../../../shared/dialog/dialog.service';
 import { FileService } from '../../../../shared/file/file.service';
-import { TeacherInfo, TeacherInfoWithSymbol } from '../../teacher.model';
 import { TeacherInfoDialogComponent } from '../teacher-info-dialog/teacher-info-dialog.component';
 import { TeacherListDialogComponent } from '../teacher-list-dialog/teacher-list-dialog.component';
 import { TeacherService } from '../../teacher.service';
-import { UserType } from '../../../../core/auth/user.model';
+import {
+  UserType,
+  UserInfoWithSymbol,
+  UserInfo,
+  UserResultType,
+  UserListDialogData,
+  getUserType
+} from '../../../../core/auth/user.model';
+import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-teacher-create-multi',
@@ -16,9 +23,17 @@ import { UserType } from '../../../../core/auth/user.model';
   styleUrls: ['./teacher-create-multi.component.css']
 })
 export class TeacherCreateMultiComponent implements OnInit {
-  displayedColumns = ['select', 'loginName', 'userName', 'password', 'userType', 'sid'];
-  dataSource = new MatTableDataSource<TeacherInfoWithSymbol>();
-  selection = new SelectionModel<TeacherInfoWithSymbol>(true, []);
+  @ViewChild('fileForm') fileForm: ElementRef;
+  displayedColumns = [
+    'select',
+    'loginName',
+    'userName',
+    'password',
+    'userType',
+    'sid'
+  ];
+  dataSource = new MatTableDataSource<UserInfoWithSymbol>();
+  selection = new SelectionModel<UserInfoWithSymbol>(true, []);
   isLoading = false;
 
   constructor(
@@ -31,7 +46,11 @@ export class TeacherCreateMultiComponent implements OnInit {
   ngOnInit() {}
 
   isImported() {
-    return this.dataSource.data.length > 0;
+    const flag = this.dataSource.data.length > 0;
+    if (!flag) {
+      this.fileForm.nativeElement.reset();
+    }
+    return flag;
   }
 
   isSelected() {
@@ -51,17 +70,38 @@ export class TeacherCreateMultiComponent implements OnInit {
   }
 
   create() {
-    console.log(
-      this.dataSource.data.map(x => {
-        return { loginName: x.loginName, userName: x.userName, password: x.password, userType: x.userType };
-      })
-    );
+    const sis: UserInfo[] = this.dataSource.data.map(x => {
+      return {
+        loginName: x.loginName,
+        userName: x.userName,
+        password: x.password,
+        userType: x.userType
+      };
+    });
+    this.teacherService.adds(sis).subscribe(x => {
+      if (x.type === UserResultType.ok) {
+        this.dialogService.showNoticeMessage('创建成功', () => {
+          this.selection.clear();
+          this.dataSource.data = [];
+        });
+      } else if (x.type === UserResultType.wrong) {
+        this.dialogService.showErrorMessage('创建失败, 上传内容有错');
+      } else if (x.type === UserResultType.repeat) {
+        const s = new Set(x.repeat.map(xx => xx.loginName));
+        this.showTeacherListDialog({
+          type: '创建',
+          repeatList: this.dataSource.data.filter(d => s.has(d.loginName))
+        });
+      } else {
+        this.dialogService.showErrorMessage('网络错误');
+      }
+    });
   }
 
   import(evt: any, fileForm: HTMLFormElement) {
     const header = ['用户名', '姓名', '初始密码', '用户类型'];
     const propertys = ['loginName', 'userName', 'password', 'userType'];
-    this.fileService.readExcelFile<TeacherInfoWithSymbol>(
+    this.fileService.readExcelFile<UserInfoWithSymbol>(
       evt,
       { key: 'loginName', header: header, propertys: propertys },
       this.importCallback(fileForm)
@@ -69,7 +109,7 @@ export class TeacherCreateMultiComponent implements OnInit {
   }
 
   importCallback(fileForm: HTMLFormElement) {
-    return (data: Array<TeacherInfoWithSymbol>, error: Error) => {
+    return (data: Array<UserInfoWithSymbol>, error: Error) => {
       if (error) {
         this.dialogService.showErrorMessage(error.message);
         fileForm.reset();
@@ -78,14 +118,17 @@ export class TeacherCreateMultiComponent implements OnInit {
           data.find(y => y.loginName === x.loginName)
         );
         if (repeatList.length > 0) {
-          this.dialog.open(TeacherListDialogComponent, {
-            data: { repeatList: repeatList },
-            minWidth: '430px'
+          this.showTeacherListDialog({
+            type: '导入',
+            repeatList: repeatList
           });
         } else {
           const list = this.dataSource.data.concat(
             data.map(x => {
-              if (x['userType'].toString() === '0' || x['userType'].toString() === '管理员') {
+              if (
+                x['userType'].toString() === '0' ||
+                x['userType'].toString() === '管理员'
+              ) {
                 x['userType'] = UserType.admin;
               } else {
                 x['userType'] = UserType.teacher;
@@ -103,18 +146,15 @@ export class TeacherCreateMultiComponent implements OnInit {
     };
   }
 
-  edit(x: TeacherInfoWithSymbol, event: MouseEvent) {
+  edit(x: UserInfoWithSymbol, event: MouseEvent) {
     event.stopPropagation();
-    const dialog = this.dialog.open(TeacherInfoDialogComponent, {
-      data: x
-    });
-    dialog.afterClosed().subscribe(r => {
+    this.showTeacherInfoDialog(x, r => {
       if (r) {
-        r = r as TeacherInfo;
+        r = r as UserInfo;
         x.loginName = r.loginName;
         x.userName = r.userName;
         x.password = r.password;
-        x.userType = Number(r.userType);
+        x.userType = getUserType(r.userType);
         const data = this.dataSource.data;
         for (let i = 0; i < data.length; i++) {
           if (data[i].sid === x.sid) {
@@ -131,5 +171,23 @@ export class TeacherCreateMultiComponent implements OnInit {
     const select = new Set(this.selection.selected);
     this.dataSource.data = this.dataSource.data.filter(x => !select.has(x));
     this.selection.clear();
+  }
+
+  private showTeacherListDialog(data: UserListDialogData<UserInfoWithSymbol>) {
+    this.dialog.open(TeacherListDialogComponent, {
+      data: data,
+      minWidth: '430px'
+    });
+  }
+
+  private showTeacherInfoDialog(data: UserInfoWithSymbol, callback?: Function) {
+    const dialog = this.dialog.open(TeacherInfoDialogComponent, {
+      data: data
+    });
+    dialog.afterClosed().subscribe(r => {
+      if (callback) {
+        callback(r);
+      }
+    });
   }
 }

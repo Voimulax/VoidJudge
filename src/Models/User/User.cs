@@ -33,7 +33,7 @@ namespace VoidJudge.Models.User
     public class User<T> where T: UserBasicInfo
     {
         public T BasicInfo { get; set; }
-        public string RoleCode { get; set; }
-        public IEnumerable<UserClaimInfo> ClaimInfos { get; set; }
+        public string RoleCode { get; set; } = null;
+        public IEnumerable<UserClaimInfo> ClaimInfos { get; set; } = null;
     }
 }

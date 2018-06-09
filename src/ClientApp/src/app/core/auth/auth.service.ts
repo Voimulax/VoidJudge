@@ -5,7 +5,7 @@ import {
   HttpErrorResponse
 } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { tap, delay, map, catchError, switchMap } from 'rxjs/operators';
+import { map, catchError, switchMap, finalize } from 'rxjs/operators';
 import { JwtHelperService } from '@auth0/angular-jwt';
 
 import { TokenService } from './token.service';
@@ -16,6 +16,7 @@ import {
   LoginUser,
   ResetUser
 } from './user.model';
+import { DialogService } from '../../shared/dialog/dialog.service';
 
 @Injectable({
   providedIn: 'root'
@@ -29,16 +30,11 @@ export class AuthService {
   private userBaseUrl = '/api/user';
 
   constructor(
+    private dialogService: DialogService,
     private http: HttpClient,
     private jwtHelperService: JwtHelperService,
     private tokenService: TokenService
-  ) {
-    if (this.checkLogin()) {
-      this.getUser(this.tokenService.userId).subscribe(x => {
-        this.afterLoginSuccess(x);
-      });
-    }
-  }
+  ) {}
 
   getUser<T extends User>(id: number): Observable<T> {
     return this.http.get(`${this.userBaseUrl}/${id}`).pipe(
@@ -108,11 +104,15 @@ export class AuthService {
   }
 
   resetPassword(resetUser: ResetUser) {
+    this.dialogService.isLoadingDialogActive = true;
     return this.http
       .post<ResetUser>(`${this.baseUrl}/resetpassword`, resetUser, {
         headers: new HttpHeaders({ 'Content-Type': 'application/json' })
       })
       .pipe(
+        finalize(() => {
+          this.dialogService.isLoadingDialogActive = false;
+        }),
         map(x => {
           if (x['error'] === '0') {
             return AuthResult.ok;
@@ -128,25 +128,42 @@ export class AuthService {
       );
   }
 
-  private checkLogin(): boolean {
+  public checkLogin(): Observable<boolean> {
+    if (this.isLoggedIn) {
+      return of(true);
+    }
     const token = this.tokenService.token;
     if (token) {
-      let flag: boolean;
+      let flag$: Observable<boolean>;
       try {
-        flag = this.jwtHelperService.isTokenExpired();
-        if (!flag) {
-          return true;
-        } else {
-          this.logout();
-          return false;
-        }
+        flag$ = of(this.jwtHelperService.isTokenExpired());
+        return flag$.pipe(
+          switchMap(x => {
+            if (!x) {
+              return this.getUser(this.tokenService.userId).pipe(
+                switchMap(y => {
+                  if (y) {
+                    this.afterLoginSuccess(y);
+                    return of(true);
+                  } else {
+                    this.logout();
+                    return of(false);
+                  }
+                })
+              );
+            } else {
+              this.logout();
+              return of(false);
+            }
+          })
+        );
       } catch (error) {
         this.logout();
-        return false;
+        return of(false);
       }
     } else {
       this.logout();
-      return false;
+      return of(false);
     }
   }
 

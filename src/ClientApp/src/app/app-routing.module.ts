@@ -1,5 +1,7 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
+import { environment } from '../environments/environment';
+
 import { AuthGuard } from './core/auth/auth.guard';
 import { UserType } from './core/auth/user.model';
 import { TestGuard } from './test/test.guard';
@@ -39,7 +41,7 @@ const routes: Routes = [
 @NgModule({
   imports: [
     RouterModule.forRoot(routes, {
-      enableTracing: true
+      enableTracing: !environment.production
     })
   ],
   exports: [RouterModule]

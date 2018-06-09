@@ -9,7 +9,7 @@ namespace VoidJudge.Services
     {
         Task<AddUserResult> AddUsers(IEnumerable<User<AddUserBasicInfo>> addUsers);
         Task<GetUserResult> GetUser(long id, string roleCode = null);
-        Task<IEnumerable<User<GetUserBasicInfo>>> GetUsers(string roleCode);
+        Task<IEnumerable<User<GetUserBasicInfo>>> GetUsers(IEnumerable<string> roleCodes);
         Task<PutUserResult> PutUser(User<PutUserBasicInfo> putUser);
         Task<DeleteResult> DeleteUser(long id);
     }

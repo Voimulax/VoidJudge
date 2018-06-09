@@ -1,6 +1,6 @@
 <mat-card>
   <mat-card-content>
-    <form (ngSubmit)="login()" [formGroup]="loginForm">
+    <form #form (ngSubmit)="login()" [formGroup]="loginForm">
       <div fxLayout="column" fxLayoutAlign="space-between center" fxLayoutGap="10px">
         <mat-form-field class="loginFormControl">
           <input #loginNameBox matInput placeholder="用户名" formControlName="loginName" [errorStateMatcher]="matcher" [readOnly]="isLoading">

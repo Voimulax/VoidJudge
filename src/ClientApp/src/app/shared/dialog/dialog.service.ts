@@ -4,12 +4,23 @@ import { MatDialog } from '@angular/material';
 import { ErrorDialogComponent } from './error-dialog/error-dialog.component';
 import { OkDialogComponent } from './ok-dialog/ok-dialog.component';
 import { NoticeDialogComponent } from './notice-dialog/notice-dialog.component';
+import { Subject, Subscription, Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DialogService {
-  constructor(private dialog: MatDialog) {}
+  private isLoadingDialogActiveSubj: Subject<boolean>;
+  isLoadingDialogActive$: Observable<boolean>;
+
+  constructor(private dialog: MatDialog) {
+    this.isLoadingDialogActiveSubj = new Subject<boolean>();
+    this.isLoadingDialogActive$ = this.isLoadingDialogActiveSubj.pipe();
+   }
+
+  set isLoadingDialogActive(value: boolean) {
+    this.isLoadingDialogActiveSubj.next(value);
+  }
 
   showErrorMessage(errorMessage: string, callback?: Function) {
     const dialog = this.dialog.open(ErrorDialogComponent, {

@@ -52,12 +52,13 @@ namespace VoidJudge.Services
             await _context.SaveChangesAsync();
 
             var userClaims = (from au in addUsers
+                              where au.ClaimInfos != null
                               from uc in au.ClaimInfos
                               join c in _context.Claims on uc.Type equals c.Type
                               join u in _context.Users on au.BasicInfo.LoginName equals u.LoginName
                               select new UserClaim { UserId = u.Id, ClaimId = c.Id, Value = uc.Value }).ToList();
 
-            if (userClaims.Count != addUsers.Sum(x => x.ClaimInfos.Count()))
+            if (userClaims.Count != addUsers.Sum(x => x.ClaimInfos?.Count() ?? 0))
             {
                 return new AddUserResult { Type = AddResult.Error };
             }
@@ -114,12 +115,13 @@ namespace VoidJudge.Services
             };
         }
 
-        public async Task<IEnumerable<User<GetUserBasicInfo>>> GetUsers(string roleCode)
+        public async Task<IEnumerable<User<GetUserBasicInfo>>> GetUsers(IEnumerable<string> roleCodes)
         {
-            var role = _authService.CheckRoleCode(roleCode);
-            if (role == null) return null;
+            var roles = GetRoles(roleCodes);
+            if (roles == null) return null;
             var userIds = await (from ur in _context.UserRoles
-                                 where ur.RoleId == role.Id
+                                 join r in roles on ur.RoleId equals r.Id
+                                 where ur.RoleId == r.Id
                                  select ur.UserId).ToListAsync();
 
             var users = new ConcurrentBag<User<GetUserBasicInfo>>();
@@ -146,16 +148,6 @@ namespace VoidJudge.Services
             var user = await _context.Users.FindAsync(putUser.BasicInfo.Id);
             if (user == null) return new PutUserResult { Type = PutResult.UserNotFound };
 
-            var userRole = _context.UserRoles.FirstOrDefault(x => x.UserId == user.Id);
-            if (userRole == null) return new PutUserResult { Type = PutResult.Error };
-
-            var userClaims = (from pc in putUser.ClaimInfos
-                              join uc in _context.UserClaims on user.Id equals uc.UserId
-                              join c in _context.Claims on uc.ClaimId equals c.Id
-                              where c.Type == pc.Type
-                              select uc).ToList();
-            if (userClaims.Count() != putUser.ClaimInfos.Count()) return new PutUserResult { Type = PutResult.Error }; ;
-
             user.LoginName = putUser.BasicInfo.LoginName;
             user.UserName = putUser.BasicInfo.UserName;
             if (putUser.BasicInfo.Password != null)
@@ -164,25 +156,43 @@ namespace VoidJudge.Services
                 user.Password = _passwordHasher.HashPassword(user, putUser.BasicInfo.Password);
             }
 
-            var role = _authService.CheckRoleCode(putUser.RoleCode);
-            if (role == null) return new PutUserResult { Type = PutResult.Error };
-
-            userRole.RoleId = role.Id;
-
-            foreach (var userClaim in userClaims)
+            if (putUser.RoleCode != null)
             {
-                userClaim.Value = (from pc in putUser.ClaimInfos
-                                   join c in _context.Claims on pc.Type equals c.Type
-                                   where c.Id == userClaim.ClaimId
-                                   select pc.Value).FirstOrDefault();
+                var userRole = _context.UserRoles.FirstOrDefault(x => x.UserId == user.Id);
+                if (userRole == null) return new PutUserResult { Type = PutResult.Error };
+
+                var role = _authService.CheckRoleCode(putUser.RoleCode);
+                if (role == null) return new PutUserResult { Type = PutResult.Error };
+
+                userRole.RoleId = role.Id;
+
+                _context.Entry(userRole).State = EntityState.Modified;
+            }
+
+            if (putUser.ClaimInfos != null)
+            {
+                var userClaims = (from pc in putUser.ClaimInfos
+                    join uc in _context.UserClaims on user.Id equals uc.UserId
+                    join c in _context.Claims on uc.ClaimId equals c.Id
+                    where c.Type == pc.Type
+                    select uc).ToList();
+                if (userClaims.Count() != putUser.ClaimInfos.Count()) return new PutUserResult { Type = PutResult.Error };
+
+                foreach (var userClaim in userClaims)
+                {
+                    userClaim.Value = (from pc in putUser.ClaimInfos
+                        join c in _context.Claims on pc.Type equals c.Type
+                        where c.Id == userClaim.ClaimId
+                        select pc.Value).FirstOrDefault();
+                }
+
+                foreach (var userClaim in userClaims)
+                {
+                    _context.Entry(userClaim).State = EntityState.Modified;
+                }
             }
 
             _context.Entry(user).State = EntityState.Modified;
-            _context.Entry(userRole).State = EntityState.Modified;
-            foreach (var userClaim in userClaims)
-            {
-                _context.Entry(userClaim).State = EntityState.Modified;
-            }
 
             try
             {
@@ -214,7 +224,7 @@ namespace VoidJudge.Services
             return DeleteResult.Ok;
         }
 
-        private string GetRandomPassword()
+        private static string GetRandomPassword()
         {
             var r = new Random();
             var res = new List<int>();
@@ -223,6 +233,20 @@ namespace VoidJudge.Services
                 res.Add(r.Next(10));
             }
             return string.Join("", res);
+        }
+
+        private IEnumerable<Role> GetRoles(IEnumerable<string> roleCodes)
+        {
+            try
+            {
+                var codes = roleCodes.ToList();
+                var roles = codes.Select(_authService.CheckRoleCode).ToList();
+                return roles.Count != codes.Count ? null : roles;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
     }
 }

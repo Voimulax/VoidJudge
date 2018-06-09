@@ -84,7 +84,7 @@ namespace VoidJudge.Controllers
         [HttpGet]
         public async Task<IActionResult> GetUsers([FromQuery] string roleCode)
         {
-            var user = await _userService.GetUsers(roleCode);
+            var user = await _userService.GetUsers(roleCode.Split('#'));
 
             if (user == null)
             {
@@ -129,24 +129,21 @@ namespace VoidJudge.Controllers
         public async Task<IActionResult> DeleteUser([FromRoute] long id)
         {
             var result = await _userService.DeleteUser(id);
-            if (result == DeleteResult.Forbiddance)
+            switch (result)
             {
-                return new ObjectResult(new GeneralResult { Error = $"{(int)result}" })
-                {
-                    StatusCode = StatusCodes.Status403Forbidden
-                };
-            }
-            else if (result == DeleteResult.UserNotFound)
-            {
-                return NotFound(new GeneralResult { Error = $"{(int)result}" });
-            }
-            else if (result == DeleteResult.Error)
-            {
-                return BadRequest(new GeneralResult { Error = $"{(int)result}" });
-            }
-            else
-            {
-                return Ok(new GeneralResult { Error = $"{(int)result}" });
+                case DeleteResult.Forbiddance:
+                    return new ObjectResult(new GeneralResult { Error = $"{(int)result}" })
+                    {
+                        StatusCode = StatusCodes.Status403Forbidden
+                    };
+                case DeleteResult.UserNotFound:
+                    return NotFound(new GeneralResult { Error = $"{(int)result}" });
+                case DeleteResult.Error:
+                    return BadRequest(new GeneralResult { Error = $"{(int)result}" });
+                case DeleteResult.Ok:
+                    return Ok(new GeneralResult { Error = $"{(int)result}" });
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
         }
     }

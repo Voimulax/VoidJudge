@@ -3,6 +3,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -89,6 +90,11 @@ namespace VoidJudge.Services
             user.Password = _passwordHasher.HashPassword(user, resetUser.NewPassword);
             _context.SaveChanges();
             return AuthResult.Ok;
+        }
+
+        public async Task<bool> IsUserExist(long id)
+        {
+            return (await _context.Users.FindAsync(id)) != null;
         }
 
         public bool CompareRoleAuth(string roleCodeA, string roleCodeB)

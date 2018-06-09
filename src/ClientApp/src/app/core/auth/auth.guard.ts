@@ -7,10 +7,11 @@ import {
   Router,
   RouterStateSnapshot
 } from '@angular/router';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 
 import { AuthService } from './auth.service';
 import { UserType } from './user.model';
+import { tap, map } from 'rxjs/operators';
 
 @Injectable()
 export class AuthGuard implements CanActivate, CanLoad {
@@ -30,24 +31,32 @@ export class AuthGuard implements CanActivate, CanLoad {
     return this.checkLogin(url, userType);
   }
 
-  checkLogin(url: string | undefined, userType: UserType | undefined): boolean {
+  checkLogin(
+    url: string | undefined,
+    userType: UserType | undefined
+  ): Observable<boolean> {
     if (url === '/404') {
-      return true;
+      return of(true);
     }
 
-    if (this.authService.isLoggedIn) {
-      if (this.authService.user.userType !== userType) {
-        this.router.navigate([this.authService.redirectUrl]);
-        return true;
-      }
-      return true;
-    }
-
-    if (url === '/') {
-      return true;
-    }
-
-    this.router.navigate(['/']);
-    return true;
+    return this.authService.checkLogin().pipe(
+      map(x => {
+        if (x) {
+          if (this.authService.user.userType !== userType) {
+            this.router.navigate([this.authService.redirectUrl]);
+            return true;
+          } else {
+            return true;
+          }
+        } else {
+          if (url === '/') {
+            return true;
+          } else {
+            this.router.navigate(['/']);
+            return true;
+          }
+        }
+      })
+    );
   }
 }

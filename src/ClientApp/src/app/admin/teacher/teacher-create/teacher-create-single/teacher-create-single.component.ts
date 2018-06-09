@@ -1,17 +1,21 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import {
   FormBuilder,
   FormControl,
   FormGroup,
   Validators
 } from '@angular/forms';
-import { MatDialog, MatSelect } from '@angular/material';
+import { MatSelect } from '@angular/material';
 import { Router } from '@angular/router';
 
 import { DialogService } from '../../../../shared/dialog/dialog.service';
 import { FormErrorStateMatcher } from '../../../../shared/form-error-state-matcher';
-import { TeacherInfo } from '../../teacher.model';
 import { TeacherService } from '../../teacher.service';
+import {
+  UserInfo,
+  getUserType,
+  UserResultType
+} from '../../../../core/auth/user.model';
 
 @Component({
   selector: 'app-teacher-create-single',
@@ -19,6 +23,7 @@ import { TeacherService } from '../../teacher.service';
   styleUrls: ['./teacher-create-single.component.css']
 })
 export class TeacherCreateSingleComponent implements OnInit {
+  @ViewChild('form') form: ElementRef;
   isLoading = false;
   matcher = new FormErrorStateMatcher();
   teacherForm: FormGroup;
@@ -30,8 +35,8 @@ export class TeacherCreateSingleComponent implements OnInit {
     private teacherService: TeacherService,
     private router: Router
   ) {
-    if (!this.teacherService.currentTeacherInfo) {
-      this.teacherService.currentTeacherInfo = {
+    if (!this.teacherService.teacherInfo) {
+      this.teacherService.teacherInfo = {
         loginName: '',
         userName: '',
         password: '',
@@ -39,32 +44,32 @@ export class TeacherCreateSingleComponent implements OnInit {
       };
     }
     this.createForm();
-   }
-
-  ngOnInit() {
   }
+
+  ngOnInit() {}
 
   createForm() {
     this.teacherForm = this.fb.group({
-      loginName: new FormControl(this.teacherService.currentTeacherInfo.loginName, [
+      loginName: new FormControl(this.teacherService.teacherInfo.loginName, [
         Validators.required,
         Validators.maxLength(32),
         Validators.pattern(/^\S+$/)
       ]),
-      userName: new FormControl(this.teacherService.currentTeacherInfo.userName, [
+      userName: new FormControl(this.teacherService.teacherInfo.userName, [
         Validators.required,
         Validators.maxLength(32),
         Validators.pattern(/^\S+$/)
       ]),
-      password: new FormControl(this.teacherService.currentTeacherInfo.password, [
+      password: new FormControl(this.teacherService.teacherInfo.password, [
         Validators.required,
         Validators.minLength(6),
         Validators.maxLength(32),
         Validators.pattern(/^\S+$/)
       ]),
-      userType: new FormControl(this.teacherService.currentTeacherInfo.userType.toString(), [
-        Validators.required
-      ])
+      userType: new FormControl(
+        this.teacherService.teacherInfo.userType.toString(),
+        [Validators.required]
+      )
     });
   }
 
@@ -73,5 +78,30 @@ export class TeacherCreateSingleComponent implements OnInit {
     this.userTypeSelect.disabled = b;
   }
 
-  create() {}
+  create() {
+    const si: UserInfo = this.teacherForm.value;
+    si.userType = getUserType(this.teacherForm.get('userType').value);
+    this.teacherService.add(si).subscribe(x => {
+      if (x.type === UserResultType.ok) {
+        this.dialogService.showNoticeMessage('创建成功', () => {
+          this.teacherService.teacherInfo = {
+            loginName: '',
+            userName: '',
+            password: '',
+            userType: 1
+          };
+          this.form.nativeElement.reset();
+        });
+      } else if (x.type === UserResultType.wrong) {
+        this.dialogService.showErrorMessage('创建失败, 上传内容有错');
+      } else if (x.type === UserResultType.repeat) {
+        const s = new Set(x.repeat.map(xx => xx.loginName));
+        this.dialogService.showErrorMessage(
+          `用户名为“${si.loginName}”的用户已经被创建`
+        );
+      } else {
+        this.dialogService.showErrorMessage('网络错误');
+      }
+    });
+  }
 }

@@ -8,7 +8,7 @@ import {
 import { MAT_DIALOG_DATA } from '@angular/material';
 
 import { FormErrorStateMatcher } from '../../../../shared/form-error-state-matcher';
-import { TeacherInfo } from '../../teacher.model';
+import { UserInfo } from '../../../../core/auth/user.model';
 
 @Component({
   selector: 'app-teacher-info-dialog',
@@ -20,7 +20,7 @@ export class TeacherInfoDialogComponent implements OnInit {
   teacherForm: FormGroup;
 
   constructor(
-    @Inject(MAT_DIALOG_DATA) public data: TeacherInfo,
+    @Inject(MAT_DIALOG_DATA) public data: UserInfo,
     private fb: FormBuilder
   ) {
     this.createForm();

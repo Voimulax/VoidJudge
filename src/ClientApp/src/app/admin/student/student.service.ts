@@ -5,17 +5,18 @@ import {
   HttpErrorResponse,
   HttpParams
 } from '@angular/common/http';
-import { catchError, finalize, map, startWith, tap } from 'rxjs/operators';
+import { catchError, map, tap, finalize } from 'rxjs/operators';
 import { of, Observable } from 'rxjs';
 
 import {
-  StudentInfo,
-  StudentResultType,
-  StudentResult,
-  PutStudentResult,
-  DeleteStudentResultType,
-  PutStudentResultType
-} from './student.model';
+  PutResult,
+  PutResultType,
+  UserResult,
+  UserResultType,
+  DeleteResultType,
+  StudentInfo
+} from '../../core/auth/user.model';
+import { DialogService } from '../../shared/dialog/dialog.service';
 
 const httpOptions = {
   headers: new HttpHeaders({ 'Content-Type': 'application/json' })
@@ -28,9 +29,9 @@ export class StudentService {
   studentInfo: StudentInfo;
   private baseUrl = '/api/user';
 
-  constructor(private http: HttpClient) {}
+  constructor(private dialogService: DialogService, private http: HttpClient) {}
 
-  getStudent(id: number): Observable<StudentInfo> {
+  get(id: number): Observable<StudentInfo> {
     return this.http.get(`${this.baseUrl}/${id}`).pipe(
       map(x => {
         const b = x['data']['basicInfo'];
@@ -51,7 +52,7 @@ export class StudentService {
     );
   }
 
-  getStudents(): Observable<StudentInfo[]> {
+  gets(): Observable<StudentInfo[]> {
     return this.http
       .get(this.baseUrl, {
         params: new HttpParams().set('roleCode', '2')
@@ -75,7 +76,7 @@ export class StudentService {
       );
   }
 
-  putStudent(studentInfo: StudentInfo): Observable<PutStudentResult> {
+  put(studentInfo: StudentInfo): Observable<PutResult<StudentInfo>> {
     const s = {
       basicInfo: {
         id: studentInfo.id,
@@ -86,9 +87,13 @@ export class StudentService {
       roleCode: studentInfo.userType,
       claimInfos: [{ type: 'group', value: studentInfo.group }]
     };
+    this.dialogService.isLoadingDialogActive = true;
     return this.http
       .put(`${this.baseUrl}/${studentInfo.id}`, s, httpOptions)
       .pipe(
+        finalize(() => {
+          this.dialogService.isLoadingDialogActive = false;
+        }),
         map(x => {
           if (x['error'] === '0') {
             const b = x['data']['basicInfo'];
@@ -105,28 +110,28 @@ export class StudentService {
             this.studentInfo.loginName = user.loginName;
             this.studentInfo.userName = user.userName;
             this.studentInfo.group = user.group;
-            return { type: PutStudentResultType.ok, user: user };
+            return { type: PutResultType.ok, user: user };
           }
         }),
         catchError((e: HttpErrorResponse) => {
           if (e.status === 400 && e.error['error'] === '1') {
-            return of({ type: PutStudentResultType.concurrencyException });
+            return of({ type: PutResultType.concurrencyException });
           } else if (e.status === 404 && e.error['error'] === '2') {
-            return of({ type: PutStudentResultType.userNotFound });
+            return of({ type: PutResultType.userNotFound });
           } else {
-            return of({ type: PutStudentResultType.error });
+            return of({ type: PutResultType.error });
           }
         })
       );
   }
 
-  addStudent(studentInfo: StudentInfo): Observable<StudentResult> {
+  add(studentInfo: StudentInfo): Observable<UserResult> {
     const sis = Array<StudentInfo>();
     sis.push(studentInfo);
-    return this.addStudents(sis);
+    return this.adds(sis);
   }
 
-  addStudents(studentInfos: Array<StudentInfo>): Observable<StudentResult> {
+  adds(studentInfos: Array<StudentInfo>): Observable<UserResult> {
     const sis = studentInfos.map(x => {
       return {
         basicInfo: {
@@ -138,41 +143,49 @@ export class StudentService {
         claimInfos: [{ type: 'group', value: x.group }]
       };
     });
+    this.dialogService.isLoadingDialogActive = true;
     return this.http.post(`${this.baseUrl}`, sis, httpOptions).pipe(
+      finalize(() => {
+        this.dialogService.isLoadingDialogActive = false;
+      }),
       map(x => {
         if (x['error'] === '0') {
-          return { type: StudentResultType.ok };
+          return { type: UserResultType.ok };
         }
       }),
       catchError((e: HttpErrorResponse) => {
         if (e.status === 406 && e.error['error'] === '1') {
-          return of({ type: StudentResultType.wrong });
+          return of({ type: UserResultType.wrong });
         } else if (e.status === 406 && e.error['error'] === '2') {
           return of({
-            type: StudentResultType.repeat,
+            type: UserResultType.repeat,
             repeat: e.error['data']
           });
         } else {
-          return of({ type: StudentResultType.error });
+          return of({ type: UserResultType.error });
         }
       })
     );
   }
 
-  deleteStudent(id: number): Observable<DeleteStudentResultType> {
+  delete(id: number): Observable<DeleteResultType> {
+    this.dialogService.isLoadingDialogActive = true;
     return this.http.delete(`${this.baseUrl}/${id}`).pipe(
+      finalize(() => {
+        this.dialogService.isLoadingDialogActive = false;
+      }),
       map(x => {
         if (x['error'] === '0') {
-          return DeleteStudentResultType.ok;
+          return DeleteResultType.ok;
         }
       }),
       catchError((e: HttpErrorResponse) => {
         if (e.status === 403) {
-          return of(DeleteStudentResultType.forbiddance);
+          return of(DeleteResultType.forbiddance);
         } else if (e.status === 404) {
-          return of(DeleteStudentResultType.userNotFound);
+          return of(DeleteResultType.userNotFound);
         } else {
-          return of(DeleteStudentResultType.error);
+          return of(DeleteResultType.error);
         }
       })
     );

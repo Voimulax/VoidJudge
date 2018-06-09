@@ -1,11 +1,10 @@
-import { Component, OnInit, Input, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import {
   FormBuilder,
   FormControl,
   FormGroup,
   Validators
 } from '@angular/forms';
-import { MatDialog } from '@angular/material';
 import { Router } from '@angular/router';
 
 import { AuthService, AuthResult } from '../../core/auth/auth.service';
@@ -21,7 +20,8 @@ export class LoginComponent implements OnInit {
   isLoading = false;
   matcher = new FormErrorStateMatcher();
   loginForm: FormGroup;
-  @ViewChild('loginNameBox') loginNameBox;
+  @ViewChild('form') form: ElementRef;
+  @ViewChild('loginNameBox') loginNameBox: ElementRef;
 
   constructor(
     private authService: AuthService,
@@ -55,6 +55,7 @@ export class LoginComponent implements OnInit {
       if (b === AuthResult.ok) {
         this.router.navigate([this.authService.redirectUrl]);
       } else {
+        this.form.nativeElement.reset();
         let str = '';
         if (b === AuthResult.error) {
           str = '网络错误';
@@ -63,7 +64,6 @@ export class LoginComponent implements OnInit {
         }
         this.dialogService.showErrorMessage(str, () => {
           this.isLoading = false;
-          this.loginForm.reset();
           this.loginNameBox.nativeElement.focus();
         });
       }

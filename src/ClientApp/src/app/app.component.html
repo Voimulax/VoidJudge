@@ -1,1 +1,12 @@
-<router-outlet></router-outlet>
+<div [style.display]="isLoading ? 'none' : 'inline'">
+  <router-outlet></router-outlet>
+</div>
+
+<div class="mat-app-background loadingDialogDiv" *ngIf="isLoadingDialogActive" fxLayout="column" fxLayoutAlign="center center"
+  fxLayoutGap="0px">
+  <mat-spinner></mat-spinner>
+</div>
+
+<div class="mat-app-background loadingDiv" *ngIf="isLoading" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="0px">
+  <mat-spinner></mat-spinner>
+</div>

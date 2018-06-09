@@ -4,7 +4,6 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 
 import { ChangePasswordComponent } from './change-password/change-password.component';
-import { DialogModule } from './dialog/dialog.module';
 import { FileModule } from './file/file.module';
 import { HeadComponent } from './head/head.component';
 import { MaterialViewModule } from './material-view/material-view.module';
@@ -15,11 +14,9 @@ import { MaterialViewModule } from './material-view/material-view.module';
     MaterialViewModule,
     RouterModule,
     FormsModule,
-    ReactiveFormsModule,
-    DialogModule
+    ReactiveFormsModule
   ],
   exports: [
-    DialogModule,
     FileModule,
     FormsModule,
     ReactiveFormsModule,

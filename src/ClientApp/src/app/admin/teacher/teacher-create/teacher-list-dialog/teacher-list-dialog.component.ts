@@ -1,8 +1,6 @@
 import { Component, OnInit, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatTableDataSource } from '@angular/material';
-
-import { TeacherInfoWithSymbol } from '../../teacher.model';
-import { TeacherListDialogData } from '../../teacher.model';
+import { UserInfoWithSymbol, UserListDialogData } from '../../../../core/auth/user.model';
 
 @Component({
   selector: 'app-teacher-list-dialog',
@@ -11,10 +9,10 @@ import { TeacherListDialogData } from '../../teacher.model';
 })
 export class TeacherListDialogComponent implements OnInit {
   displayedColumns = ['loginName', 'userName', 'password', 'userType'];
-  repeatSource = new MatTableDataSource<TeacherInfoWithSymbol>();
-  errorSource = new MatTableDataSource<TeacherInfoWithSymbol>();
+  repeatSource = new MatTableDataSource<UserInfoWithSymbol>();
+  errorSource = new MatTableDataSource<UserInfoWithSymbol>();
 
-  constructor(@Inject(MAT_DIALOG_DATA) public data: TeacherListDialogData) {
+  constructor(@Inject(MAT_DIALOG_DATA) public data: UserListDialogData<UserInfoWithSymbol>) {
     this.repeatSource.data = data.repeatList;
   }
 
