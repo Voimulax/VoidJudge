@@ -1,7 +1,8 @@
 import { NgModule, Optional, SkipSelf } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 
+import { AuthInterceptor } from './auth/auth-interceptor';
 import { AuthModule } from './auth/auth.module';
 import { JwtModule } from '@auth0/angular-jwt';
 import { throwIfAlreadyLoaded } from './module-import-guard';
@@ -19,9 +20,18 @@ import { DialogModule } from '../shared/dialog/dialog.module';
         whitelistedDomains: ['localhost:4200'],
         blacklistedRoutes: []
       }
-    }),
+    })
   ],
-  exports: [HttpClientModule, AuthModule, JwtModule, MaterialViewModule, DialogModule],
+  providers: [
+    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }
+  ],
+  exports: [
+    HttpClientModule,
+    JwtModule,
+    MaterialViewModule,
+    DialogModule,
+    AuthModule
+  ],
   declarations: []
 })
 export class CoreModule {

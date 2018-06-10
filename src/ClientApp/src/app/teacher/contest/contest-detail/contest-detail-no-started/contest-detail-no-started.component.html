@@ -1,8 +1,7 @@
-<form (ngSubmit)="save()" [formGroup]="contestForm">
+<form [formGroup]="contestForm">
   <div fxLayout="column" fxLayoutAlign="start stretch" fxLayoutGap="25px">
     <div fxLayout="row" fxLayoutAlign="space-between center" fxLayoutGap="0px">
       <button mat-raised-button (click)="goBack()">返回</button>
-      <button mat-raised-button color="accent" type="submit" [disabled]="contestForm.invalid">保存</button>
     </div>
     <mat-vertical-stepper [linear]="true" #stepper>
       <mat-step label="输入考试的基本信息" [stepControl]="contestForm">
@@ -63,9 +62,20 @@
         </div>
       </mat-step>
 
-      <mat-step label="确认">
+      <mat-step label="{{contestInfo.state === 0? '保存' : '发布'}}">
         <div class="matStepContent" fxLayout="column" fxLayoutAlign="start stretch" fxLayoutGap="12.5px">
-          <p>请在确认好后请点击右上角的“保存”。</p>
+          <p>请确认考试的信息</p>
+          <p *ngIf="contestInfo.state !== 0">现在你可以进行
+            <button mat-raised-button color="accent" (click)="publish(true)" [disabled]="contestForm.invalid">发布</button>
+            或暂时不发布并
+            <button mat-raised-button color="primary" (click)="save()" [disabled]="contestForm.invalid">保存</button>
+          </p>
+          <p *ngIf="contestInfo.state === 0">
+            现在你可以
+            <button mat-raised-button color="accent" (click)="publish(false)" [disabled]="contestForm.invalid">取消发布</button>
+            或在确认好后
+            <button mat-raised-button color="primary" (click)="save()" [disabled]="contestForm.invalid">保存</button>
+          </p>
           <p>如有需要可以
             <button mat-raised-button color="warn" (click)="reset()">重置</button>
           </p>

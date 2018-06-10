@@ -17,11 +17,13 @@ namespace VoidJudge.Controllers
     [ApiController]
     public class UserController : Controller
     {
+        private readonly IAuthService _authService;
         private readonly IUserService _userService;
 
-        public UserController(IUserService userService)
+        public UserController(IUserService userService, IAuthService authService)
         {
             _userService = userService;
+            _authService = authService;
         }
 
         [Authorize(Roles = "0")]
@@ -54,7 +56,7 @@ namespace VoidJudge.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUserAsync([FromRoute] long id)
         {
-            var roleType = Request.HttpContext.User.Claims.SingleOrDefault(x => x.Type == ClaimTypes.Role)?.Value;
+            var roleType = _authService.GetRoleTypeFromRequest(Request.HttpContext.User.Claims);
             var result = await _userService.GetUserAsync(id, roleType);
 
             switch (result.Error)

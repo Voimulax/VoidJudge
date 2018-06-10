@@ -31,15 +31,13 @@ export class ContestCreateComponent implements OnInit {
   private url = '/teacher/contest';
 
   constructor(
-    private authService: AuthService,
     private contestService: ContestService,
     private fb: FormBuilder,
     private router: Router
   ) {
     if (!this.contestService.contestInfo) {
       this.contestService.contestInfo = {
-        name: '新考试',
-        teacherId: this.authService.user.id
+        name: '新考试'
       };
     }
     this.createForm();

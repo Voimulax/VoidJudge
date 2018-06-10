@@ -4,12 +4,13 @@ namespace VoidJudge.Models.Contest
 {
     public enum ContestState
     {
-        UnPublished, NoDownload, Over
+        UnPublished, NotDownloaded, DownLoaded
     }
 
     public class Contest
     {
         public long Id { get; set; }
+        public long UserId { get; set; }
         public string Name { get; set; }
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }

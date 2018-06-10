@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Text;
@@ -101,6 +102,16 @@ namespace VoidJudge.Services
         public bool CompareRoleAuth(string roleTypeA, string roleTypeB)
         {
             return int.Parse(roleTypeA) <= int.Parse(roleTypeB);
+        }
+
+        public string GetRoleTypeFromRequest(IEnumerable<Claim> claims)
+        {
+            return claims.SingleOrDefault(x => x.Type == ClaimTypes.Role)?.Value;
+        }
+
+        public long GetUserIdFromRequest(IEnumerable<Claim> claims)
+        {
+            return long.Parse(claims.SingleOrDefault(x => x.Type == "id")?.Value);
         }
 
         public async Task<Role> CheckRoleTypeAsync(string roleType)

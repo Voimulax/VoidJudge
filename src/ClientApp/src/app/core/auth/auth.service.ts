@@ -17,6 +17,7 @@ import {
   ResetUser
 } from './user.model';
 import { DialogService } from '../../shared/dialog/dialog.service';
+import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root'
@@ -33,6 +34,7 @@ export class AuthService {
     private dialogService: DialogService,
     private http: HttpClient,
     private jwtHelperService: JwtHelperService,
+    private router: Router,
     private tokenService: TokenService
   ) {}
 
@@ -101,6 +103,13 @@ export class AuthService {
     this.user = undefined;
     this.resetRedirectUrl();
     this.tokenService.remove();
+  }
+
+  logoutOf401() {
+    this.dialogService.showNoticeMessage('当前登录已过期，请重新登录...', () => {
+      this.logout();
+      this.router.navigate([`${this.redirectUrl}`]);
+    });
   }
 
   resetPassword(resetUser: ResetUser) {

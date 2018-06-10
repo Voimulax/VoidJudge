@@ -119,7 +119,7 @@ namespace VoidJudge.Services
         public async Task<ApiResult> GetUsersAsync(IEnumerable<string> roleTypes)
         {
             var roles = await GetRolesAsync(roleTypes);
-            if (roles == null) return null;
+            if (roles == null) return new GetUserResult { Error = GetResultTypes.UserNotFound };
             var userIds = await (from ur in _context.UserRoles
                                  join r in roles on ur.RoleId equals r.Id
                                  where ur.RoleId == r.Id
@@ -132,8 +132,8 @@ namespace VoidJudge.Services
                 var iid = id;
                 tasks.Add(Task.Run(async () =>
                 {
-                    var result = await GetUserAsync(iid) as GetUserResult;
-                    if (result.Error == GetResultTypes.Ok) users.Add(result.Data as UserInfo<GetUserBasicInfo>);
+                    if (!(await GetUserAsync(iid) is GetUserResult result)) return;
+                    if (result.Error == GetResultTypes.Ok) users.Add(result.Data);
                 }));
             }
             foreach (var task in tasks)

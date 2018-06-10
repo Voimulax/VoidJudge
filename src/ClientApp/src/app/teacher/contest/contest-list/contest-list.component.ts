@@ -3,9 +3,9 @@ import { MatTableDataSource } from '@angular/material';
 import { Router } from '@angular/router';
 import { catchError, finalize, map, startWith } from 'rxjs/operators';
 
-import { AuthService } from '../../../core/auth/auth.service';
-import { ContestInfo } from '../contest.model';
+import { ContestInfo, GetContestResultType } from '../contest.model';
 import { ContestService } from '../contest.service';
+import { DialogService } from '../../../shared/dialog/dialog.service';
 
 @Component({
   selector: 'app-contest-list',
@@ -14,40 +14,54 @@ import { ContestService } from '../contest.service';
 })
 export class ContestListComponent implements OnInit, AfterViewInit {
   displayedColumns = ['name', 'startTime', 'endTime', 'state'];
-  dataSource = new MatTableDataSource();
+  dataSource = new MatTableDataSource<ContestInfo>();
   isLoading = true;
 
   private url = '/teacher/contest';
 
   constructor(
-    private authService: AuthService,
     private contestService: ContestService,
+    private dialogService: DialogService,
     private router: Router
   ) {}
 
   ngOnInit() {}
 
   ngAfterViewInit() {
-    this.isLoading = true;
-    this.contestService
-      .getContestList()
-      .pipe(
-        finalize(() => {
-          this.isLoading = false;
-        })
-      )
-      .subscribe(data => {
-        this.dataSource.data = data;
-      });
+    this.getContests();
   }
 
+  isEmpty() {
+    return !this.isLoading && (this.dataSource.data === undefined || this.dataSource.data.length <= 0);
+  }
+
+  publish(x: ContestInfo) {}
+
   goContestCreate() {
-    this.contestService.contestInfo = { name: '新考试', teacherId: this.authService.user.id };
+    this.contestService.contestInfo = { name: '新考试' };
     this.router.navigate([`${this.url}/create`]);
   }
 
   goContestDetail(x: ContestInfo) {
     this.contestService.contestInfo = x;
     this.router.navigate([`${this.url}/${x.id}`]);
+  }
+
+  private getContests() {
+    this.isLoading = true;
+    this.contestService
+      .gets()
+      .pipe(
+        finalize(() => {
+          this.isLoading = false;
+        })
+      )
+      .subscribe(data => {
+        if (data.type === GetContestResultType.Ok) {
+          this.dataSource.data = data.data;
+        } else if (data.type === GetContestResultType.Error) {
+          this.dialogService.showErrorMessage('获取失败');
+        }
+      });
   }
 }

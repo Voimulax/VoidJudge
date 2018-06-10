@@ -1,22 +1,55 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { catchError, finalize, map, startWith, tap, delay } from 'rxjs/operators';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { catchError, map } from 'rxjs/operators';
 import { of } from 'rxjs';
 
-import { ContestInfo } from './contest.model';
+import {
+  GetContestsResult,
+  GetContestResultType
+} from './contest.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ContestService {
-  private contestUrl = '/api/contest';
+  private contestBaseUrl = '/api/contest';
 
   constructor(private http: HttpClient) {}
 
-  getContestList() {
-    return of(Array<ContestInfo>()).pipe(delay(1000));
-    // return this.http
-    //   .get<ContestInfo[]>(this.contestUrl)
-    //   .pipe(startWith(Array<ContestInfo>()));
+  gets() {
+    return this.http.get<GetContestsResult>(this.contestBaseUrl).pipe(
+      map(x => {
+        return x['data'].map(y => {
+          const b = y['basicInfo'];
+          const a = y['claimInfos'].find(z => z['type'] === 'authorName');
+          return {
+            id: b['id'],
+            name: b['name'],
+            startTime: new Date(b['startTime']).getTime(),
+            endTime: new Date(b['endTime']).getTime(),
+            authorName: a['value']
+          };
+        });
+      }),
+      map(x => {
+        return {
+          type: GetContestResultType.Ok,
+          data: x
+        };
+      }),
+      catchError((e: HttpErrorResponse) => {
+        if (e.status === 404) {
+          return of({
+            type: GetContestResultType.NotFound,
+            data: undefined
+          });
+        } else {
+          return of({
+            type: GetContestResultType.Error,
+            data: undefined
+          });
+        }
+      })
+    );
   }
 }

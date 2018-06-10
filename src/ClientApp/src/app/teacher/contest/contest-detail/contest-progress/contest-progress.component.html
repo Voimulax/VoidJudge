@@ -6,8 +6,9 @@
   </div>
   <mat-progress-bar mode="determinate" [value]="contestProgress"></mat-progress-bar>
   <ng-container [ngSwitch]="contestInfo.state">
-    <h5 *ngSwitchCase='0'>未开始</h5>
-    <h5 *ngSwitchCase='1'>{{ restTime | date:'HH:mm:ss':'+0000' }}</h5>
-    <h5 *ngSwitchCase='2'>已结束</h5>
+    <h5 *ngSwitchCase='1'>未开始（已发布）</h5>
+    <h5 *ngSwitchCase='1'>未开始（未发布）</h5>
+    <h5 *ngSwitchCase='2'>{{ restTime | date:'HH:mm:ss':'+0000' }}</h5>
+    <h5 *ngSwitchCase='3'>已结束</h5>
   </ng-container>
 </div>

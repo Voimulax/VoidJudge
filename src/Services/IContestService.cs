@@ -7,7 +7,7 @@ namespace VoidJudge.Services
 {
     public interface IContestService
     {
-        Task<ApiResult> GetContestAsync(long id);
-        Task<ApiResult> GetContestsAsync();
+        Task<ApiResult> GetContestAsync(long id, string roleType, long userId);
+        Task<ApiResult> GetContestsAsync(string roleType, long userId);
     }
 }

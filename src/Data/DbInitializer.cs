@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using VoidJudge.Models.Auth;
+using VoidJudge.Models.Contest;
 
 namespace VoidJudge.Data
 {
@@ -23,7 +24,11 @@ namespace VoidJudge.Data
                 new User {LoginName = "123", UserName = "student", Password = "AQAAAAEAACcQAAAAEK5iiQiTMuTeBaTfsqlr5PUjQcWQPcg2W9b7RliK6MjiFnWekvMQOCbkFTGDMZZbqQ==", CreateTime = DateTime.Now},
             };
 
-            context.Users.AddRange(users);
+            foreach (var user in users)
+            {
+                context.Add(user);
+                context.SaveChanges();
+            }
 
             var roles = new[]
             {
@@ -32,7 +37,11 @@ namespace VoidJudge.Data
                 new Role {Name = "Student", Type = RoleTypes.Student}
             };
 
-            context.Roles.AddRange(roles);
+            foreach (var role in roles)
+            {
+                context.Add(role);
+                context.SaveChanges();
+            }
 
             var userRoles = new[]
             {
@@ -41,7 +50,11 @@ namespace VoidJudge.Data
                 new UserRole {UserId = 3, RoleId = 3},
             };
 
-            context.UserRoles.AddRange(userRoles);
+            foreach (var userRole in userRoles)
+            {
+                context.Add(userRole);
+                context.SaveChanges();
+            }
 
             var claims = new[]
             {
@@ -49,14 +62,47 @@ namespace VoidJudge.Data
                 new Claim {Name = "IPAddress", Type = ClaimTypes.IPAddress}
             };
 
-            context.Claims.AddRange(claims);
+            foreach (var claim in claims)
+            {
+                context.Add(claim);
+                context.SaveChanges();
+            }
 
             var userClaims = new[]
             {
-                new UserClaim{ClaimId = 1,UserId = 3,Value = "15-1"}
+                new UserClaim{ ClaimId = 1,UserId = 3,Value = "15-1"}
             };
 
-            context.UserClaims.AddRange(userClaims);
+            foreach (var userClaim in userClaims)
+            {
+                context.Add(userClaim);
+                context.SaveChanges();
+            }
+
+            var dt = DateTime.Now;
+            var st1 = new DateTime(dt.Year, dt.Month, dt.Day, 9, 0, 0) - new TimeSpan(1, 0, 0, 0);
+            var et1 = new DateTime(dt.Year, dt.Month, dt.Day, 14, 0, 0) - new TimeSpan(1, 0, 0, 0);
+            var st2 = new DateTime(dt.Year, dt.Month, dt.Day, 0, 0, 0) - new TimeSpan(1, 0, 0, 0);
+            var et2 = new DateTime(dt.Year, dt.Month, dt.Day, 0, 0, 0) + new TimeSpan(1, 0, 0, 0);
+            var st3 = new DateTime(dt.Year, dt.Month, dt.Day, 9, 0, 0) + new TimeSpan(1, 0, 0, 0);
+            var et3 = new DateTime(dt.Year, dt.Month, dt.Day, 14, 0, 0) + new TimeSpan(1, 0, 0, 0);
+
+            var contests = new[]
+            {
+                new Contest{Name = "c11", UserId = 2, StartTime = st1,EndTime = et1,State = ContestState.UnPublished},
+                new Contest{Name = "c12", UserId = 2, StartTime = st1,EndTime = et1,State = ContestState.NotDownloaded},
+                new Contest{Name = "c13", UserId = 2, StartTime = st1,EndTime = et1,State = ContestState.DownLoaded},
+                new Contest{Name = "c21", UserId = 2, StartTime = st2,EndTime = et2,State = ContestState.UnPublished},
+                new Contest{Name = "c22", UserId = 2, StartTime = st2,EndTime = et2,State = ContestState.NotDownloaded},
+                new Contest{Name = "c31", UserId = 2, StartTime = st3,EndTime = et3,State = ContestState.UnPublished},
+                new Contest{Name = "c32", UserId = 2, StartTime = st3,EndTime = et3,State = ContestState.NotDownloaded},
+            };
+
+            foreach (var contest in contests)
+            {
+                context.Add(contest);
+                context.SaveChanges();
+            }
 
             context.SaveChanges();
         }

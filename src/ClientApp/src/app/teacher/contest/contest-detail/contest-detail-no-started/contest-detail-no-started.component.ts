@@ -26,10 +26,13 @@ export class ContestDetailNoStartedComponent implements OnInit {
   contestForm: FormGroup;
   matcher = new FormErrorStateMatcher();
 
+  get contestInfo() {
+    return this.contestService.contestInfo;
+  }
+
   private url = '/teacher/contest';
 
   constructor(
-    private authService: AuthService,
     private contestService: ContestService,
     private fb: FormBuilder,
     private router: Router
@@ -57,6 +60,8 @@ export class ContestDetailNoStartedComponent implements OnInit {
       notice: new FormControl(this.contestService.contestInfo.notice)
     });
   }
+
+  publish(flag: boolean) {}
 
   save() {
     this.contestService.contestInfo.name = this.contestForm.get('name').value;
