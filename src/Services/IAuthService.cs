@@ -5,10 +5,10 @@ namespace VoidJudge.Services
 {
     public interface IAuthService
     {
-        LoginResult Login(LoginUser loginUser, string ipAddress);
-        AuthResult ResetPassword(ResetUser resetUser);
-        Task<bool> IsUserExist(long id);
+        Task<LoginResult> LoginAsync(LoginUser loginUser, string ipAddress);
+        Task<AuthResult> ResetPasswordAsync(ResetUser resetUser);
+        Task<bool> IsUserExistAsync(long id);
         bool CompareRoleAuth(string roleCodeA, string roleCodeB);
-        Role CheckRoleCode(string roleCode);
+        Task<Role> CheckRoleCodeAsync(string roleCode);
     }
 }

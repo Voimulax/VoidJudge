@@ -5,6 +5,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using VoidJudge.Data;
@@ -26,11 +27,11 @@ namespace VoidJudge.Services
             _passwordHasher = passwordHasher;
         }
 
-        public LoginResult Login(LoginUser loginUser, string ipAddress)
+        public async Task<LoginResult> LoginAsync(LoginUser loginUser, string ipAddress)
         {
             var jwsth = new JwtSecurityTokenHandler();
 
-            var user = _context.Users.FirstOrDefault(u =>
+            var user = await _context.Users.FirstOrDefaultAsync(u =>
                 u.LoginName == loginUser.LoginName);
             if (user == null) return new LoginResult { Type = AuthResult.Wrong };
             if (_passwordHasher.VerifyHashedPassword(user, user.Password, loginUser.Password) !=
@@ -75,24 +76,23 @@ namespace VoidJudge.Services
                 signingCredentials: creds));
 
             user.LastLoginTime = DateTime.Now;
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             return new LoginResult { Type = AuthResult.Ok, Token = token };
         }
 
-        public AuthResult ResetPassword(ResetUser resetUser)
+        public async Task<AuthResult> ResetPasswordAsync(ResetUser resetUser)
         {
-            var user = _context.Users.FirstOrDefault(u =>
-                u.LoginName == resetUser.LoginName);
+            var user = await _context.Users.FindAsync(resetUser.Id);
             if (user == null) return AuthResult.Wrong;
             if (_passwordHasher.VerifyHashedPassword(user, user.Password, resetUser.Password) !=
                 PasswordVerificationResult.Success) return AuthResult.Wrong;
             user.Password = _passwordHasher.HashPassword(user, resetUser.NewPassword);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             return AuthResult.Ok;
         }
 
-        public async Task<bool> IsUserExist(long id)
+        public async Task<bool> IsUserExistAsync(long id)
         {
             return (await _context.Users.FindAsync(id)) != null;
         }
@@ -102,9 +102,9 @@ namespace VoidJudge.Services
             return int.Parse(roleCodeA) <= int.Parse(roleCodeB);
         }
 
-        public Role CheckRoleCode(string roleCode)
+        public async Task<Role> CheckRoleCodeAsync(string roleCode)
         {
-            return _context.Roles.FirstOrDefault(x => x.Code == roleCode);
+            return await _context.Roles.SingleOrDefaultAsync(x => x.Code == roleCode);
         }
     }
 }

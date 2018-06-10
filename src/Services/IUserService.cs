@@ -7,10 +7,10 @@ namespace VoidJudge.Services
 {
     public interface IUserService
     {
-        Task<AddUserResult> AddUsers(IEnumerable<User<AddUserBasicInfo>> addUsers);
-        Task<GetUserResult> GetUser(long id, string roleCode = null);
-        Task<IEnumerable<User<GetUserBasicInfo>>> GetUsers(IEnumerable<string> roleCodes);
-        Task<PutUserResult> PutUser(User<PutUserBasicInfo> putUser);
-        Task<DeleteResult> DeleteUser(long id);
+        Task<AddUserResult> AddUsersAsync(IEnumerable<User<AddUserBasicInfo>> addUsers);
+        Task<GetUserResult> GetUserAsync(long id, string roleCode = null);
+        Task<IEnumerable<User<GetUserBasicInfo>>> GetUsersAsync(IEnumerable<string> roleCodes);
+        Task<PutUserResult> PutUserAsync(User<PutUserBasicInfo> putUser);
+        Task<DeleteResult> DeleteUserAsync(long id);
     }
 }

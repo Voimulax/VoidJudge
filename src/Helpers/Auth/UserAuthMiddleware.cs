@@ -21,7 +21,7 @@ namespace VoidJudge.Helpers.Auth
             {
                 if (long.TryParse(sid, out var id))
                 {
-                    if (!await authService.IsUserExist(id))
+                    if (!await authService.IsUserExistAsync(id))
                     {
                         context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                         context.Response.Body = null;

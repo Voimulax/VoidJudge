@@ -106,7 +106,7 @@ export class AuthService {
   resetPassword(resetUser: ResetUser) {
     this.dialogService.isLoadingDialogActive = true;
     return this.http
-      .post<ResetUser>(`${this.baseUrl}/resetpassword`, resetUser, {
+      .post(`${this.baseUrl}/resetpassword`, resetUser, {
         headers: new HttpHeaders({ 'Content-Type': 'application/json' })
       })
       .pipe(

@@ -24,7 +24,7 @@ namespace VoidJudge.Services
             _authService = authService;
         }
 
-        public async Task<AddUserResult> AddUsers(IEnumerable<User<AddUserBasicInfo>> addUsers)
+        public async Task<AddUserResult> AddUsersAsync(IEnumerable<User<AddUserBasicInfo>> addUsers)
         {
             addUsers = addUsers.ToList();
 
@@ -81,7 +81,7 @@ namespace VoidJudge.Services
             return new AddUserResult { Type = AddResult.Ok };
         }
 
-        public async Task<GetUserResult> GetUser(long id, string roleCode = null)
+        public async Task<GetUserResult> GetUserAsync(long id, string roleCode = null)
         {
             var user = await _context.Users.FindAsync(id);
             if (user == null) return new GetUserResult { Type = GetResult.UserNotFound };
@@ -115,9 +115,9 @@ namespace VoidJudge.Services
             };
         }
 
-        public async Task<IEnumerable<User<GetUserBasicInfo>>> GetUsers(IEnumerable<string> roleCodes)
+        public async Task<IEnumerable<User<GetUserBasicInfo>>> GetUsersAsync(IEnumerable<string> roleCodes)
         {
-            var roles = GetRoles(roleCodes);
+            var roles = await GetRolesAsync(roleCodes);
             if (roles == null) return null;
             var userIds = await (from ur in _context.UserRoles
                                  join r in roles on ur.RoleId equals r.Id
@@ -131,7 +131,7 @@ namespace VoidJudge.Services
                 var iid = id;
                 tasks.Add(Task.Run(async () =>
                 {
-                    var result = await GetUser(iid);
+                    var result = await GetUserAsync(iid);
                     if (result.Type == GetResult.Ok) users.Add((result.User));
                 }));
             }
@@ -143,7 +143,7 @@ namespace VoidJudge.Services
             return users.ToList();
         }
 
-        public async Task<PutUserResult> PutUser(User<PutUserBasicInfo> putUser)
+        public async Task<PutUserResult> PutUserAsync(User<PutUserBasicInfo> putUser)
         {
             var user = await _context.Users.FindAsync(putUser.BasicInfo.Id);
             if (user == null) return new PutUserResult { Type = PutResult.UserNotFound };
@@ -161,7 +161,7 @@ namespace VoidJudge.Services
                 var userRole = _context.UserRoles.FirstOrDefault(x => x.UserId == user.Id);
                 if (userRole == null) return new PutUserResult { Type = PutResult.Error };
 
-                var role = _authService.CheckRoleCode(putUser.RoleCode);
+                var role = await _authService.CheckRoleCodeAsync(putUser.RoleCode);
                 if (role == null) return new PutUserResult { Type = PutResult.Error };
 
                 userRole.RoleId = role.Id;
@@ -205,7 +205,7 @@ namespace VoidJudge.Services
             }
         }
 
-        public async Task<DeleteResult> DeleteUser(long id)
+        public async Task<DeleteResult> DeleteUserAsync(long id)
         {
             var user = await _context.Users.FindAsync(id);
             if (user == null)
@@ -235,12 +235,17 @@ namespace VoidJudge.Services
             return string.Join("", res);
         }
 
-        private IEnumerable<Role> GetRoles(IEnumerable<string> roleCodes)
+        private async Task<IEnumerable<Role>> GetRolesAsync(IEnumerable<string> roleCodes)
         {
             try
             {
                 var codes = roleCodes.ToList();
-                var roles = codes.Select(_authService.CheckRoleCode).ToList();
+                var ts = codes.Select(async x => await _authService.CheckRoleCodeAsync(x));
+                var roles=new List<Role>();
+                foreach (var t in ts)
+                {
+                    roles.Add(await t);
+                }
                 return roles.Count != codes.Count ? null : roles;
             }
             catch (Exception)

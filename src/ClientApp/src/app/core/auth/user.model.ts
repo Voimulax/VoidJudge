@@ -20,7 +20,9 @@ export interface LoginUser {
   password: string;
 }
 
-export interface ResetUser extends LoginUser {
+export interface ResetUser {
+  id: number;
+  password: string;
   newPassword: string;
 }
 

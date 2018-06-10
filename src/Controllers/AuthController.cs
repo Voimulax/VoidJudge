@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -22,12 +23,12 @@ namespace VoidJudge.Controllers
         }
 
         [AllowAnonymous]
-        [Route("[action]")]
+        [Route("login")]
         [HttpPost]
-        public IActionResult Login([FromBody] LoginUser loginUser)
+        public async Task<IActionResult> LoginAsync([FromBody] LoginUser loginUser)
         {
             var ipAddress = Request.HttpContext.Connection.RemoteIpAddress.ToString();
-            var result = _authService.Login(loginUser, ipAddress);
+            var result = await _authService.LoginAsync(loginUser, ipAddress);
             switch (result.Type)
             {
                 case AuthResult.Wrong:
@@ -47,11 +48,11 @@ namespace VoidJudge.Controllers
             }
         }
 
-        [Route("[action]")]
+        [Route("resetpassword")]
         [HttpPost]
-        public IActionResult ResetPassword([FromBody] ResetUser resetUser)
+        public async Task<IActionResult> ResetPasswordAsync([FromBody] ResetUser resetUser)
         {
-            var result = _authService.ResetPassword(resetUser);
+            var result = await _authService.ResetPasswordAsync(resetUser);
             switch (result)
             {
                 case AuthResult.Wrong:

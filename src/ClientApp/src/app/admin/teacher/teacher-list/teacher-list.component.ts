@@ -30,17 +30,7 @@ export class TeacherListComponent implements OnInit, AfterViewInit {
   ngOnInit() {}
 
   ngAfterViewInit() {
-    this.isLoading = true;
-    this.teacherService
-      .gets()
-      .pipe(
-        finalize(() => {
-          this.isLoading = false;
-        })
-      )
-      .subscribe(data => {
-        this.dataSource.data = data;
-      });
+    this.getTeachers();
   }
 
   isSelected() {

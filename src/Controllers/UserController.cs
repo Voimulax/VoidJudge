@@ -26,9 +26,9 @@ namespace VoidJudge.Controllers
 
         [Authorize(Roles = "0")]
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody] IEnumerable<User<AddUserBasicInfo>> addUsers)
+        public async Task<IActionResult> PostAsync([FromBody] IEnumerable<User<AddUserBasicInfo>> addUsers)
         {
-            var result = await _userService.AddUsers(addUsers);
+            var result = await _userService.AddUsersAsync(addUsers);
             if (result.Type == AddResult.Repeat)
             {
                 return new ObjectResult(new GeneralResult { Error = $"{(int)result.Type}", Data = result.Repeat })
@@ -55,7 +55,7 @@ namespace VoidJudge.Controllers
 
         [Authorize]
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetUser([FromRoute] long id)
+        public async Task<IActionResult> GetUserAsync([FromRoute] long id)
         {
             var roleCode = Request.HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Role)?.Value;
             if (roleCode == null)
@@ -63,7 +63,7 @@ namespace VoidJudge.Controllers
                 return BadRequest(new GeneralResult { Error = $"{(int)GetResult.Error}" });
             }
 
-            var result = await _userService.GetUser(id, roleCode);
+            var result = await _userService.GetUserAsync(id, roleCode);
 
             switch (result.Type)
             {
@@ -82,9 +82,9 @@ namespace VoidJudge.Controllers
 
         [Authorize(Roles = "0")]
         [HttpGet]
-        public async Task<IActionResult> GetUsers([FromQuery] string roleCode)
+        public async Task<IActionResult> GetUsersAsync([FromQuery] string roleCode)
         {
-            var user = await _userService.GetUsers(roleCode.Split('#'));
+            var user = await _userService.GetUsersAsync(roleCode.Split('#'));
 
             if (user == null)
             {
@@ -96,7 +96,7 @@ namespace VoidJudge.Controllers
 
         [Authorize(Roles = "0")]
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser([FromRoute] long id, [FromBody] User<PutUserBasicInfo> putUser)
+        public async Task<IActionResult> PutUserAsync([FromRoute] long id, [FromBody] User<PutUserBasicInfo> putUser)
         {
             if (!ModelState.IsValid)
             {
@@ -108,7 +108,7 @@ namespace VoidJudge.Controllers
                 return BadRequest(new GeneralResult { Error = "3" });
             }
 
-            var result = await _userService.PutUser(putUser);
+            var result = await _userService.PutUserAsync(putUser);
             switch (result.Type)
             {
                 case PutResult.ConcurrencyException:
@@ -126,9 +126,9 @@ namespace VoidJudge.Controllers
 
         [Authorize(Roles = "0")]
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUser([FromRoute] long id)
+        public async Task<IActionResult> DeleteUserAsync([FromRoute] long id)
         {
-            var result = await _userService.DeleteUser(id);
+            var result = await _userService.DeleteUserAsync(id);
             switch (result)
             {
                 case DeleteResult.Forbiddance:

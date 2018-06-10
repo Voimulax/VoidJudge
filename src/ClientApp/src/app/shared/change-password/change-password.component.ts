@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import {
   FormGroup,
   FormBuilder,
@@ -20,7 +20,8 @@ export class ChangePasswordComponent implements OnInit {
   isLoading = false;
   matcher = new FormErrorStateMatcher();
   resetForm: FormGroup;
-  @ViewChild('oldPass') oldPass;
+  @ViewChild('oldPass') oldPass: ElementRef;
+  @ViewChild('form') form: ElementRef;
 
   constructor(
     private authService: AuthService,
@@ -59,12 +60,14 @@ export class ChangePasswordComponent implements OnInit {
     if (oldP === newP) {
       throw new Error('旧密码与新密码不能相同');
     }
+    return true;
   }
 
   checkNew1New2(newP1: string, newP2: string) {
     if (newP1 !== newP2) {
       throw new Error('两次输入的新密码不同');
     }
+    return true;
   }
 
   reset() {
@@ -74,39 +77,44 @@ export class ChangePasswordComponent implements OnInit {
     const newPass2 = this.resetForm.get('newPass2').value as string;
 
     try {
-      this.checkOldNew(oldPass, newPass1);
-      this.checkNew1New2(newPass1, newPass2);
-      this.authService
-        .resetPassword({
-          loginName: this.authService.user.userName,
-          password: oldPass,
-          newPassword: newPass2
-        })
-        .subscribe(x => {
-          if (x === AuthResult.ok) {
-            this.dialogService.showNoticeMessage('修改密码成功，即将退出登录...');
-            setTimeout(() => {
-              this.authService.logout();
-              this.router.navigate([`${this.authService.redirectUrl}`]);
-            }, 200);
-          } else if (x === AuthResult.wrong) {
-            this.dialogService.showErrorMessage('旧密码错误', () => {
-              this.isLoading = false;
-              this.resetForm.reset();
-              this.oldPass.nativeElement.focus();
-            });
-          } else {
-            this.dialogService.showErrorMessage('网络错误', () => {
-              this.isLoading = false;
-              this.resetForm.reset();
-              this.oldPass.nativeElement.focus();
-            });
-          }
-        });
+      if (
+        this.checkOldNew(oldPass, newPass1) &&
+        this.checkNew1New2(newPass1, newPass2)
+      ) {
+        this.authService
+          .resetPassword({
+            id: this.authService.user.id,
+            password: oldPass,
+            newPassword: newPass2
+          })
+          .subscribe(x => {
+            if (x === AuthResult.ok) {
+              this.dialogService.showNoticeMessage(
+                '修改密码成功，即将退出登录...'
+              );
+              setTimeout(() => {
+                this.authService.logout();
+                this.router.navigate([`${this.authService.redirectUrl}`]);
+              }, 1000);
+            } else if (x === AuthResult.wrong) {
+              this.dialogService.showErrorMessage('旧密码错误', () => {
+                this.isLoading = false;
+                this.resetForm.reset();
+                this.oldPass.nativeElement.focus();
+              });
+            } else {
+              this.dialogService.showErrorMessage('网络错误', () => {
+                this.isLoading = false;
+                this.resetForm.reset();
+                this.oldPass.nativeElement.focus();
+              });
+            }
+          });
+      }
     } catch (e) {
       this.dialogService.showErrorMessage((<Error>e).message, () => {
         this.isLoading = false;
-        this.resetForm.reset();
+        this.form.nativeElement.reset();
         this.oldPass.nativeElement.focus();
       });
     }
