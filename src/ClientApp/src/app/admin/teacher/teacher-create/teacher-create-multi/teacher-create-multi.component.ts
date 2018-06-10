@@ -8,12 +8,12 @@ import { TeacherInfoDialogComponent } from '../teacher-info-dialog/teacher-info-
 import { TeacherListDialogComponent } from '../teacher-list-dialog/teacher-list-dialog.component';
 import { TeacherService } from '../../teacher.service';
 import {
-  UserType,
+  RoleType,
   UserInfoWithSymbol,
   UserInfo,
   UserResultType,
   UserListDialogData,
-  getUserType
+  getRoleType
 } from '../../../../core/auth/user.model';
 import { finalize } from 'rxjs/operators';
 
@@ -29,7 +29,7 @@ export class TeacherCreateMultiComponent implements OnInit {
     'loginName',
     'userName',
     'password',
-    'userType',
+    'roleType',
     'sid'
   ];
   dataSource = new MatTableDataSource<UserInfoWithSymbol>();
@@ -75,7 +75,7 @@ export class TeacherCreateMultiComponent implements OnInit {
         loginName: x.loginName,
         userName: x.userName,
         password: x.password,
-        userType: x.userType
+        roleType: x.roleType
       };
     });
     this.teacherService.adds(sis).subscribe(x => {
@@ -100,7 +100,7 @@ export class TeacherCreateMultiComponent implements OnInit {
 
   import(evt: any, fileForm: HTMLFormElement) {
     const header = ['用户名', '姓名', '初始密码', '用户类型'];
-    const propertys = ['loginName', 'userName', 'password', 'userType'];
+    const propertys = ['loginName', 'userName', 'password', 'roleType'];
     this.fileService.readExcelFile<UserInfoWithSymbol>(
       evt,
       { key: 'loginName', header: header, propertys: propertys },
@@ -126,12 +126,12 @@ export class TeacherCreateMultiComponent implements OnInit {
           const list = this.dataSource.data.concat(
             data.map(x => {
               if (
-                x['userType'].toString() === '0' ||
-                x['userType'].toString() === '管理员'
+                x['roleType'].toString() === '0' ||
+                x['roleType'].toString() === '管理员'
               ) {
-                x['userType'] = UserType.admin;
+                x['roleType'] = RoleType.admin;
               } else {
-                x['userType'] = UserType.teacher;
+                x['roleType'] = RoleType.teacher;
               }
               x['sid'] = Symbol();
               return x;
@@ -154,7 +154,7 @@ export class TeacherCreateMultiComponent implements OnInit {
         x.loginName = r.loginName;
         x.userName = r.userName;
         x.password = r.password;
-        x.userType = getUserType(r.userType);
+        x.roleType = getRoleType(r.roleType);
         const data = this.dataSource.data;
         for (let i = 0; i < data.length; i++) {
           if (data[i].sid === x.sid) {

@@ -16,7 +16,7 @@ namespace VoidJudge.Helpers.Auth
 
         public async Task InvokeAsync(HttpContext context, IAuthService authService)
         {
-            var sid = context.User.Claims.FirstOrDefault(x => x.Type == "id")?.Value;
+            var sid = context.User.Claims.SingleOrDefault(x => x.Type == "id")?.Value;
             if (sid != null)
             {
                 if (long.TryParse(sid, out var id))

@@ -13,7 +13,7 @@ import { FormErrorStateMatcher } from '../../../../shared/form-error-state-match
 import { TeacherService } from '../../teacher.service';
 import {
   UserInfo,
-  getUserType,
+  getRoleType,
   UserResultType
 } from '../../../../core/auth/user.model';
 
@@ -27,7 +27,7 @@ export class TeacherCreateSingleComponent implements OnInit {
   isLoading = false;
   matcher = new FormErrorStateMatcher();
   teacherForm: FormGroup;
-  @ViewChild('userTypeSelect') userTypeSelect: MatSelect;
+  @ViewChild('roleTypeSelect') roleTypeSelect: MatSelect;
 
   constructor(
     private dialogService: DialogService,
@@ -40,7 +40,7 @@ export class TeacherCreateSingleComponent implements OnInit {
         loginName: '',
         userName: '',
         password: '',
-        userType: 1
+        roleType: 1
       };
     }
     this.createForm();
@@ -66,8 +66,8 @@ export class TeacherCreateSingleComponent implements OnInit {
         Validators.maxLength(32),
         Validators.pattern(/^\S+$/)
       ]),
-      userType: new FormControl(
-        this.teacherService.teacherInfo.userType.toString(),
+      roleType: new FormControl(
+        this.teacherService.teacherInfo.roleType.toString(),
         [Validators.required]
       )
     });
@@ -75,12 +75,12 @@ export class TeacherCreateSingleComponent implements OnInit {
 
   setIsLoading(b: boolean) {
     this.isLoading = b;
-    this.userTypeSelect.disabled = b;
+    this.roleTypeSelect.disabled = b;
   }
 
   create() {
     const si: UserInfo = this.teacherForm.value;
-    si.userType = getUserType(this.teacherForm.get('userType').value);
+    si.roleType = getRoleType(this.teacherForm.get('roleType').value);
     this.teacherService.add(si).subscribe(x => {
       if (x.type === UserResultType.ok) {
         this.dialogService.showNoticeMessage('创建成功', () => {
@@ -88,7 +88,7 @@ export class TeacherCreateSingleComponent implements OnInit {
             loginName: '',
             userName: '',
             password: '',
-            userType: 1
+            roleType: 1
           };
           this.form.nativeElement.reset();
         });

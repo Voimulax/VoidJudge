@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
-using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
@@ -11,6 +10,7 @@ using Microsoft.IdentityModel.Tokens;
 using VoidJudge.Data;
 using VoidJudge.Models.Auth;
 using Claim = System.Security.Claims.Claim;
+using ClaimTypes = System.Security.Claims.ClaimTypes;
 
 namespace VoidJudge.Services
 {
@@ -31,29 +31,29 @@ namespace VoidJudge.Services
         {
             var jwsth = new JwtSecurityTokenHandler();
 
-            var user = await _context.Users.FirstOrDefaultAsync(u =>
+            var user = await _context.Users.SingleOrDefaultAsync(u =>
                 u.LoginName == loginUser.LoginName);
             if (user == null) return new LoginResult { Type = AuthResult.Wrong };
             if (_passwordHasher.VerifyHashedPassword(user, user.Password, loginUser.Password) !=
                 PasswordVerificationResult.Success) return new LoginResult { Type = AuthResult.Wrong };
 
-            var role = (from u in _context.Users
-                        join ur in _context.UserRoles on u.Id equals ur.UserId
-                        join r in _context.Roles on ur.RoleId equals r.Id
-                        where u.Id == user.Id
-                        select r).FirstOrDefault();
+            var role = await (from u in _context.Users
+                              join ur in _context.UserRoles on u.Id equals ur.UserId
+                              join r in _context.Roles on ur.RoleId equals r.Id
+                              where u.Id == user.Id
+                              select r).SingleOrDefaultAsync();
 
             if (role == null) return new LoginResult { Type = AuthResult.Error };
 
             // push the user’s name into a claim, so we can identify the user later on.
             var claims = new[]
             {
-                new Claim(ClaimTypes.Role, role.Code),
+                new Claim(ClaimTypes.Role, role.Type),
                 new Claim("id", user.Id.ToString()),
                 new Claim("ipAddress", ipAddress)
             };
             //sign the token using a secret key.This secret will be shared between your API and anything that needs to check that the token is legit.
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["SecurityKey"]));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["SecretKey"]));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             //.NET Core’s JwtSecurityToken class takes on the heavy lifting and actually creates the token.
             /**
@@ -68,8 +68,8 @@ namespace VoidJudge.Services
                     除了规定的字段外，可以包含其他任何 JSON 兼容的字段。
                  * */
             var token = jwsth.WriteToken(new JwtSecurityToken(
-                issuer: "https://void-judge.firebaseapp.com",
-                audience: "https://void-judge.firebaseapp.com",
+                issuer: _configuration["Issuer"],
+                audience: _configuration["Audience"],
                 claims: claims,
                 expires: DateTime.Now.AddMinutes(30),
                 notBefore: DateTime.Now,
@@ -97,14 +97,14 @@ namespace VoidJudge.Services
             return (await _context.Users.FindAsync(id)) != null;
         }
 
-        public bool CompareRoleAuth(string roleCodeA, string roleCodeB)
+        public bool CompareRoleAuth(string roleTypeA, string roleTypeB)
         {
-            return int.Parse(roleCodeA) <= int.Parse(roleCodeB);
+            return int.Parse(roleTypeA) <= int.Parse(roleTypeB);
         }
 
-        public async Task<Role> CheckRoleCodeAsync(string roleCode)
+        public async Task<Role> CheckRoleTypeAsync(string roleType)
         {
-            return await _context.Roles.SingleOrDefaultAsync(x => x.Code == roleCode);
+            return await _context.Roles.SingleOrDefaultAsync(x => x.Type == roleType);
         }
     }
 }

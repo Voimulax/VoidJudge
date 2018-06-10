@@ -8,7 +8,7 @@ import { UserInfoWithSymbol, UserListDialogData } from '../../../../core/auth/us
   styleUrls: ['./teacher-list-dialog.component.css']
 })
 export class TeacherListDialogComponent implements OnInit {
-  displayedColumns = ['loginName', 'userName', 'password', 'userType'];
+  displayedColumns = ['loginName', 'userName', 'password', 'roleType'];
   repeatSource = new MatTableDataSource<UserInfoWithSymbol>();
   errorSource = new MatTableDataSource<UserInfoWithSymbol>();
 

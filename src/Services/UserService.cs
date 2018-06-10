@@ -67,7 +67,7 @@ namespace VoidJudge.Services
             await _context.SaveChangesAsync();
 
             var userRoles = (from au in addUsers
-                             join r in _context.Roles on au.RoleCode equals r.Code
+                             join r in _context.Roles on au.RoleType equals r.Type
                              join u in _context.Users on au.BasicInfo.LoginName equals u.LoginName
                              select new UserRole { UserId = u.Id, RoleId = r.Id }).ToList();
             if (userRoles.Count != addUsers.Count())
@@ -81,16 +81,16 @@ namespace VoidJudge.Services
             return new AddUserResult { Type = AddResult.Ok };
         }
 
-        public async Task<GetUserResult> GetUserAsync(long id, string roleCode = null)
+        public async Task<GetUserResult> GetUserAsync(long id, string roleType = null)
         {
             var user = await _context.Users.FindAsync(id);
             if (user == null) return new GetUserResult { Type = GetResult.UserNotFound };
             var role = await (from ur in _context.UserRoles
                               where user.Id == ur.UserId
                               join r in _context.Roles on ur.RoleId equals r.Id
-                              select r).FirstOrDefaultAsync();
+                              select r).SingleOrDefaultAsync();
 
-            if (roleCode != null && !_authService.CompareRoleAuth(roleCode, role.Code))
+            if (roleType != null && !_authService.CompareRoleAuth(roleType, role.Type))
 
             {
                 return new GetUserResult { Type = GetResult.Unauthorized };
@@ -109,15 +109,15 @@ namespace VoidJudge.Services
                 {
                     BasicInfo =
                         new GetUserBasicInfo { Id = user.Id, LoginName = user.LoginName, UserName = user.UserName },
-                    RoleCode = role.Code,
+                    RoleType = role.Type,
                     ClaimInfos = userClaims
                 }
             };
         }
 
-        public async Task<IEnumerable<User<GetUserBasicInfo>>> GetUsersAsync(IEnumerable<string> roleCodes)
+        public async Task<IEnumerable<User<GetUserBasicInfo>>> GetUsersAsync(IEnumerable<string> roleTypes)
         {
-            var roles = await GetRolesAsync(roleCodes);
+            var roles = await GetRolesAsync(roleTypes);
             if (roles == null) return null;
             var userIds = await (from ur in _context.UserRoles
                                  join r in roles on ur.RoleId equals r.Id
@@ -156,12 +156,12 @@ namespace VoidJudge.Services
                 user.Password = _passwordHasher.HashPassword(user, putUser.BasicInfo.Password);
             }
 
-            if (putUser.RoleCode != null)
+            if (putUser.RoleType != null)
             {
-                var userRole = _context.UserRoles.FirstOrDefault(x => x.UserId == user.Id);
+                var userRole = await _context.UserRoles.SingleOrDefaultAsync(x => x.UserId == user.Id);
                 if (userRole == null) return new PutUserResult { Type = PutResult.Error };
 
-                var role = await _authService.CheckRoleCodeAsync(putUser.RoleCode);
+                var role = await _authService.CheckRoleTypeAsync(putUser.RoleType);
                 if (role == null) return new PutUserResult { Type = PutResult.Error };
 
                 userRole.RoleId = role.Id;
@@ -172,18 +172,18 @@ namespace VoidJudge.Services
             if (putUser.ClaimInfos != null)
             {
                 var userClaims = (from pc in putUser.ClaimInfos
-                    join uc in _context.UserClaims on user.Id equals uc.UserId
-                    join c in _context.Claims on uc.ClaimId equals c.Id
-                    where c.Type == pc.Type
-                    select uc).ToList();
-                if (userClaims.Count() != putUser.ClaimInfos.Count()) return new PutUserResult { Type = PutResult.Error };
+                                  join uc in _context.UserClaims on user.Id equals uc.UserId
+                                  join c in _context.Claims on uc.ClaimId equals c.Id
+                                  where c.Type == pc.Type
+                                  select uc).ToList();
+                if (userClaims.Count != putUser.ClaimInfos.Count()) return new PutUserResult { Type = PutResult.Error };
 
                 foreach (var userClaim in userClaims)
                 {
                     userClaim.Value = (from pc in putUser.ClaimInfos
-                        join c in _context.Claims on pc.Type equals c.Type
-                        where c.Id == userClaim.ClaimId
-                        select pc.Value).FirstOrDefault();
+                                       join c in _context.Claims on pc.Type equals c.Type
+                                       where c.Id == userClaim.ClaimId
+                                       select pc.Value).SingleOrDefault();
                 }
 
                 foreach (var userClaim in userClaims)
@@ -213,7 +213,7 @@ namespace VoidJudge.Services
                 return DeleteResult.UserNotFound;
             }
 
-            var userRole = await _context.UserRoles.FirstOrDefaultAsync(x => x.UserId == id);
+            var userRole = await _context.UserRoles.SingleOrDefaultAsync(x => x.UserId == id);
             _context.UserRoles.Remove(userRole);
             var userClaims = await _context.UserClaims.Where(x => x.UserId == id).ToListAsync();
             _context.UserClaims.RemoveRange(userClaims);
@@ -235,18 +235,18 @@ namespace VoidJudge.Services
             return string.Join("", res);
         }
 
-        private async Task<IEnumerable<Role>> GetRolesAsync(IEnumerable<string> roleCodes)
+        private async Task<IEnumerable<Role>> GetRolesAsync(IEnumerable<string> roleTypes)
         {
             try
             {
-                var codes = roleCodes.ToList();
-                var ts = codes.Select(async x => await _authService.CheckRoleCodeAsync(x));
-                var roles=new List<Role>();
+                var rs = roleTypes.ToList();
+                var ts = rs.Select(async x => await _authService.CheckRoleTypeAsync(x));
+                var roles = new List<Role>();
                 foreach (var t in ts)
                 {
                     roles.Add(await t);
                 }
-                return roles.Count != codes.Count ? null : roles;
+                return roles.Count != rs.Count ? null : roles;
             }
             catch (Exception)
             {

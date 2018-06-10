@@ -11,8 +11,8 @@ import { JwtHelperService } from '@auth0/angular-jwt';
 import { TokenService } from './token.service';
 import {
   User,
-  UserType,
-  getUserType,
+  RoleType,
+  getRoleType,
   LoginUser,
   ResetUser
 } from './user.model';
@@ -41,13 +41,13 @@ export class AuthService {
       map(x => {
         if (x['error'] === '0') {
           const basicInfo = x['data']['basicInfo'];
-          const roleCode = x['data']['roleCode'];
+          const roleType = x['data']['roleType'];
           const claimInfos = x['data']['claimInfos'];
           const user: T = <T>{
             id: Number(basicInfo['id']),
             loginName: String(basicInfo['loginName']),
             userName: String(basicInfo['userName']),
-            userType: getUserType(roleCode)
+            roleType: getRoleType(roleType)
           };
           claimInfos.forEach(c => {
             user[c['type']] = c['value'];
@@ -177,14 +177,14 @@ export class AuthService {
     if (this.user === undefined) {
       this.redirectUrl = '/';
     } else {
-      switch (this.user.userType) {
-        case UserType.admin:
+      switch (this.user.roleType) {
+        case RoleType.admin:
           this.redirectUrl = '/admin';
           break;
-        case UserType.student:
+        case RoleType.student:
           this.redirectUrl = '/student';
           break;
-        case UserType.teacher:
+        case RoleType.teacher:
           this.redirectUrl = '/teacher';
           break;
         default:

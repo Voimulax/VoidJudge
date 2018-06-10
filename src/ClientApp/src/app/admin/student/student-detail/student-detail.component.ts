@@ -11,7 +11,7 @@ import { isNumber } from 'util';
 import { DialogService } from '../../../shared/dialog/dialog.service';
 import { FormErrorStateMatcher } from '../../../shared/form-error-state-matcher';
 import { StudentService } from '../student.service';
-import { UserType, DeleteResultType, PutResultType, StudentInfo } from '../../../core/auth/user.model';
+import { RoleType, DeleteResultType, PutResultType, StudentInfo } from '../../../core/auth/user.model';
 
 @Component({
   selector: 'app-student-detail',
@@ -80,7 +80,7 @@ export class StudentDetailComponent
   save() {
     const studentInfo = this.studentForm.value;
     studentInfo.id = this.studentInfo.id;
-    studentInfo.userType = UserType.student;
+    studentInfo.roleType = RoleType.student;
     this.studentService.put(studentInfo).subscribe(x => {
       if (x.type === PutResultType.ok) {
         this.dialogService.showNoticeMessage('修改成功', () => {
@@ -118,7 +118,7 @@ export class StudentDetailComponent
   resetPassword() {
     const studentInfo = this.studentInfo;
     studentInfo.password = '';
-    studentInfo.userType = UserType.student;
+    studentInfo.roleType = RoleType.student;
     this.studentService.put(studentInfo).subscribe(x => {
       if (x.type === PutResultType.ok) {
         this.dialogService.showNoticeMessage(`重置成功，新密码是“${x.user.password}”, 请保存好！`, () => {

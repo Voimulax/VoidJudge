@@ -1,4 +1,5 @@
 using System;
+using System.Data.SqlClient;
 using System.Text;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -30,8 +31,15 @@ namespace VoidJudge
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            //services.AddDbContext<VoidJudgeContext>(options =>
+            //    options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+
+            var builder = new SqlConnectionStringBuilder(
+                Configuration.GetConnectionString("LocalSQLServerConnection"))
+            { Password = Configuration["DbPassword"] };
+
             services.AddDbContext<VoidJudgeContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("LocalSQLServerConnection")));
+                options.UseSqlServer(builder.ConnectionString));
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
@@ -40,9 +48,9 @@ namespace VoidJudge
                     {
                         ClockSkew = new TimeSpan(0, 0, 5),
                         ValidateIssuerSigningKey = true,//是否验证SecurityKey
-                        ValidAudience = "https://void-judge.firebaseapp.com",//Audience
-                        ValidIssuer = "https://void-judge.firebaseapp.com",//Issuer，这两项和前面签发jwt的设置一致
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["SecurityKey"]))//拿到SecurityKey
+                        ValidAudience = Configuration["Audience"],//Audience
+                        ValidIssuer = Configuration["Issuer"],//Issuer，这两项和前面签发jwt的设置一致
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["SecretKey"]))//拿到SecretKey
                     };
                 });
 

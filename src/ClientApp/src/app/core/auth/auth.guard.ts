@@ -10,7 +10,7 @@ import {
 import { Observable, of } from 'rxjs';
 
 import { AuthService } from './auth.service';
-import { UserType } from './user.model';
+import { RoleType } from './user.model';
 import { tap, map } from 'rxjs/operators';
 
 @Injectable()
@@ -21,19 +21,19 @@ export class AuthGuard implements CanActivate, CanLoad {
     state: RouterStateSnapshot
   ): Observable<boolean> | Promise<boolean> | boolean {
     const url: string = state.url;
-    const userType = <UserType | undefined>next.data['userType'];
-    return this.checkLogin(url, userType);
+    const roleType = <RoleType | undefined>next.data['roleType'];
+    return this.checkLogin(url, roleType);
   }
 
   canLoad(route: Route): boolean | Observable<boolean> | Promise<boolean> {
     const url = `/${route.path}`;
-    const userType = <UserType | undefined>route.data['userType'];
-    return this.checkLogin(url, userType);
+    const roleType = <RoleType | undefined>route.data['roleType'];
+    return this.checkLogin(url, roleType);
   }
 
   checkLogin(
     url: string | undefined,
-    userType: UserType | undefined
+    roleType: RoleType | undefined
   ): Observable<boolean> {
     if (url === '/404') {
       return of(true);
@@ -42,7 +42,7 @@ export class AuthGuard implements CanActivate, CanLoad {
     return this.authService.checkLogin().pipe(
       map(x => {
         if (x) {
-          if (this.authService.user.userType !== userType) {
+          if (this.authService.user.roleType !== roleType) {
             this.router.navigate([this.authService.redirectUrl]);
             return true;
           } else {

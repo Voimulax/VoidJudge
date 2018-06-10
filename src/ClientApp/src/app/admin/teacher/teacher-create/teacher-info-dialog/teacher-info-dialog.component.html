@@ -45,11 +45,11 @@
       </mat-form-field>
 
       <mat-form-field class="teacherFormControl">
-        <mat-select placeholder="用户类型" formControlName="userType" type="text" [errorStateMatcher]="matcher" required>
+        <mat-select placeholder="用户类型" formControlName="roleType" type="text" [errorStateMatcher]="matcher" required>
           <mat-option value="1">教师</mat-option>
           <mat-option value="0">管理员</mat-option>
         </mat-select>
-        <mat-error *ngIf="teacherForm.get('userType').hasError('required')">
+        <mat-error *ngIf="teacherForm.get('roleType').hasError('required')">
           用户类型是
           <strong>必须</strong>的
         </mat-error>

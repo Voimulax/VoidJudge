@@ -55,7 +55,6 @@ export class LoginComponent implements OnInit {
       if (b === AuthResult.ok) {
         this.router.navigate([this.authService.redirectUrl]);
       } else {
-        this.form.nativeElement.reset();
         let str = '';
         if (b === AuthResult.error) {
           str = '网络错误';
@@ -64,7 +63,11 @@ export class LoginComponent implements OnInit {
         }
         this.dialogService.showErrorMessage(str, () => {
           this.isLoading = false;
+          this.form.nativeElement.reset();
           this.loginNameBox.nativeElement.focus();
+          setTimeout(() => {
+            this.form.nativeElement.reset();
+          }, 0);
         });
       }
     });

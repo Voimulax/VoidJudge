@@ -8,7 +8,7 @@ import { StudentService } from '../../student.service';
 import { StudentInfoDialogComponent } from '../student-info-dialog/student-info-dialog.component';
 import { StudentListDialogComponent } from '../student-list-dialog/student-list-dialog.component';
 import {
-  UserType,
+  RoleType,
   StudentInfoWithSymbol,
   StudentInfo,
   UserResultType,
@@ -74,7 +74,7 @@ export class StudentCreateMultiComponent implements OnInit {
         userName: x.userName,
         password: x.password,
         group: x.group,
-        userType: UserType.student
+        roleType: RoleType.student
       };
     });
     this.studentService.adds(sis).subscribe(x => {

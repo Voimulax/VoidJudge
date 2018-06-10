@@ -55,7 +55,7 @@ export class StudentService {
   gets(): Observable<StudentInfo[]> {
     return this.http
       .get(this.baseUrl, {
-        params: new HttpParams().set('roleCode', '2')
+        params: new HttpParams().set('roleType', '2')
       })
       .pipe(
         map(x => {
@@ -84,7 +84,7 @@ export class StudentService {
         userName: studentInfo.userName,
         password: studentInfo.password
       },
-      roleCode: studentInfo.userType,
+      roleType: studentInfo.roleType,
       claimInfos: [{ type: 'group', value: studentInfo.group }]
     };
     this.dialogService.isLoadingDialogActive = true;
@@ -139,7 +139,7 @@ export class StudentService {
           userName: x.userName,
           password: x.password
         },
-        roleCode: x.userType,
+        roleType: x.roleType,
         claimInfos: [{ type: 'group', value: x.group }]
       };
     });

@@ -8,7 +8,7 @@ namespace VoidJudge.Services
         Task<LoginResult> LoginAsync(LoginUser loginUser, string ipAddress);
         Task<AuthResult> ResetPasswordAsync(ResetUser resetUser);
         Task<bool> IsUserExistAsync(long id);
-        bool CompareRoleAuth(string roleCodeA, string roleCodeB);
-        Task<Role> CheckRoleCodeAsync(string roleCode);
+        bool CompareRoleAuth(string roleTypeA, string roleTypeB);
+        Task<Role> CheckRoleTypeAsync(string roleType);
     }
 }

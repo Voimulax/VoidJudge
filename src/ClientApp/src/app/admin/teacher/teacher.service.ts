@@ -15,7 +15,7 @@ import {
   UserResultType,
   DeleteResultType,
   UserInfo,
-  getUserType
+  getRoleType
 } from '../../core/auth/user.model';
 import { DialogService } from '../../shared/dialog/dialog.service';
 
@@ -36,12 +36,12 @@ export class TeacherService {
     return this.http.get(`${this.baseUrl}/${id}`).pipe(
       map(x => {
         const b = x['data']['basicInfo'];
-        const r = x['data']['roleCode'];
+        const r = x['data']['roleType'];
         return {
           id: b['id'],
           loginName: b['loginName'],
           userName: b['userName'],
-          userType: getUserType(r)
+          roleType: getRoleType(r)
         };
       }),
       tap(x => {
@@ -56,18 +56,18 @@ export class TeacherService {
   gets(): Observable<UserInfo[]> {
     return this.http
       .get(this.baseUrl, {
-        params: new HttpParams().set('roleCode', '0#1')
+        params: new HttpParams().set('roleType', '0#1')
       })
       .pipe(
         map(x => {
           return x['data'].map(y => {
             const b = y['basicInfo'];
-            const r = y['roleCode'];
+            const r = y['roleType'];
             return {
               id: b['id'],
               loginName: b['loginName'],
               userName: b['userName'],
-              userType: getUserType(r)
+              roleType: getRoleType(r)
             };
           });
         }),
@@ -85,7 +85,7 @@ export class TeacherService {
         userName: teacherInfo.userName,
         password: teacherInfo.password
       },
-      roleCode: teacherInfo.userType
+      roleType: teacherInfo.roleType
     };
     this.dialogService.isLoadingDialogActive = true;
     return this.http
@@ -97,23 +97,23 @@ export class TeacherService {
         map(x => {
           if (x['error'] === '0') {
             const b = x['data']['basicInfo'];
-            const r = x['data']['roleCode'];
+            const r = x['data']['roleType'];
             const user: UserInfo = {
               id: b['id'],
               loginName: b['loginName'],
               userName: b['userName'],
               password: b['password'],
-              userType: getUserType(r)
+              roleType: getRoleType(r)
             };
             this.teacherInfo = {
               loginName: '',
               userName: '',
-              userType: undefined
+              roleType: undefined
             };
             this.teacherInfo.id = user.id;
             this.teacherInfo.loginName = user.loginName;
             this.teacherInfo.userName = user.userName;
-            this.teacherInfo.userType = user.userType;
+            this.teacherInfo.roleType = user.roleType;
             return { type: PutResultType.ok, user: user };
           }
         }),
@@ -143,7 +143,7 @@ export class TeacherService {
           userName: x.userName,
           password: x.password
         },
-        roleCode: x.userType
+        roleType: x.roleType
       };
     });
     this.dialogService.isLoadingDialogActive = true;

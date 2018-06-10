@@ -57,13 +57,13 @@ namespace VoidJudge.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUserAsync([FromRoute] long id)
         {
-            var roleCode = Request.HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Role)?.Value;
-            if (roleCode == null)
+            var roleType = Request.HttpContext.User.Claims.SingleOrDefault(x => x.Type == ClaimTypes.Role)?.Value;
+            if (roleType == null)
             {
                 return BadRequest(new GeneralResult { Error = $"{(int)GetResult.Error}" });
             }
 
-            var result = await _userService.GetUserAsync(id, roleCode);
+            var result = await _userService.GetUserAsync(id, roleType);
 
             switch (result.Type)
             {
@@ -82,9 +82,9 @@ namespace VoidJudge.Controllers
 
         [Authorize(Roles = "0")]
         [HttpGet]
-        public async Task<IActionResult> GetUsersAsync([FromQuery] string roleCode)
+        public async Task<IActionResult> GetUsersAsync([FromQuery] string roleType)
         {
-            var user = await _userService.GetUsersAsync(roleCode.Split('#'));
+            var user = await _userService.GetUsersAsync(roleType.Split('#'));
 
             if (user == null)
             {

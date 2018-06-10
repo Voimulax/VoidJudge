@@ -3,7 +3,7 @@ import { Routes, RouterModule } from '@angular/router';
 import { environment } from '../environments/environment';
 
 import { AuthGuard } from './core/auth/auth.guard';
-import { UserType } from './core/auth/user.model';
+import { RoleType } from './core/auth/user.model';
 import { TestGuard } from './test/test.guard';
 
 const routes: Routes = [
@@ -11,19 +11,19 @@ const routes: Routes = [
     path: 'student',
     loadChildren: './student/student.module#StudentModule',
     canLoad: [AuthGuard],
-    data: { userType: UserType.student }
+    data: { roleType: RoleType.student }
   },
   {
     path: 'teacher',
     loadChildren: './teacher/teacher.module#TeacherModule',
     canLoad: [AuthGuard],
-    data: { userType: UserType.teacher }
+    data: { roleType: RoleType.teacher }
   },
   {
     path: 'admin',
     loadChildren: './admin/admin.module#AdminModule',
     canLoad: [AuthGuard],
-    data: { userType: UserType.admin }
+    data: { roleType: RoleType.admin }
   },
   {
     path: 'test',
@@ -33,7 +33,7 @@ const routes: Routes = [
   {
     path: '',
     loadChildren: './home/home.module#HomeModule',
-    data: { userType: undefined }
+    data: { roleType: undefined }
   },
   { path: '**', redirectTo: '/404' }
 ];

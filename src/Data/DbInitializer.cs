@@ -27,9 +27,9 @@ namespace VoidJudge.Data
 
             var roles = new[]
             {
-                new Role {Name = "Admin", Code = "0"},
-                new Role {Name = "Teacher", Code = "1"},
-                new Role {Name = "Student", Code = "2"}
+                new Role {Name = "Admin", Type = RoleTypes.Admin},
+                new Role {Name = "Teacher", Type = RoleTypes.Teacher},
+                new Role {Name = "Student", Type = RoleTypes.Student}
             };
 
             context.Roles.AddRange(roles);
@@ -45,8 +45,8 @@ namespace VoidJudge.Data
 
             var claims = new[]
             {
-                new Claim {Name = "班级", Type = "group"},
-                new Claim {Name = "IP地址", Type = "ipAddress"}
+                new Claim {Name = "Group", Type = ClaimTypes.Group},
+                new Claim {Name = "IPAddress", Type = ClaimTypes.IPAddress}
             };
 
             context.Claims.AddRange(claims);

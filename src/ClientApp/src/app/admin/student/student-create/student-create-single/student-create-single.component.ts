@@ -11,7 +11,7 @@ import { DialogService } from '../../../../shared/dialog/dialog.service';
 import { FormErrorStateMatcher } from '../../../../shared/form-error-state-matcher';
 import { StudentService } from '../../student.service';
 import {
-  UserType,
+  RoleType,
   UserResultType,
   StudentInfo
 } from '../../../../core/auth/user.model';
@@ -75,7 +75,7 @@ export class StudentCreateSingleComponent implements OnInit {
 
   create() {
     const si: StudentInfo = this.studentForm.value;
-    si.userType = UserType.student;
+    si.roleType = RoleType.student;
     this.studentService.add(si).subscribe(x => {
       if (x.type === UserResultType.ok) {
         this.dialogService.showNoticeMessage('创建成功');

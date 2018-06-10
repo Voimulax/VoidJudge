@@ -6,7 +6,7 @@ import { catchError, finalize, map, startWith } from 'rxjs/operators';
 
 import { DialogService } from '../../../shared/dialog/dialog.service';
 import { TeacherService } from '../teacher.service';
-import { UserInfo, DeleteResultType, getUserTypeName } from '../../../core/auth/user.model';
+import { UserInfo, DeleteResultType, getRoleTypeName } from '../../../core/auth/user.model';
 
 @Component({
   selector: 'app-teacher-list',
@@ -14,7 +14,7 @@ import { UserInfo, DeleteResultType, getUserTypeName } from '../../../core/auth/
   styleUrls: ['./teacher-list.component.css']
 })
 export class TeacherListComponent implements OnInit, AfterViewInit {
-  displayedColumns = ['select', 'loginName', 'userName', 'userType', 'id'];
+  displayedColumns = ['select', 'loginName', 'userName', 'roleType', 'id'];
   dataSource = new MatTableDataSource<UserInfo>();
   selection = new SelectionModel<UserInfo>(true, []);
   isLoading = true;
@@ -58,7 +58,7 @@ export class TeacherListComponent implements OnInit, AfterViewInit {
       this.dialogService.showOkMessage(
         `请问你确定要删除用户名为“${
           this.selection.selected[0].loginName
-        }”的${getUserTypeName(this.selection.selected[0].userType)}吗`,
+        }”的${getRoleTypeName(this.selection.selected[0].roleType)}吗`,
         () => {
           const id = this.selection.selected[0].id;
           this.teacherService.delete(id).subscribe(x => {

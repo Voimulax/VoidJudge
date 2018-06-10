@@ -22,9 +22,9 @@
             <td mat-cell *matCellDef="let element"> {{element.password}} </td>
           </ng-container>
 
-          <ng-container matColumnDef="userType">
+          <ng-container matColumnDef="roleType">
             <th mat-header-cell *matHeaderCellDef style="width: 25%"> 用户类型 </th>
-            <td mat-cell *matCellDef="let element"> {{element.userType===0 ? '管理员' : '教师'}} </td>
+            <td mat-cell *matCellDef="let element"> {{element.roleType===0 ? '管理员' : '教师'}} </td>
           </ng-container>
 
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>

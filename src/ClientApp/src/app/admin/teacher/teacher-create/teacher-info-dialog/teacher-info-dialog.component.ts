@@ -45,7 +45,7 @@ export class TeacherInfoDialogComponent implements OnInit {
         Validators.maxLength(32),
         Validators.pattern(/^\S+$/)
       ]),
-      userType: new FormControl(this.data.userType.toString(), [
+      roleType: new FormControl(this.data.roleType.toString(), [
         Validators.required
       ])
     });

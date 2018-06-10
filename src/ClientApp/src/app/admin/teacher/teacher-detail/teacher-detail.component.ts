@@ -22,9 +22,9 @@ import {
   UserInfo,
   DeleteResultType,
   PutResultType,
-  UserType,
-  getUserType,
-  getUserTypeName
+  RoleType,
+  getRoleType,
+  getRoleTypeName
 } from '../../../core/auth/user.model';
 import { finalize } from 'rxjs/operators';
 
@@ -40,7 +40,7 @@ export class TeacherDetailComponent
   isOtherLoading = false;
   matcher = new FormErrorStateMatcher();
   teacherForm: FormGroup;
-  @ViewChild('userTypeSelect') userTypeSelect: MatSelect;
+  @ViewChild('roleTypeSelect') roleTypeSelect: MatSelect;
   get teacherInfo(): UserInfo {
     return this.teacherService.teacherInfo;
   }
@@ -83,7 +83,7 @@ export class TeacherDetailComponent
         Validators.maxLength(32),
         Validators.pattern(/^\S+$/)
       ]),
-      userType: new FormControl(this.teacherInfo.userType.toString(), [
+      roleType: new FormControl(this.teacherInfo.roleType.toString(), [
         Validators.required
       ])
     });
@@ -94,7 +94,7 @@ export class TeacherDetailComponent
   save() {
     const teacherInfo = this.teacherForm.value;
     teacherInfo.id = this.teacherInfo.id;
-    teacherInfo.userType = getUserType(teacherInfo.userType);
+    teacherInfo.roleType = getRoleType(teacherInfo.roleType);
     this.teacherService.put(teacherInfo).subscribe(x => {
       if (x.type === PutResultType.ok) {
         this.dialogService.showNoticeMessage('修改成功', () => {
@@ -112,8 +112,8 @@ export class TeacherDetailComponent
 
   delete() {
     this.dialogService.showOkMessage(
-      `请问你确定删除用户名为“${this.teacherInfo.loginName}”的${getUserTypeName(
-        this.teacherInfo.userType
+      `请问你确定删除用户名为“${this.teacherInfo.loginName}”的${getRoleTypeName(
+        this.teacherInfo.roleType
       )}吗`,
       () => {
         const id = this.teacherInfo.id;
@@ -165,7 +165,7 @@ export class TeacherDetailComponent
 
   setIsFormLoading(b: boolean) {
     this.isFormLoading = b;
-    this.userTypeSelect.disabled = b;
+    this.roleTypeSelect.disabled = b;
   }
 
   private initTeacherInfo() {

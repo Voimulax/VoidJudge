@@ -1,4 +1,4 @@
-export enum UserType {
+export enum RoleType {
   admin,
   teacher,
   student
@@ -8,7 +8,7 @@ export interface User {
   id: number;
   loginName: string;
   userName: string;
-  userType: UserType;
+  roleType: RoleType;
 }
 
 export interface StudentUser extends User {
@@ -62,7 +62,7 @@ export interface UserInfo {
   loginName: string;
   userName: string;
   password?: string;
-  userType?: UserType;
+  roleType?: RoleType;
 }
 
 export interface StudentInfo extends UserInfo {
@@ -73,7 +73,7 @@ export interface UserInfoWithSymbol {
   loginName: string;
   userName: string;
   password?: string;
-  userType?: UserType;
+  roleType?: RoleType;
   sid: symbol;
 }
 
@@ -86,23 +86,23 @@ export interface UserListDialogData<T extends UserInfoWithSymbol> {
   repeatList: Array<T>;
 }
 
-export function getUserType(str: string) {
+export function getRoleType(str: string) {
   if (str === '0') {
-    return UserType.admin;
+    return RoleType.admin;
   } else if (str === '1') {
-    return UserType.teacher;
+    return RoleType.teacher;
   } else {
-    return UserType.student;
+    return RoleType.student;
   }
 }
 
-export function getUserTypeName(ut: UserType | string) {
+export function getRoleTypeName(ut: RoleType | string) {
   switch (ut) {
-    case UserType.admin:
+    case RoleType.admin:
       return '管理员';
-    case UserType.teacher:
+    case RoleType.teacher:
       return '教师';
-    case UserType.student:
+    case RoleType.student:
       return '学生';
     case '0':
       return '管理员';

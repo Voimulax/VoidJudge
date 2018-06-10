@@ -31,9 +31,9 @@
         <td mat-cell *matCellDef="let element"> {{element.userName}} </td>
       </ng-container>
 
-      <ng-container matColumnDef="userType">
+      <ng-container matColumnDef="roleType">
         <th mat-header-cell *matHeaderCellDef style="width: 20%"> 用户类型 </th>
-        <td mat-cell *matCellDef="let element"> {{element.userType===0 ? '管理员' : '教师'}} </td>
+        <td mat-cell *matCellDef="let element"> {{element.roleType===0 ? '管理员' : '教师'}} </td>
       </ng-container>
 
       <ng-container matColumnDef="id">
