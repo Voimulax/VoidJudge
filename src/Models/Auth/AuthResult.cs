@@ -1,13 +1,9 @@
 ﻿namespace VoidJudge.Models.Auth
 {
-    public enum AuthResult
+    public static class AuthResultTypes
     {
-        Ok, Wrong, Error
-    }
-
-    public class LoginResult
-    {
-        public AuthResult Type { get; set; }
-        public string Token { get; set; } = null;
+        public const string Ok = "0";
+        public const string Wrong = "1";
+        public const string Error = "2";
     }
 }

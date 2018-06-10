@@ -57,6 +57,7 @@ namespace VoidJudge
             services.AddScoped<PasswordHasher<User>>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IContestService, ContestService>();
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 

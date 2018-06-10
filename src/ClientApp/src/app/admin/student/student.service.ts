@@ -27,12 +27,12 @@ const httpOptions = {
 })
 export class StudentService {
   studentInfo: StudentInfo;
-  private baseUrl = '/api/user';
+  private userBaseUrl = '/api/user';
 
   constructor(private dialogService: DialogService, private http: HttpClient) {}
 
   get(id: number): Observable<StudentInfo> {
-    return this.http.get(`${this.baseUrl}/${id}`).pipe(
+    return this.http.get(`${this.userBaseUrl}/${id}`).pipe(
       map(x => {
         const b = x['data']['basicInfo'];
         const g = x['data']['claimInfos'].find(y => y['type'] === 'group');
@@ -54,7 +54,7 @@ export class StudentService {
 
   gets(): Observable<StudentInfo[]> {
     return this.http
-      .get(this.baseUrl, {
+      .get(this.userBaseUrl, {
         params: new HttpParams().set('roleType', '2')
       })
       .pipe(
@@ -89,7 +89,7 @@ export class StudentService {
     };
     this.dialogService.isLoadingDialogActive = true;
     return this.http
-      .put(`${this.baseUrl}/${studentInfo.id}`, s, httpOptions)
+      .put(`${this.userBaseUrl}/${studentInfo.id}`, s, httpOptions)
       .pipe(
         finalize(() => {
           this.dialogService.isLoadingDialogActive = false;
@@ -144,7 +144,7 @@ export class StudentService {
       };
     });
     this.dialogService.isLoadingDialogActive = true;
-    return this.http.post(`${this.baseUrl}`, sis, httpOptions).pipe(
+    return this.http.post(`${this.userBaseUrl}`, sis, httpOptions).pipe(
       finalize(() => {
         this.dialogService.isLoadingDialogActive = false;
       }),
@@ -170,7 +170,7 @@ export class StudentService {
 
   delete(id: number): Observable<DeleteResultType> {
     this.dialogService.isLoadingDialogActive = true;
-    return this.http.delete(`${this.baseUrl}/${id}`).pipe(
+    return this.http.delete(`${this.userBaseUrl}/${id}`).pipe(
       finalize(() => {
         this.dialogService.isLoadingDialogActive = false;
       }),

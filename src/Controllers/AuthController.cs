@@ -29,20 +29,20 @@ namespace VoidJudge.Controllers
         {
             var ipAddress = Request.HttpContext.Connection.RemoteIpAddress.ToString();
             var result = await _authService.LoginAsync(loginUser, ipAddress);
-            switch (result.Type)
+            switch (result.Error)
             {
-                case AuthResult.Wrong:
-                    return new ObjectResult(new GeneralResult { Error = $"{(int)result.Type}" })
+                case AuthResultTypes.Wrong:
+                    return new ObjectResult(result)
                     {
                         StatusCode = StatusCodes.Status401Unauthorized
                     };
-                case AuthResult.Error:
-                    return new ObjectResult(new GeneralResult { Error = $"{(int)result.Type}" })
+                case AuthResultTypes.Error:
+                    return new ObjectResult(result)
                     {
                         StatusCode = StatusCodes.Status400BadRequest
                     };
-                case AuthResult.Ok:
-                    return Ok(new GeneralResult { Error = $"{(int)result.Type}", Data = new { result.Token } });
+                case AuthResultTypes.Ok:
+                    return Ok(result);
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -53,20 +53,20 @@ namespace VoidJudge.Controllers
         public async Task<IActionResult> ResetPasswordAsync([FromBody] ResetUser resetUser)
         {
             var result = await _authService.ResetPasswordAsync(resetUser);
-            switch (result)
+            switch (result.Error)
             {
-                case AuthResult.Wrong:
-                    return new ObjectResult(new GeneralResult { Error = $"{(int)result}" })
+                case AuthResultTypes.Wrong:
+                    return new ObjectResult(result)
                     {
                         StatusCode = StatusCodes.Status401Unauthorized
                     };
-                case AuthResult.Error:
-                    return new ObjectResult(new GeneralResult { Error = $"{(int)result}" })
+                case AuthResultTypes.Error:
+                    return new ObjectResult(result)
                     {
                         StatusCode = StatusCodes.Status400BadRequest
                     };
-                case AuthResult.Ok:
-                    return Ok(new GeneralResult { Error = $"{(int)result}" });
+                case AuthResultTypes.Ok:
+                    return Ok(result);
                 default:
                     throw new ArgumentOutOfRangeException();
             }

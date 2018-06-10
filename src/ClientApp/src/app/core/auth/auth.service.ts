@@ -26,7 +26,7 @@ export class AuthService {
   isLoggedIn = false;
   redirectUrl: string;
 
-  private baseUrl = '/api/auth';
+  private authBaseUrl = '/api/auth';
   private userBaseUrl = '/api/user';
 
   constructor(
@@ -63,7 +63,7 @@ export class AuthService {
 
   login(loginUser: LoginUser): Observable<AuthResult> {
     return this.http
-      .post<LoginUser>(`${this.baseUrl}/login`, loginUser, {
+      .post<LoginUser>(`${this.authBaseUrl}/login`, loginUser, {
         headers: new HttpHeaders({ 'Content-Type': 'application/json' })
       })
       .pipe(
@@ -106,7 +106,7 @@ export class AuthService {
   resetPassword(resetUser: ResetUser) {
     this.dialogService.isLoadingDialogActive = true;
     return this.http
-      .post(`${this.baseUrl}/resetpassword`, resetUser, {
+      .post(`${this.authBaseUrl}/resetpassword`, resetUser, {
         headers: new HttpHeaders({ 'Content-Type': 'application/json' })
       })
       .pipe(

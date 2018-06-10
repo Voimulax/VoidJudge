@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using VoidJudge.Data;
+using VoidJudge.Models;
 using VoidJudge.Models.Auth;
 using Claim = System.Security.Claims.Claim;
 using ClaimTypes = System.Security.Claims.ClaimTypes;
@@ -27,15 +28,15 @@ namespace VoidJudge.Services
             _passwordHasher = passwordHasher;
         }
 
-        public async Task<LoginResult> LoginAsync(LoginUser loginUser, string ipAddress)
+        public async Task<ApiResult> LoginAsync(LoginUser loginUser, string ipAddress)
         {
             var jwsth = new JwtSecurityTokenHandler();
 
             var user = await _context.Users.SingleOrDefaultAsync(u =>
                 u.LoginName == loginUser.LoginName);
-            if (user == null) return new LoginResult { Type = AuthResult.Wrong };
+            if (user == null) return new ApiResult { Error = AuthResultTypes.Wrong };
             if (_passwordHasher.VerifyHashedPassword(user, user.Password, loginUser.Password) !=
-                PasswordVerificationResult.Success) return new LoginResult { Type = AuthResult.Wrong };
+                PasswordVerificationResult.Success) return new ApiResult { Error = AuthResultTypes.Wrong };
 
             var role = await (from u in _context.Users
                               join ur in _context.UserRoles on u.Id equals ur.UserId
@@ -43,7 +44,7 @@ namespace VoidJudge.Services
                               where u.Id == user.Id
                               select r).SingleOrDefaultAsync();
 
-            if (role == null) return new LoginResult { Type = AuthResult.Error };
+            if (role == null) return new ApiResult { Error = AuthResultTypes.Error };
 
             // push the user’s name into a claim, so we can identify the user later on.
             var claims = new[]
@@ -68,9 +69,9 @@ namespace VoidJudge.Services
                     除了规定的字段外，可以包含其他任何 JSON 兼容的字段。
                  * */
             var token = jwsth.WriteToken(new JwtSecurityToken(
-                issuer: _configuration["Issuer"],
-                audience: _configuration["Audience"],
-                claims: claims,
+                _configuration["Issuer"],
+                _configuration["Audience"],
+                claims,
                 expires: DateTime.Now.AddMinutes(30),
                 notBefore: DateTime.Now,
                 signingCredentials: creds));
@@ -78,18 +79,18 @@ namespace VoidJudge.Services
             user.LastLoginTime = DateTime.Now;
             await _context.SaveChangesAsync();
 
-            return new LoginResult { Type = AuthResult.Ok, Token = token };
+            return new ApiDataResult { Error = AuthResultTypes.Ok, Data = new { Token = token } };
         }
 
-        public async Task<AuthResult> ResetPasswordAsync(ResetUser resetUser)
+        public async Task<ApiResult> ResetPasswordAsync(ResetUser resetUser)
         {
             var user = await _context.Users.FindAsync(resetUser.Id);
-            if (user == null) return AuthResult.Wrong;
+            if (user == null) return new ApiResult { Error = AuthResultTypes.Wrong };
             if (_passwordHasher.VerifyHashedPassword(user, user.Password, resetUser.Password) !=
-                PasswordVerificationResult.Success) return AuthResult.Wrong;
+                PasswordVerificationResult.Success) return new ApiResult { Error = AuthResultTypes.Wrong };
             user.Password = _passwordHasher.HashPassword(user, resetUser.NewPassword);
             await _context.SaveChangesAsync();
-            return AuthResult.Ok;
+            return new ApiResult { Error = AuthResultTypes.Ok };
         }
 
         public async Task<bool> IsUserExistAsync(long id)

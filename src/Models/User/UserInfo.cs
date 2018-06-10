@@ -30,7 +30,7 @@ namespace VoidJudge.Models.User
         public string Value { get; set; }
     }
 
-    public class User<T> where T: UserBasicInfo
+    public class UserInfo<T> where T: UserBasicInfo
     {
         public T BasicInfo { get; set; }
         public string RoleType { get; set; } = null;

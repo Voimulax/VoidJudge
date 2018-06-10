@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using VoidJudge.Data;
+using VoidJudge.Models;
 using VoidJudge.Models.Auth;
 using VoidJudge.Models.User;
 
@@ -24,7 +25,7 @@ namespace VoidJudge.Services
             _authService = authService;
         }
 
-        public async Task<AddUserResult> AddUsersAsync(IEnumerable<User<AddUserBasicInfo>> addUsers)
+        public async Task<ApiResult> AddUsersAsync(IEnumerable<UserInfo<AddUserBasicInfo>> addUsers)
         {
             addUsers = addUsers.ToList();
 
@@ -35,7 +36,7 @@ namespace VoidJudge.Services
 
             if (repeat.Any())
             {
-                return new AddUserResult { Type = AddResult.Repeat, Repeat = repeat };
+                return new AddUserResult { Error = AddResultTypes.Repeat, Data = repeat };
             }
 
             var time = DateTime.Now;
@@ -60,7 +61,7 @@ namespace VoidJudge.Services
 
             if (userClaims.Count != addUsers.Sum(x => x.ClaimInfos?.Count() ?? 0))
             {
-                return new AddUserResult { Type = AddResult.Error };
+                return new AddUserResult { Error = AddResultTypes.Error };
             }
 
             await _context.UserClaims.AddRangeAsync(userClaims);
@@ -72,19 +73,19 @@ namespace VoidJudge.Services
                              select new UserRole { UserId = u.Id, RoleId = r.Id }).ToList();
             if (userRoles.Count != addUsers.Count())
             {
-                return new AddUserResult { Type = AddResult.Error };
+                return new AddUserResult { Error = AddResultTypes.Error };
             }
 
             await _context.UserRoles.AddRangeAsync(userRoles);
             await _context.SaveChangesAsync();
 
-            return new AddUserResult { Type = AddResult.Ok };
+            return new AddUserResult { Error = AddResultTypes.Ok };
         }
 
-        public async Task<GetUserResult> GetUserAsync(long id, string roleType = null)
+        public async Task<ApiResult> GetUserAsync(long id, string roleType = null)
         {
             var user = await _context.Users.FindAsync(id);
-            if (user == null) return new GetUserResult { Type = GetResult.UserNotFound };
+            if (user == null) return new GetUserResult { Error = GetResultTypes.UserNotFound };
             var role = await (from ur in _context.UserRoles
                               where user.Id == ur.UserId
                               join r in _context.Roles on ur.RoleId equals r.Id
@@ -93,7 +94,7 @@ namespace VoidJudge.Services
             if (roleType != null && !_authService.CompareRoleAuth(roleType, role.Type))
 
             {
-                return new GetUserResult { Type = GetResult.Unauthorized };
+                return new GetUserResult { Error = GetResultTypes.Unauthorized };
             }
 
             var userClaims = await (from uc in _context.UserClaims
@@ -104,8 +105,8 @@ namespace VoidJudge.Services
 
             return new GetUserResult
             {
-                Type = GetResult.Ok,
-                User = new User<GetUserBasicInfo>
+                Error = GetResultTypes.Ok,
+                Data = new UserInfo<GetUserBasicInfo>
                 {
                     BasicInfo =
                         new GetUserBasicInfo { Id = user.Id, LoginName = user.LoginName, UserName = user.UserName },
@@ -115,7 +116,7 @@ namespace VoidJudge.Services
             };
         }
 
-        public async Task<IEnumerable<User<GetUserBasicInfo>>> GetUsersAsync(IEnumerable<string> roleTypes)
+        public async Task<ApiResult> GetUsersAsync(IEnumerable<string> roleTypes)
         {
             var roles = await GetRolesAsync(roleTypes);
             if (roles == null) return null;
@@ -124,15 +125,15 @@ namespace VoidJudge.Services
                                  where ur.RoleId == r.Id
                                  select ur.UserId).ToListAsync();
 
-            var users = new ConcurrentBag<User<GetUserBasicInfo>>();
+            var users = new ConcurrentBag<UserInfo<GetUserBasicInfo>>();
             var tasks = new List<Task>();
             foreach (var id in userIds)
             {
                 var iid = id;
                 tasks.Add(Task.Run(async () =>
                 {
-                    var result = await GetUserAsync(iid);
-                    if (result.Type == GetResult.Ok) users.Add((result.User));
+                    var result = await GetUserAsync(iid) as GetUserResult;
+                    if (result.Error == GetResultTypes.Ok) users.Add(result.Data as UserInfo<GetUserBasicInfo>);
                 }));
             }
             foreach (var task in tasks)
@@ -140,13 +141,13 @@ namespace VoidJudge.Services
                 await task;
             }
 
-            return users.ToList();
+            return new GetUsersResult { Error = GetResultTypes.Ok, Data = users.ToList() };
         }
 
-        public async Task<PutUserResult> PutUserAsync(User<PutUserBasicInfo> putUser)
+        public async Task<ApiResult> PutUserAsync(UserInfo<PutUserBasicInfo> putUser)
         {
             var user = await _context.Users.FindAsync(putUser.BasicInfo.Id);
-            if (user == null) return new PutUserResult { Type = PutResult.UserNotFound };
+            if (user == null) return new PutUserResult { Error = PutResultTypes.UserNotFound };
 
             user.LoginName = putUser.BasicInfo.LoginName;
             user.UserName = putUser.BasicInfo.UserName;
@@ -159,10 +160,10 @@ namespace VoidJudge.Services
             if (putUser.RoleType != null)
             {
                 var userRole = await _context.UserRoles.SingleOrDefaultAsync(x => x.UserId == user.Id);
-                if (userRole == null) return new PutUserResult { Type = PutResult.Error };
+                if (userRole == null) return new PutUserResult { Error = PutResultTypes.Wrong };
 
                 var role = await _authService.CheckRoleTypeAsync(putUser.RoleType);
-                if (role == null) return new PutUserResult { Type = PutResult.Error };
+                if (role == null) return new PutUserResult { Error = PutResultTypes.Wrong };
 
                 userRole.RoleId = role.Id;
 
@@ -176,7 +177,7 @@ namespace VoidJudge.Services
                                   join c in _context.Claims on uc.ClaimId equals c.Id
                                   where c.Type == pc.Type
                                   select uc).ToList();
-                if (userClaims.Count != putUser.ClaimInfos.Count()) return new PutUserResult { Type = PutResult.Error };
+                if (userClaims.Count != putUser.ClaimInfos.Count()) return new PutUserResult { Error = PutResultTypes.Wrong };
 
                 foreach (var userClaim in userClaims)
                 {
@@ -197,20 +198,20 @@ namespace VoidJudge.Services
             try
             {
                 await _context.SaveChangesAsync();
-                return new PutUserResult { Type = PutResult.Ok, User = putUser };
+                return new PutUserResult { Error = PutResultTypes.Ok, Data = putUser };
             }
             catch (DbUpdateConcurrencyException)
             {
-                return new PutUserResult { Type = PutResult.ConcurrencyException };
+                return new PutUserResult { Error = PutResultTypes.ConcurrencyException };
             }
         }
 
-        public async Task<DeleteResult> DeleteUserAsync(long id)
+        public async Task<ApiResult> DeleteUserAsync(long id)
         {
             var user = await _context.Users.FindAsync(id);
             if (user == null)
             {
-                return DeleteResult.UserNotFound;
+                return new ApiResult { Error = DeleteResultTypes.UserNotFound };
             }
 
             var userRole = await _context.UserRoles.SingleOrDefaultAsync(x => x.UserId == id);
@@ -221,7 +222,7 @@ namespace VoidJudge.Services
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();
 
-            return DeleteResult.Ok;
+            return new ApiResult { Error = DeleteResultTypes.Ok };
         }
 
         private static string GetRandomPassword()

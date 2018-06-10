@@ -7,41 +7,56 @@ namespace VoidJudge.Models.User
         public string LoginName { get; set; }
     }
 
-    public enum AddResult
+    public static class AddResultTypes
     {
-        Ok, Wrong, Repeat, Error
+        public const string Ok = "0";
+        public const string Wrong = "1";
+        public const string Repeat = "2";
+        public const string Error = "3";
     }
 
-    public class AddUserResult
+    public class AddUserResult : ApiResult
     {
-        public AddResult Type { get; set; }
-        public IEnumerable<AddResultUser> Repeat { get; set; } = null;
+        public IEnumerable<AddResultUser> Data { get; set; } = null;
     }
 
-    public enum GetResult
+    public static class GetResultTypes
     {
-        Ok, Unauthorized, UserNotFound, Error
+        public const string Ok = "0";
+        public const string Unauthorized = "1";
+        public const string UserNotFound = "2";
+        public const string Error = "3";
     }
 
-    public class GetUserResult
+    public class GetUserResult : ApiResult
     {
-        public GetResult Type { get; set; }
-        public User<GetUserBasicInfo> User { get; set; } = null;
+        public UserInfo<GetUserBasicInfo> Data { get; set; } = null;
     }
 
-    public enum PutResult
+    public class GetUsersResult : ApiResult
     {
-        Ok, ConcurrencyException, UserNotFound, Error
+        public IEnumerable<UserInfo<GetUserBasicInfo>> Data { get; set; } = null;
     }
 
-    public class PutUserResult
+    public static class PutResultTypes
     {
-        public PutResult Type { get; set; }
-        public User<PutUserBasicInfo> User { get; set; } = null;
+        public const string Ok = "0";
+        public const string ConcurrencyException = "1";
+        public const string UserNotFound = "2";
+        public const string Wrong = "3";
+        public const string Error = "4";
     }
 
-    public enum DeleteResult
+    public class PutUserResult: ApiResult
     {
-        Ok, Forbiddance, UserNotFound, Error
+        public UserInfo<PutUserBasicInfo> Data { get; set; } = null;
+    }
+
+    public static class DeleteResultTypes
+    {
+        public const string Ok = "0";
+        public const string Forbiddance = "1";
+        public const string UserNotFound = "2";
+        public const string Error = "3";
     }
 }

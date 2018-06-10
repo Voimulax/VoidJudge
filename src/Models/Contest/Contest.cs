@@ -4,7 +4,7 @@ namespace VoidJudge.Models.Contest
 {
     public enum ContestState
     {
-        NoOver, NoDownload, Over
+        UnPublished, NoDownload, Over
     }
 
     public class Contest
@@ -13,6 +13,7 @@ namespace VoidJudge.Models.Contest
         public string Name { get; set; }
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
+        public string Notice { get; set; }
         public ContestState State { get; set; }
     }
 }

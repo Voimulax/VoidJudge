@@ -26,30 +26,27 @@ namespace VoidJudge.Controllers
 
         [Authorize(Roles = "0")]
         [HttpPost]
-        public async Task<IActionResult> PostAsync([FromBody] IEnumerable<User<AddUserBasicInfo>> addUsers)
+        public async Task<IActionResult> PostAsync([FromBody] IEnumerable<UserInfo<AddUserBasicInfo>> addUsers)
         {
             var result = await _userService.AddUsersAsync(addUsers);
-            if (result.Type == AddResult.Repeat)
+            switch (result.Error)
             {
-                return new ObjectResult(new GeneralResult { Error = $"{(int)result.Type}", Data = result.Repeat })
-                {
-                    StatusCode = StatusCodes.Status406NotAcceptable
-                };
-            }
-            else if (result.Type == AddResult.Wrong)
-            {
-                return new ObjectResult(new GeneralResult { Error = $"{(int)result.Type}" })
-                {
-                    StatusCode = StatusCodes.Status406NotAcceptable
-                };
-            }
-            else if (result.Type == AddResult.Error)
-            {
-                return BadRequest(new GeneralResult { Error = $"{(int)result.Type}" });
-            }
-            else
-            {
-                return Ok(new GeneralResult { Error = $"{(int)result.Type}" });
+                case AddResultTypes.Repeat:
+                    return new ObjectResult(result)
+                    {
+                        StatusCode = StatusCodes.Status406NotAcceptable
+                    };
+                case AddResultTypes.Wrong:
+                    return new ObjectResult(result)
+                    {
+                        StatusCode = StatusCodes.Status406NotAcceptable
+                    };
+                case AddResultTypes.Error:
+                    return BadRequest(result);
+                case AddResultTypes.Ok:
+                    return Ok(result);
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
         }
 
@@ -58,23 +55,18 @@ namespace VoidJudge.Controllers
         public async Task<IActionResult> GetUserAsync([FromRoute] long id)
         {
             var roleType = Request.HttpContext.User.Claims.SingleOrDefault(x => x.Type == ClaimTypes.Role)?.Value;
-            if (roleType == null)
-            {
-                return BadRequest(new GeneralResult { Error = $"{(int)GetResult.Error}" });
-            }
-
             var result = await _userService.GetUserAsync(id, roleType);
 
-            switch (result.Type)
+            switch (result.Error)
             {
-                case GetResult.Unauthorized:
-                    return new ObjectResult(new GeneralResult { Error = "1" }) { StatusCode = StatusCodes.Status401Unauthorized };
-                case GetResult.UserNotFound:
-                    return NotFound(new GeneralResult { Error = $"{(int)result.Type}" });
-                case GetResult.Ok:
-                    return Ok(new GeneralResult { Error = $"{(int)result.Type}", Data = result.User });
-                case GetResult.Error:
-                    return BadRequest(new GeneralResult { Error = $"{(int)result.Type}" });
+                case GetResultTypes.Unauthorized:
+                    return new ObjectResult(result) { StatusCode = StatusCodes.Status401Unauthorized };
+                case GetResultTypes.UserNotFound:
+                    return NotFound(result);
+                case GetResultTypes.Ok:
+                    return Ok(result);
+                case GetResultTypes.Error:
+                    return BadRequest(result);
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -84,41 +76,50 @@ namespace VoidJudge.Controllers
         [HttpGet]
         public async Task<IActionResult> GetUsersAsync([FromQuery] string roleType)
         {
-            var user = await _userService.GetUsersAsync(roleType.Split('#'));
+            var result = await _userService.GetUsersAsync(roleType.Split('#'));
 
-            if (user == null)
+            switch (result.Error)
             {
-                return NotFound(new GeneralResult { Error = "1" });
+                case GetResultTypes.Unauthorized:
+                    return new ObjectResult(result) { StatusCode = StatusCodes.Status401Unauthorized };
+                case GetResultTypes.UserNotFound:
+                    return NotFound(result);
+                case GetResultTypes.Ok:
+                    return Ok(result);
+                case GetResultTypes.Error:
+                    return BadRequest(result);
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
-
-            return Ok(new GeneralResult { Error = "0", Data = user });
         }
 
         [Authorize(Roles = "0")]
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutUserAsync([FromRoute] long id, [FromBody] User<PutUserBasicInfo> putUser)
+        public async Task<IActionResult> PutUserAsync([FromRoute] long id, [FromBody] UserInfo<PutUserBasicInfo> putUser)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(new GeneralResult { Error = "3", Data = ModelState });
+                return BadRequest(new ApiDataResult { Error = PutResultTypes.Wrong, Data = new { ModelState } });
             }
 
             if (id != putUser.BasicInfo.Id)
             {
-                return BadRequest(new GeneralResult { Error = "3" });
+                return BadRequest(new ApiResult { Error = PutResultTypes.Wrong });
             }
 
             var result = await _userService.PutUserAsync(putUser);
-            switch (result.Type)
+            switch (result.Error)
             {
-                case PutResult.ConcurrencyException:
-                    return BadRequest(new GeneralResult { Error = $"{(int)result.Type}" });
-                case PutResult.UserNotFound:
-                    return NotFound(new GeneralResult { Error = $"{(int)result.Type}" });
-                case PutResult.Error:
-                    return BadRequest(new GeneralResult { Error = $"{(int)result.Type}" });
-                case PutResult.Ok:
-                    return Ok(new GeneralResult { Error = $"{(int)result.Type}", Data = result.User });
+                case PutResultTypes.ConcurrencyException:
+                    return BadRequest(result);
+                case PutResultTypes.UserNotFound:
+                    return NotFound(result);
+                case PutResultTypes.Wrong:
+                    return NotFound(result);
+                case PutResultTypes.Error:
+                    return BadRequest(result);
+                case PutResultTypes.Ok:
+                    return Ok(result);
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -129,19 +130,19 @@ namespace VoidJudge.Controllers
         public async Task<IActionResult> DeleteUserAsync([FromRoute] long id)
         {
             var result = await _userService.DeleteUserAsync(id);
-            switch (result)
+            switch (result.Error)
             {
-                case DeleteResult.Forbiddance:
-                    return new ObjectResult(new GeneralResult { Error = $"{(int)result}" })
+                case DeleteResultTypes.Forbiddance:
+                    return new ObjectResult(result)
                     {
                         StatusCode = StatusCodes.Status403Forbidden
                     };
-                case DeleteResult.UserNotFound:
-                    return NotFound(new GeneralResult { Error = $"{(int)result}" });
-                case DeleteResult.Error:
-                    return BadRequest(new GeneralResult { Error = $"{(int)result}" });
-                case DeleteResult.Ok:
-                    return Ok(new GeneralResult { Error = $"{(int)result}" });
+                case DeleteResultTypes.UserNotFound:
+                    return NotFound(result);
+                case DeleteResultTypes.Error:
+                    return BadRequest(result);
+                case DeleteResultTypes.Ok:
+                    return Ok(result);
                 default:
                     throw new ArgumentOutOfRangeException();
             }
