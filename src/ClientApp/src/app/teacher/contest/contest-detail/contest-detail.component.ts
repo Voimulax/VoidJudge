@@ -2,7 +2,7 @@ import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { isNumber } from 'util';
 
-import { ContestInfo, GetContestResultType } from '../contest.model';
+import { ContestInfo, GetContestResultType, ContestState } from '../contest.model';
 import { ContestService } from '../contest.service';
 
 @Component({
@@ -10,17 +10,12 @@ import { ContestService } from '../contest.service';
   templateUrl: './contest-detail.component.html',
   styleUrls: ['./contest-detail.component.css']
 })
-export class ContestDetailComponent
-  implements OnInit, AfterViewInit, OnDestroy {
+export class ContestDetailComponent implements OnInit, AfterViewInit, OnDestroy {
   isLoading = true;
   get contestInfo(): ContestInfo {
     return this.contestService.contestInfo;
   }
-  constructor(
-    private contestService: ContestService,
-    private route: ActivatedRoute,
-    private router: Router
-  ) {}
+  constructor(private contestService: ContestService, private route: ActivatedRoute, private router: Router) {}
 
   ngOnInit() {}
 
@@ -38,7 +33,7 @@ export class ContestDetailComponent
   }
 
   private initContestInfo() {
-    if (!this.contestService.contestInfo) {
+    if (!this.contestInfo) {
       const id = this.route.snapshot.paramMap.get('id');
       const nid = Number(id);
       if (isNumber(nid) && !isNaN(nid)) {
@@ -47,7 +42,14 @@ export class ContestDetailComponent
         this.router.navigate(['/teacher/contest']);
       }
     } else {
-      this.isLoading = false;
+      if (
+        !this.contestInfo.students &&
+        (this.contestInfo.state === ContestState.NoPublished || this.contestInfo.state === ContestState.NoStarted)
+      ) {
+        this.getContest(this.contestInfo.id);
+      } else {
+        this.isLoading = false;
+      }
     }
   }
 

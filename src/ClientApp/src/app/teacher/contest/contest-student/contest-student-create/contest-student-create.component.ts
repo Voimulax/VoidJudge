@@ -24,12 +24,14 @@ export class ContestStudentCreateComponent implements OnInit {
     private dialogService: DialogService,
     private fileService: FileService,
     private contestService: ContestService
-  ) {}
+  ) {
+    this.dataSource.data = this.contestService.contestInfo.students;
+  }
 
   ngOnInit() {}
 
   isImported() {
-    return this.dataSource.data.length > 0;
+    return this.dataSource.data && this.dataSource.data.length > 0;
   }
 
   isSelected() {
@@ -43,9 +45,7 @@ export class ContestStudentCreateComponent implements OnInit {
   }
 
   masterToggle() {
-    this.isAllSelected()
-      ? this.selection.clear()
-      : this.dataSource.data.forEach(row => this.selection.select(row));
+    this.isAllSelected() ? this.selection.clear() : this.dataSource.data.forEach(row => this.selection.select(row));
   }
 
   import(evt: any, fileForm: HTMLFormElement) {
@@ -64,9 +64,7 @@ export class ContestStudentCreateComponent implements OnInit {
         this.dialogService.showErrorMessage(error.message);
         fileForm.reset();
       } else {
-        const repeatList = this.dataSource.data.filter(x =>
-          data.find(y => y.loginName === x.loginName)
-        );
+        const repeatList = this.dataSource.data.filter(x => data.find(y => y.loginName === x.loginName));
         if (repeatList.length > 0) {
           this.dialog.open(ContestStudentListDialogComponent, {
             data: { repeatList: repeatList },

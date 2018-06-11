@@ -2,12 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { map, tap, catchError } from 'rxjs/operators';
 
-import {
-  ContestInfo,
-  ContestState,
-  GetContestResultType,
-  GetContestsResult
-} from './contest.model';
+import { ContestInfo, ContestState, GetContestResultType, GetContestsResult } from './contest.model';
 import { of } from 'rxjs';
 
 @Injectable({
@@ -23,13 +18,19 @@ export class ContestService {
     return this.http.get<GetContestsResult>(`${this.contestBaseUrl}/${id}`).pipe(
       map(x => {
         const b = x['data']['basicInfo'];
-        const a = x['data']['claimInfos'].find(z => z['type'] === 'state');
+        let u = x['data']['userInfos'];
+        if (u === null || u === undefined) {
+          u = [];
+        }
+        const n = x['data']['claimInfos'].find(z => z['type'] === 'notice');
+        const s = x['data']['claimInfos'].find(z => z['type'] === 'state');
         return {
           id: b['id'],
           name: b['name'],
           startTime: new Date(b['startTime']).getTime(),
           endTime: new Date(b['endTime']).getTime(),
-          state: a['value'] === '0' ? ContestState.NoPublished : undefined
+          state: s['value'] === '0' ? ContestState.NoPublished : undefined,
+          students: u
         };
       }),
       map(x => {

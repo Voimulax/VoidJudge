@@ -1,7 +1,7 @@
 import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { MatTableDataSource } from '@angular/material';
 import { Router } from '@angular/router';
-import { catchError, finalize, map, startWith } from 'rxjs/operators';
+import { finalize } from 'rxjs/operators';
 
 import { ContestInfo, GetContestResultType } from '../contest.model';
 import { ContestService } from '../contest.service';
@@ -19,11 +19,7 @@ export class ContestListComponent implements OnInit, AfterViewInit {
 
   private url = '/teacher/contest';
 
-  constructor(
-    private contestService: ContestService,
-    private dialogService: DialogService,
-    private router: Router
-  ) {}
+  constructor(private contestService: ContestService, private dialogService: DialogService, private router: Router) {}
 
   ngOnInit() {}
 

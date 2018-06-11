@@ -9,5 +9,6 @@ namespace VoidJudge.Services
     {
         Task<ApiResult> GetContestAsync(long id, string roleType, long userId);
         Task<ApiResult> GetContestsAsync(string roleType, long userId);
+        Task<ApiResult> GetSubmissionsAsync(long contestId, long userId);
     }
 }

@@ -1,23 +1,19 @@
 import { Injectable } from '@angular/core';
-import {
-  HttpClient,
-  HttpHeaders,
-  HttpErrorResponse
-} from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { map, catchError, switchMap, finalize } from 'rxjs/operators';
 import { JwtHelperService } from '@auth0/angular-jwt';
 
 import { TokenService } from './token.service';
-import {
-  User,
-  RoleType,
-  getRoleType,
-  LoginUser,
-  ResetUser
-} from './user.model';
+import { User, RoleType, getRoleType, LoginUser, ResetUser } from './user.model';
 import { DialogService } from '../../shared/dialog/dialog.service';
 import { Router } from '@angular/router';
+
+export enum AuthResult {
+  ok,
+  wrong,
+  error
+}
 
 @Injectable({
   providedIn: 'root'
@@ -202,10 +198,4 @@ export class AuthService {
       }
     }
   }
-}
-
-export enum AuthResult {
-  ok,
-  wrong,
-  error
 }

@@ -16,6 +16,14 @@ namespace VoidJudge.Models.Contest
         public string Value { get; set; }
     }
 
+    public class ContestUserInfo
+    {
+        public long Id { get; set; }
+        public string LoginName { get; set; }
+        public string UserName { get; set; }
+        public string Group { get; set; }
+    }
+
     public class ContestBasicInfo
     {
         public long Id { get; set; }
@@ -27,6 +35,7 @@ namespace VoidJudge.Models.Contest
     public class ContestInfo
     {
         public ContestBasicInfo BasicInfo { get; set; }
+        public IEnumerable<ContestUserInfo> UserInfos { get; set; } = null;
         public IEnumerable<ContestClaimInfo> ClaimInfos { get; set; } = null;
     }
 }

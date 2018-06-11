@@ -7,9 +7,20 @@ export enum ContestState {
 export interface ContestInfo {
   id: number;
   name: string;
-  teacherName: string;
+  authorName: string;
   startTime: number;
   endTime: number;
   notice?: string;
   state?: ContestState;
+}
+
+export enum GetContestResultType {
+  Ok,
+  NotFound,
+  Error
+}
+
+export interface GetContestsResult {
+  type: GetContestResultType;
+  data: ContestInfo[];
 }

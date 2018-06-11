@@ -10,7 +10,7 @@
         public long Id { get; set; }
         public long ContestId { get; set; }
         public long UserId { get; set; }
-        public string Type { get; set; }
-        public SubmissionType Value { get; set; }
+        public SubmissionType Type { get; set; }
+        public string Value { get; set; }
     }
 }

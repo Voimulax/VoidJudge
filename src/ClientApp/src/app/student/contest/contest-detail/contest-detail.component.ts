@@ -2,7 +2,7 @@ import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { isNumber } from 'util';
 
-import { ContestInfo, ContestState } from '../contest.model';
+import { ContestInfo, ContestState, GetContestResultType } from '../contest.model';
 import { ContestService } from '../contest.service';
 import { StudentUser } from '../../../core/auth/user.model';
 
@@ -11,12 +11,12 @@ import { StudentUser } from '../../../core/auth/user.model';
   templateUrl: './contest-detail.component.html',
   styleUrls: ['./contest-detail.component.css']
 })
-export class ContestDetailComponent
-  implements OnInit, AfterViewInit, OnDestroy {
+export class ContestDetailComponent implements OnInit, AfterViewInit, OnDestroy {
   isLoading = true;
   totalTime: number;
   restTime: number;
-  downloadUrl = 'https://download.microsoft.com/download/8/8/5/88544F33-836A-49A5-8B67-451C24709A8F/dotnet-sdk-2.1.300-win-x64.zip';
+  downloadUrl =
+    'https://download.microsoft.com/download/8/8/5/88544F33-836A-49A5-8B67-451C24709A8F/dotnet-sdk-2.1.300-win-x64.zip';
 
   private timer;
   private url = '/student/contest';
@@ -26,14 +26,10 @@ export class ContestDetailComponent
   }
 
   get contestProgress(): number {
-    return (this.totalTime - this.restTime) / this.totalTime * 100;
+    return ((this.totalTime - this.restTime) / this.totalTime) * 100;
   }
 
-  constructor(
-    private contestService: ContestService,
-    private route: ActivatedRoute,
-    private router: Router
-  ) {}
+  constructor(private contestService: ContestService, private route: ActivatedRoute, private router: Router) {}
 
   ngOnInit() {}
 
@@ -77,23 +73,27 @@ export class ContestDetailComponent
       const id = this.route.snapshot.paramMap.get('id');
       const nid = Number(id);
       if (isNumber(nid) && !isNaN(nid)) {
-        this.contestService.getContest(Number.parseInt(id)).subscribe(
-          x => {
-            if (x) {
-              this.updateContestInfo();
-            } else {
-              this.goBack();
-            }
-          },
-          error => {
-            this.goBack();
-          }
-        );
+        this.getContest(nid);
       } else {
         this.goBack();
       }
     } else {
       this.updateContestInfo();
     }
+  }
+
+  private getContest(nid: number) {
+    this.contestService.get(nid).subscribe(
+      x => {
+        if (x.type === GetContestResultType.Ok) {
+          this.isLoading = false;
+        } else {
+          this.goBack();
+        }
+      },
+      error => {
+        this.goBack();
+      }
+    );
   }
 }

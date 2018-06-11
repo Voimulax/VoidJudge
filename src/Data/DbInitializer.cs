@@ -104,6 +104,23 @@ namespace VoidJudge.Data
                 context.SaveChanges();
             }
 
+            var contestUsers = new[]
+            {
+                new ContestUser{ContestId = 1, UserId = 3},
+                new ContestUser{ContestId = 2, UserId = 3},
+                new ContestUser{ContestId = 3, UserId = 3},
+                new ContestUser{ContestId = 4, UserId = 3},
+                new ContestUser{ContestId = 5, UserId = 3},
+                new ContestUser{ContestId = 6, UserId = 3},
+                new ContestUser{ContestId = 7, UserId = 3},
+            };
+
+            foreach (var contestUser in contestUsers)
+            {
+                context.Add(contestUser);
+                context.SaveChanges();
+            }
+
             context.SaveChanges();
         }
     }
