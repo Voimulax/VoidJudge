@@ -13,7 +13,7 @@ import { DialogService } from '../../../shared/dialog/dialog.service';
   styleUrls: ['./contest-list.component.css']
 })
 export class ContestListComponent implements OnInit, AfterViewInit {
-  displayedColumns = ['name', 'authorName', 'startTime', 'endTime', 'state'];
+  displayedColumns = ['name', 'ownerName', 'startTime', 'endTime', 'state'];
   dataSource = new MatTableDataSource();
   isLoading = true;
 

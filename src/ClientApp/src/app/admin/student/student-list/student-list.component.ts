@@ -21,14 +21,9 @@ export class StudentListComponent implements OnInit, AfterViewInit {
 
   private url = '/admin/student';
 
-  constructor(
-    private dialogService: DialogService,
-    private studentService: StudentService,
-    private router: Router
-  ) {}
+  constructor(private dialogService: DialogService, private studentService: StudentService, private router: Router) {}
 
-  ngOnInit() {
-  }
+  ngOnInit() {}
 
   ngAfterViewInit() {
     this.getStudents();
@@ -45,9 +40,7 @@ export class StudentListComponent implements OnInit, AfterViewInit {
   }
 
   masterToggle() {
-    this.isAllSelected()
-      ? this.selection.clear()
-      : this.dataSource.data.forEach(row => this.selection.select(row));
+    this.isAllSelected() ? this.selection.clear() : this.dataSource.data.forEach(row => this.selection.select(row));
   }
 
   delete() {
@@ -57,9 +50,7 @@ export class StudentListComponent implements OnInit, AfterViewInit {
       });
     } else {
       this.dialogService.showOkMessage(
-        `请问你确定要删除用户名为“${
-          this.selection.selected[0].loginName
-        }”的学生吗`,
+        `请问你确定要删除用户名为“${this.selection.selected[0].loginName}”的学生吗`,
         () => {
           const id = this.selection.selected[0].id;
           this.studentService.delete(id).subscribe(x => {
@@ -69,7 +60,7 @@ export class StudentListComponent implements OnInit, AfterViewInit {
                 this.getStudents();
               });
             } else if (x === DeleteResultType.forbiddance) {
-              this.dialogService.showErrorMessage('暂时无法进行删除');
+              this.dialogService.showErrorMessage('由于此学生正在参与考试，暂时无法进行删除');
             } else if (x === DeleteResultType.userNotFound) {
               this.dialogService.showErrorMessage('此用户不存在');
             } else {

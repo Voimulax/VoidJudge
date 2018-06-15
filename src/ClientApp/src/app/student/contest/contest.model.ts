@@ -7,7 +7,7 @@ export enum ContestState {
 export interface ContestInfo {
   id: number;
   name: string;
-  authorName: string;
+  ownerName: string;
   startTime: number;
   endTime: number;
   notice?: string;

@@ -10,25 +10,23 @@ using VoidJudge.ViewModels.Identity;
 
 namespace VoidJudge.Controllers
 {
-    [Route("api/users")]
+    [Route("api/user/students")]
     [Produces("application/json")]
     [ApiController]
-    public class UserController : Controller
+    public class StudentController : Controller
     {
-        private readonly IAuthService _authService;
         private readonly IUserService _userService;
 
-        public UserController(IUserService userService, IAuthService authService)
+        public StudentController(IUserService userService, IAuthService authService)
         {
             _userService = userService;
-            _authService = authService;
         }
 
         [Authorize(Roles = "0")]
         [HttpPost]
-        public async Task<IActionResult> PostUsersAsync([FromBody] IList<AddUserViewModel> addUsers)
+        public async Task<IActionResult> PostAsync([FromBody] IList<AddStudentViewModel> addStudents)
         {
-            var result = await _userService.AddUsersAsync(addUsers);
+            var result = await _userService.AddStudentsAsync(addStudents);
             switch (result.Error)
             {
                 case AddResultType.Repeat:
@@ -49,10 +47,9 @@ namespace VoidJudge.Controllers
 
         [Authorize]
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetUserAsync([FromRoute] long id)
+        public async Task<IActionResult> GetAsync([FromRoute] long id)
         {
-            var roleType = _authService.GetRoleTypeFromRequest(Request.HttpContext.User.Claims);
-            var result = await _userService.GetUserAsync(id, roleType);
+            var result = await _userService.GetStudentAsync(id);
 
             switch (result.Error)
             {
@@ -71,9 +68,9 @@ namespace VoidJudge.Controllers
 
         [Authorize(Roles = "0")]
         [HttpGet]
-        public async Task<IActionResult> GetUsersAsync([FromQuery] string roleType)
+        public async Task<IActionResult> GetsAsync()
         {
-            var result = await _userService.GetUsersAsync(roleType.Split('#'));
+            var result = await _userService.GetStudentsAsync();
 
             switch (result.Error)
             {
@@ -92,19 +89,19 @@ namespace VoidJudge.Controllers
 
         [Authorize(Roles = "0")]
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutUserAsync([FromRoute] long id, [FromBody] PutUserViewModel putUser)
+        public async Task<IActionResult> PutAsync([FromRoute] long id, [FromBody] PutStudentViewModel putStudent)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(new ApiDataResult { Error = PutResultType.Wrong, Data = new { ModelState } });
             }
 
-            if (id != putUser.Id)
+            if (id != putStudent.Id)
             {
                 return BadRequest(new ApiResult { Error = PutResultType.Wrong });
             }
 
-            var result = await _userService.PutUserAsync(putUser);
+            var result = await _userService.PutStudentAsync(putStudent);
             switch (result.Error)
             {
                 case PutResultType.Forbiddance:
@@ -131,9 +128,9 @@ namespace VoidJudge.Controllers
 
         [Authorize(Roles = "0")]
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUserAsync([FromRoute] long id)
+        public async Task<IActionResult> DeleteAsync([FromRoute] long id)
         {
-            var result = await _userService.DeleteUserAsync(id);
+            var result = await _userService.DeleteStudentAsync(id);
             switch (result.Error)
             {
                 case DeleteResultType.Forbiddance:

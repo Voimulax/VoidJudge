@@ -1,16 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using VoidJudge.Models.Contest;
 using VoidJudge.Services;
+using VoidJudge.ViewModels.Contest;
 
 namespace VoidJudge.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/contests")]
     [ApiController]
     [Authorize]
     public class ContestController : ControllerBase
@@ -33,11 +30,11 @@ namespace VoidJudge.Controllers
 
             switch (result.Error)
             {
-                case ContestResultTypes.NotFound:
+                case ContestResultType.NotFound:
                     return NotFound(result);
-                case ContestResultTypes.Error:
+                case ContestResultType.Error:
                     return BadRequest(result);
-                case ContestResultTypes.Ok:
+                case ContestResultType.Ok:
                     return Ok(result);
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -53,11 +50,11 @@ namespace VoidJudge.Controllers
 
             switch (result.Error)
             {
-                case ContestResultTypes.NotFound:
+                case ContestResultType.NotFound:
                     return NotFound(result);
-                case ContestResultTypes.Error:
+                case ContestResultType.Error:
                     return BadRequest(result);
-                case ContestResultTypes.Ok:
+                case ContestResultType.Ok:
                     return Ok(result);
                 default:
                     throw new ArgumentOutOfRangeException();

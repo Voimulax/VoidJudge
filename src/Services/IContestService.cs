@@ -1,14 +1,12 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using VoidJudge.Models;
-using VoidJudge.Models.Contest;
+﻿using System.Threading.Tasks;
+using VoidJudge.Models.Identity;
+using VoidJudge.ViewModels;
 
 namespace VoidJudge.Services
 {
     public interface IContestService
     {
-        Task<ApiResult> GetContestAsync(long id, string roleType, long userId);
-        Task<ApiResult> GetContestsAsync(string roleType, long userId);
-        Task<ApiResult> GetSubmissionsAsync(long contestId, long userId);
+        Task<ApiResult> GetContestAsync(long id, RoleType roleType, long userId);
+        Task<ApiResult> GetContestsAsync(RoleType roleType, long userId);
     }
 }

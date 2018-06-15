@@ -1,10 +1,5 @@
 import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
-import {
-  FormBuilder,
-  FormControl,
-  FormGroup,
-  Validators
-} from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { isNumber } from 'util';
 
@@ -18,8 +13,7 @@ import { RoleType, DeleteResultType, PutResultType, StudentInfo } from '../../..
   templateUrl: './student-detail.component.html',
   styleUrls: ['./student-detail.component.css']
 })
-export class StudentDetailComponent
-  implements OnInit, AfterViewInit, OnDestroy {
+export class StudentDetailComponent implements OnInit, AfterViewInit, OnDestroy {
   isLoading = true;
   isFormLoading = false;
   isOtherLoading = false;
@@ -86,10 +80,16 @@ export class StudentDetailComponent
         this.dialogService.showNoticeMessage('修改成功', () => {
           this.createForm();
         });
+      } else if (x.type === PutResultType.forbiddance) {
+        this.dialogService.showErrorMessage('此学生正在参与考试，暂时无法进行修改');
       } else if (x.type === PutResultType.concurrencyException) {
-        this.dialogService.showErrorMessage('暂时无法进行修改');
+        this.dialogService.showErrorMessage('修改时出现同步问题，暂时无法进行修改');
       } else if (x.type === PutResultType.userNotFound) {
         this.dialogService.showErrorMessage('此用户不存在');
+      } else if (x.type === PutResultType.repeat) {
+        this.dialogService.showErrorMessage('此用户名已存在');
+      } else if (x.type === PutResultType.wrong) {
+        this.dialogService.showErrorMessage('提交信息有误');
       } else {
         this.dialogService.showErrorMessage('网络错误');
       }
@@ -105,7 +105,7 @@ export class StudentDetailComponent
             this.goBack();
           });
         } else if (x === DeleteResultType.forbiddance) {
-          this.dialogService.showErrorMessage('暂时无法进行删除');
+          this.dialogService.showErrorMessage('此学生正在参与考试，暂时无法进行删除');
         } else if (x === DeleteResultType.userNotFound) {
           this.dialogService.showErrorMessage('此用户不存在');
         } else {
@@ -124,10 +124,16 @@ export class StudentDetailComponent
         this.dialogService.showNoticeMessage(`重置成功，新密码是“${x.user.password}”, 请保存好！`, () => {
           this.createForm();
         });
+      } else if (x.type === PutResultType.forbiddance) {
+        this.dialogService.showErrorMessage('此学生正在参与考试，暂时无法进行修改');
       } else if (x.type === PutResultType.concurrencyException) {
-        this.dialogService.showErrorMessage('暂时无法进行修改');
+        this.dialogService.showErrorMessage('修改时出现同步问题，暂时无法进行修改');
       } else if (x.type === PutResultType.userNotFound) {
         this.dialogService.showErrorMessage('此用户不存在');
+      } else if (x.type === PutResultType.repeat) {
+        this.dialogService.showErrorMessage('此用户名已存在');
+      } else if (x.type === PutResultType.wrong) {
+        this.dialogService.showErrorMessage('提交信息有误');
       } else {
         this.dialogService.showErrorMessage('网络错误');
       }

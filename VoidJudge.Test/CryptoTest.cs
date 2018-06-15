@@ -1,8 +1,7 @@
-using System;
 using System.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.AspNetCore.Identity;
-using VoidJudge.Models.Auth;
+using VoidJudge.Models.Identity;
 
 namespace VoidJudge.Test
 {

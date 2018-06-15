@@ -3,31 +3,26 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { catchError, map } from 'rxjs/operators';
 import { of } from 'rxjs';
 
-import {
-  GetContestsResult,
-  GetContestResultType
-} from './contest.model';
+import { GetContestsResult, GetContestResultType } from './contest.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ContestService {
-  private contestBaseUrl = '/api/contest';
+  private contestsBaseUrl = '/api/contests';
 
   constructor(private http: HttpClient) {}
 
   gets() {
-    return this.http.get<GetContestsResult>(this.contestBaseUrl).pipe(
+    return this.http.get<GetContestsResult>(this.contestsBaseUrl).pipe(
       map(x => {
         return x['data'].map(y => {
-          const b = y['basicInfo'];
-          const a = y['claimInfos'].find(z => z['type'] === 'authorName');
           return {
-            id: b['id'],
-            name: b['name'],
-            startTime: new Date(b['startTime']).getTime(),
-            endTime: new Date(b['endTime']).getTime(),
-            authorName: a['value']
+            id: y['id'],
+            name: y['name'],
+            startTime: new Date(y['startTime']).getTime(),
+            endTime: new Date(y['endTime']).getTime(),
+            ownerName: y['ownerName']
           };
         });
       }),

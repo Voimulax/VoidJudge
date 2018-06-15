@@ -14,16 +14,12 @@ import { DialogService } from '../../../shared/dialog/dialog.service';
   styleUrls: ['./contest-list.component.css']
 })
 export class ContestListComponent implements OnInit, AfterViewInit {
-  displayedColumns = ['select', 'name', 'authorName', 'startTime', 'endTime'];
+  displayedColumns = ['select', 'name', 'ownerName', 'startTime', 'endTime'];
   dataSource = new MatTableDataSource<ContestInfo>();
   selection = new SelectionModel<ContestInfo>(true, []);
   isLoading = true;
 
-  constructor(
-    private dialogService: DialogService,
-    private contestService: ContestService,
-    private router: Router
-  ) {}
+  constructor(private dialogService: DialogService, private contestService: ContestService, private router: Router) {}
 
   ngOnInit() {}
 
@@ -46,9 +42,7 @@ export class ContestListComponent implements OnInit, AfterViewInit {
   }
 
   masterToggle() {
-    this.isAllSelected()
-      ? this.selection.clear()
-      : this.dataSource.data.forEach(row => this.selection.select(row));
+    this.isAllSelected() ? this.selection.clear() : this.dataSource.data.forEach(row => this.selection.select(row));
   }
 
   delete() {

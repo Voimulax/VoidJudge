@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
-using VoidJudge.Models.Auth;
 using VoidJudge.Models.Contest;
+using VoidJudge.Models.Identity;
 
 namespace VoidJudge.Data
 {
@@ -17,24 +17,11 @@ namespace VoidJudge.Data
                 return; // DB has been seeded
             }
 
-            var users = new[]
-            {
-                new User {LoginName = "admin", UserName = "admin", Password = "AQAAAAEAACcQAAAAEJdVGeOLJzje7DKUb+XA7cqs5mH0pmgfdB2MGO/nYsSRSD003NwRj3rPf9TyRmU5OA==", CreateTime = DateTime.Now},
-                new User {LoginName = "teacher", UserName = "teacher", Password = "AQAAAAEAACcQAAAAEJ060Eht26I7v5b3tsYm4b5piPHt5bMK1nURUwf9Ns4yLxwts1KIdlZPV/Xw3rTXFw==", CreateTime = DateTime.Now},
-                new User {LoginName = "123", UserName = "student", Password = "AQAAAAEAACcQAAAAEK5iiQiTMuTeBaTfsqlr5PUjQcWQPcg2W9b7RliK6MjiFnWekvMQOCbkFTGDMZZbqQ==", CreateTime = DateTime.Now},
-            };
-
-            foreach (var user in users)
-            {
-                context.Add(user);
-                context.SaveChanges();
-            }
-
             var roles = new[]
             {
-                new Role {Name = "Admin", Type = RoleTypes.Admin},
-                new Role {Name = "Teacher", Type = RoleTypes.Teacher},
-                new Role {Name = "Student", Type = RoleTypes.Student}
+                new Role {Name = "Admin", Type = RoleType.Admin},
+                new Role {Name = "Teacher", Type = RoleType.Teacher},
+                new Role {Name = "Student", Type = RoleType.Student}
             };
 
             foreach (var role in roles)
@@ -43,39 +30,38 @@ namespace VoidJudge.Data
                 context.SaveChanges();
             }
 
-            var userRoles = new[]
+            var users = new[]
             {
-                new UserRole {UserId = 1, RoleId = 1},
-                new UserRole {UserId = 2, RoleId = 2},
-                new UserRole {UserId = 3, RoleId = 3},
+                new User {RoleId = 1, LoginName = "admin", UserName = "admin", PasswordHash = "AQAAAAEAACcQAAAAEJdVGeOLJzje7DKUb+XA7cqs5mH0pmgfdB2MGO/nYsSRSD003NwRj3rPf9TyRmU5OA==", CreateTime = DateTime.Now},
+                new User {RoleId = 2, LoginName = "teacher", UserName = "teacher", PasswordHash = "AQAAAAEAACcQAAAAEJ060Eht26I7v5b3tsYm4b5piPHt5bMK1nURUwf9Ns4yLxwts1KIdlZPV/Xw3rTXFw==", CreateTime = DateTime.Now},
+                new User {RoleId = 3, LoginName = "123", UserName = "student", PasswordHash = "AQAAAAEAACcQAAAAEK5iiQiTMuTeBaTfsqlr5PUjQcWQPcg2W9b7RliK6MjiFnWekvMQOCbkFTGDMZZbqQ==", CreateTime = DateTime.Now},
             };
 
-            foreach (var userRole in userRoles)
+            foreach (var user in users)
             {
-                context.Add(userRole);
+                context.Add(user);
                 context.SaveChanges();
             }
 
-            var claims = new[]
+            var students = new[]
             {
-                new Claim {Name = "Group", Type = ClaimTypes.Group},
-                new Claim {Name = "IPAddress", Type = ClaimTypes.IPAddress}
+                new Student{Id = 123, UserId = 3, Group="15-1"}
             };
 
-            foreach (var claim in claims)
+            foreach (var student in students)
             {
-                context.Add(claim);
+                context.Add(student);
                 context.SaveChanges();
             }
 
-            var userClaims = new[]
+            var teachers = new[]
             {
-                new UserClaim{ ClaimId = 1,UserId = 3,Value = "15-1"}
+                new Teacher{UserId = 2}
             };
 
-            foreach (var userClaim in userClaims)
+            foreach (var teacher in teachers)
             {
-                context.Add(userClaim);
+                context.Add(teacher);
                 context.SaveChanges();
             }
 
@@ -89,13 +75,13 @@ namespace VoidJudge.Data
 
             var contests = new[]
             {
-                new Contest{Name = "c11", UserId = 2, StartTime = st1,EndTime = et1,State = ContestState.UnPublished},
-                new Contest{Name = "c12", UserId = 2, StartTime = st1,EndTime = et1,State = ContestState.NotDownloaded},
-                new Contest{Name = "c13", UserId = 2, StartTime = st1,EndTime = et1,State = ContestState.DownLoaded},
-                new Contest{Name = "c21", UserId = 2, StartTime = st2,EndTime = et2,State = ContestState.UnPublished},
-                new Contest{Name = "c22", UserId = 2, StartTime = st2,EndTime = et2,State = ContestState.NotDownloaded},
-                new Contest{Name = "c31", UserId = 2, StartTime = st3,EndTime = et3,State = ContestState.UnPublished},
-                new Contest{Name = "c32", UserId = 2, StartTime = st3,EndTime = et3,State = ContestState.NotDownloaded},
+                new Contest{Name = "c11", OwnerId = 1, StartTime = st1,EndTime = et1,State = ContestState.UnPublished},
+                new Contest{Name = "c12", OwnerId = 1, StartTime = st1,EndTime = et1,State = ContestState.NotDownloaded},
+                new Contest{Name = "c13", OwnerId = 1, StartTime = st1,EndTime = et1,State = ContestState.DownLoaded},
+                new Contest{Name = "c21", OwnerId = 1, StartTime = st2,EndTime = et2,State = ContestState.UnPublished},
+                new Contest{Name = "c22", OwnerId = 1, StartTime = st2,EndTime = et2,State = ContestState.NotDownloaded},
+                new Contest{Name = "c31", OwnerId = 1, StartTime = st3,EndTime = et3,State = ContestState.UnPublished},
+                new Contest{Name = "c32", OwnerId = 1, StartTime = st3,EndTime = et3,State = ContestState.NotDownloaded},
             };
 
             foreach (var contest in contests)
@@ -104,20 +90,20 @@ namespace VoidJudge.Data
                 context.SaveChanges();
             }
 
-            var contestUsers = new[]
+            var enrollments = new[]
             {
-                new ContestUser{ContestId = 1, UserId = 3},
-                new ContestUser{ContestId = 2, UserId = 3},
-                new ContestUser{ContestId = 3, UserId = 3},
-                new ContestUser{ContestId = 4, UserId = 3},
-                new ContestUser{ContestId = 5, UserId = 3},
-                new ContestUser{ContestId = 6, UserId = 3},
-                new ContestUser{ContestId = 7, UserId = 3},
+                new Enrollment{StudentId = 123,ContestId = 1},
+                new Enrollment{StudentId = 123,ContestId = 2},
+                new Enrollment{StudentId = 123,ContestId = 3},
+                new Enrollment{StudentId = 123,ContestId = 4},
+                new Enrollment{StudentId = 123,ContestId = 5},
+                new Enrollment{StudentId = 123,ContestId = 6},
+                new Enrollment{StudentId = 123,ContestId = 7},
             };
 
-            foreach (var contestUser in contestUsers)
+            foreach (var enrollment in enrollments)
             {
-                context.Add(contestUser);
+                context.Add(enrollment);
                 context.SaveChanges();
             }
 

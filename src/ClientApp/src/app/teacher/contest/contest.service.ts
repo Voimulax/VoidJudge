@@ -10,27 +10,21 @@ import { of } from 'rxjs';
 })
 export class ContestService {
   contestInfo: ContestInfo;
-  private contestBaseUrl = '/api/contest';
+  private contestBaseUrl = '/api/contests';
 
   constructor(private http: HttpClient) {}
 
   get(id: number) {
     return this.http.get<GetContestsResult>(`${this.contestBaseUrl}/${id}`).pipe(
       map(x => {
-        const b = x['data']['basicInfo'];
-        let u = x['data']['userInfos'];
-        if (u === null || u === undefined) {
-          u = [];
-        }
-        const n = x['data']['claimInfos'].find(z => z['type'] === 'notice');
-        const s = x['data']['claimInfos'].find(z => z['type'] === 'state');
+        const data = x['data'];
         return {
-          id: b['id'],
-          name: b['name'],
-          startTime: new Date(b['startTime']).getTime(),
-          endTime: new Date(b['endTime']).getTime(),
-          state: s['value'] === '0' ? ContestState.NoPublished : undefined,
-          students: u
+          id: data['id'],
+          name: data['name'],
+          startTime: new Date(data['startTime']).getTime(),
+          endTime: new Date(data['endTime']).getTime(),
+          notice: data['notice'],
+          state: data['state'] === 0 ? ContestState.NoPublished : undefined
         };
       }),
       map(x => {
@@ -65,14 +59,13 @@ export class ContestService {
     return this.http.get<GetContestsResult>(this.contestBaseUrl).pipe(
       map(x => {
         return x['data'].map(y => {
-          const b = y['basicInfo'];
-          const a = y['claimInfos'].find(z => z['type'] === 'state');
           return {
-            id: b['id'],
-            name: b['name'],
-            startTime: new Date(b['startTime']).getTime(),
-            endTime: new Date(b['endTime']).getTime(),
-            state: a['value'] === '0' ? ContestState.NoPublished : undefined
+            id: y['id'],
+            name: y['name'],
+            startTime: new Date(y['startTime']).getTime(),
+            endTime: new Date(y['endTime']).getTime(),
+            notice: y['notice'],
+            state: y['state'] === 0 ? ContestState.NoPublished : undefined
           };
         });
       }),

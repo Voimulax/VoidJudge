@@ -1,14 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using VoidJudge.Data;
-using VoidJudge.Models;
-using VoidJudge.Models.Auth;
-using VoidJudge.Models.User;
+using VoidJudge.Models.Contest;
+using VoidJudge.Models.Identity;
+using VoidJudge.ViewModels;
+using VoidJudge.ViewModels.Identity;
 
 namespace VoidJudge.Services
 {
@@ -17,179 +19,158 @@ namespace VoidJudge.Services
         private readonly VoidJudgeContext _context;
         private readonly PasswordHasher<User> _passwordHasher;
         private readonly IAuthService _authService;
+        private readonly IMapper _mapper;
 
-        public UserService(VoidJudgeContext context, PasswordHasher<User> passwordHasher, IAuthService authService)
+        public UserService(VoidJudgeContext context, PasswordHasher<User> passwordHasher, IAuthService authService, IMapper mapper)
         {
             _context = context;
             _passwordHasher = passwordHasher;
             _authService = authService;
+            _mapper = mapper;
         }
 
-        public async Task<ApiResult> AddUsersAsync(IEnumerable<UserInfo<AddUserBasicInfo>> addUsers)
+        public async Task<ApiResult> AddUsersAsync(IList<AddUserViewModel> addUsers)
         {
             addUsers = addUsers.ToList();
 
             var repeat = await (from u in _context.Users
-                                from cu in addUsers
-                                where u.LoginName == cu.BasicInfo.LoginName
-                                select new AddResultUser { LoginName = u.LoginName }).ToListAsync();
+                                from au in addUsers
+                                where u.LoginName == au.LoginName
+                                select _mapper.Map<User, AddResultUser>(u)).ToListAsync();
 
             if (repeat.Any())
             {
-                return new AddUserResult { Error = AddResultTypes.Repeat, Data = repeat };
+                return new AddUserResult { Error = AddResultType.Repeat, Data = repeat };
             }
 
             var time = DateTime.Now;
-            var users = from u in addUsers
-                        select new User
-                        {
-                            LoginName = u.BasicInfo.LoginName,
-                            UserName = u.BasicInfo.UserName,
-                            Password = _passwordHasher.HashPassword(null, u.BasicInfo.Password),
-                            CreateTime = time
-                        };
+            var tasks = addUsers.Select(async au =>
+            {
+                var u = _mapper.Map<AddUserViewModel, User>(au);
+                u.RoleId = (await _authService.GetRoleFromRoleTypeAsync(Enum.Parse<RoleType>(au.RoleType.ToString()))).Id;
+                u.PasswordHash = _passwordHasher.HashPassword(u, u.PasswordHash);
+                u.CreateTime = time;
+                return u;
+            }).ToList();
+
+            var users = new ConcurrentBag<User>();
+            try
+            {
+                foreach (var task in tasks)
+                {
+                    users.Add(await task);
+                }
+            }
+            catch (Exception)
+            {
+                return new AddUserResult { Error = AddResultType.Wrong };
+            }
 
             await _context.Users.AddRangeAsync(users);
             await _context.SaveChangesAsync();
 
-            var userClaims = (from au in addUsers
-                              where au.ClaimInfos != null
-                              from uc in au.ClaimInfos
-                              join c in _context.Claims on uc.Type equals c.Type
-                              join u in _context.Users on au.BasicInfo.LoginName equals u.LoginName
-                              select new UserClaim { UserId = u.Id, ClaimId = c.Id, Value = uc.Value }).ToList();
+            var ats = addUsers.Where(au => au.RoleType == (int)RoleType.Teacher).ToList();
+            if (ats.Count <= 0) return new AddUserResult { Error = AddResultType.Ok };
 
-            if (userClaims.Count != addUsers.Sum(x => x.ClaimInfos?.Count() ?? 0))
-            {
-                return new AddUserResult { Error = AddResultTypes.Error };
-            }
+            var teachers = (from s in ats
+                            join u in _context.Users on s.LoginName equals u.LoginName
+                            select new Teacher { UserId = u.Id }).ToList();
 
-            await _context.UserClaims.AddRangeAsync(userClaims);
+            await _context.Teachers.AddRangeAsync(teachers);
             await _context.SaveChangesAsync();
 
-            var userRoles = (from au in addUsers
-                             join r in _context.Roles on au.RoleType equals r.Type
-                             join u in _context.Users on au.BasicInfo.LoginName equals u.LoginName
-                             select new UserRole { UserId = u.Id, RoleId = r.Id }).ToList();
-            if (userRoles.Count != addUsers.Count())
-            {
-                return new AddUserResult { Error = AddResultTypes.Error };
-            }
-
-            await _context.UserRoles.AddRangeAsync(userRoles);
-            await _context.SaveChangesAsync();
-
-            return new AddUserResult { Error = AddResultTypes.Ok };
+            return new AddUserResult { Error = AddResultType.Ok };
         }
 
-        public async Task<ApiResult> GetUserAsync(long id, string roleType = null)
+        public async Task<ApiResult> GetUserAsync(long id, RoleType? roleType = null)
         {
-            var user = await _context.Users.FindAsync(id);
-            if (user == null) return new GetUserResult { Error = GetResultTypes.UserNotFound };
-            var role = await (from ur in _context.UserRoles
-                              where user.Id == ur.UserId
-                              join r in _context.Roles on ur.RoleId equals r.Id
-                              select r).SingleOrDefaultAsync();
+            var user = await _context.Users.Include(u => u.Role).Where(u => u.Id == id).SingleOrDefaultAsync();
+            if (user == null) return new GetUserResult { Error = GetResultType.UserNotFound };
 
-            if (roleType != null && !_authService.CompareRoleAuth(roleType, role.Type))
-
+            if (roleType != null && !_authService.CompareRoleAuth(roleType.Value, user.Role.Type))
             {
-                return new GetUserResult { Error = GetResultTypes.Unauthorized };
+                return new GetUserResult { Error = GetResultType.Unauthorized };
             }
-
-            var userClaims = await (from uc in _context.UserClaims
-                                    where uc.UserId == user.Id
-                                    join u in _context.Users on uc.UserId equals u.Id
-                                    join c in _context.Claims on uc.ClaimId equals c.Id
-                                    select new UserClaimInfo { Type = c.Type, Value = uc.Value }).ToListAsync();
 
             return new GetUserResult
             {
-                Error = GetResultTypes.Ok,
-                Data = new UserInfo<GetUserBasicInfo>
-                {
-                    BasicInfo =
-                        new GetUserBasicInfo { Id = user.Id, LoginName = user.LoginName, UserName = user.UserName },
-                    RoleType = role.Type,
-                    ClaimInfos = userClaims
-                }
+                Error = GetResultType.Ok,
+                Data = _mapper.Map<User, GetUserViewModel>(user)
             };
         }
 
-        public async Task<ApiResult> GetUsersAsync(IEnumerable<string> roleTypes)
+        public async Task<ApiResult> GetUsersAsync(IList<string> roleTypes)
         {
             var roles = await GetRolesAsync(roleTypes);
-            if (roles == null) return new GetUserResult { Error = GetResultTypes.UserNotFound };
-            var userIds = await (from ur in _context.UserRoles
-                                 join r in roles on ur.RoleId equals r.Id
-                                 where ur.RoleId == r.Id
-                                 select ur.UserId).ToListAsync();
+            if (roles == null) return new GetUserResult { Error = GetResultType.UserNotFound };
+            var users = roles.ToList().Aggregate(new List<GetUserViewModel>(),
+                (lr, r) => lr.Concat(r.Users.Select(_mapper.Map<User, GetUserViewModel>).ToList()).ToList());
 
-            var users = new ConcurrentBag<UserInfo<GetUserBasicInfo>>();
-            var tasks = new List<Task>();
-            foreach (var id in userIds)
-            {
-                var iid = id;
-                tasks.Add(Task.Run(async () =>
-                {
-                    if (!(await GetUserAsync(iid) is GetUserResult result)) return;
-                    if (result.Error == GetResultTypes.Ok) users.Add(result.Data);
-                }));
-            }
-            foreach (var task in tasks)
-            {
-                await task;
-            }
-
-            return new GetUsersResult { Error = GetResultTypes.Ok, Data = users.ToList() };
+            return new GetUsersResult { Error = GetResultType.Ok, Data = users };
         }
 
-        public async Task<ApiResult> PutUserAsync(UserInfo<PutUserBasicInfo> putUser)
+        public async Task<ApiResult> PutUserAsync(PutUserViewModel putUser)
         {
-            var user = await _context.Users.FindAsync(putUser.BasicInfo.Id);
-            if (user == null) return new PutUserResult { Error = PutResultTypes.UserNotFound };
+            var user = await _context.Users.Include(u => u.Role).SingleOrDefaultAsync(u => u.Id == putUser.Id);
+            if (user == null) return new PutUserResult { Error = PutResultType.UserNotFound };
 
-            user.LoginName = putUser.BasicInfo.LoginName;
-            user.UserName = putUser.BasicInfo.UserName;
-            if (putUser.BasicInfo.Password != null)
+            if (user.Role.Type == RoleType.Teacher)
             {
-                putUser.BasicInfo.Password = GetRandomPassword();
-                user.Password = _passwordHasher.HashPassword(user, putUser.BasicInfo.Password);
-            }
-
-            if (putUser.RoleType != null)
-            {
-                var userRole = await _context.UserRoles.SingleOrDefaultAsync(x => x.UserId == user.Id);
-                if (userRole == null) return new PutUserResult { Error = PutResultTypes.Wrong };
-
-                var role = await _authService.CheckRoleTypeAsync(putUser.RoleType);
-                if (role == null) return new PutUserResult { Error = PutResultTypes.Wrong };
-
-                userRole.RoleId = role.Id;
-
-                _context.Entry(userRole).State = EntityState.Modified;
-            }
-
-            if (putUser.ClaimInfos != null)
-            {
-                var userClaims = (from pc in putUser.ClaimInfos
-                                  join uc in _context.UserClaims on user.Id equals uc.UserId
-                                  join c in _context.Claims on uc.ClaimId equals c.Id
-                                  where c.Type == pc.Type
-                                  select uc).ToList();
-                if (userClaims.Count != putUser.ClaimInfos.Count()) return new PutUserResult { Error = PutResultTypes.Wrong };
-
-                foreach (var userClaim in userClaims)
+                var count = (await _context.Teachers.Include(t => t.Contests).Where(t => t.UserId == user.Id)
+                    .SingleOrDefaultAsync()).Contests.Count;
+                if (count > 0)
                 {
-                    userClaim.Value = (from pc in putUser.ClaimInfos
-                                       join c in _context.Claims on pc.Type equals c.Type
-                                       where c.Id == userClaim.ClaimId
-                                       select pc.Value).SingleOrDefault();
+                    return new PutUserResult { Error = PutResultType.Forbiddance };
+                }
+            }
+
+            if (putUser.Password != null)
+            {
+                putUser.Password = GetRandomPassword();
+                user.PasswordHash = _passwordHasher.HashPassword(user, putUser.Password);
+            }
+            else
+            {
+                if (user.LoginName != putUser.LoginName)
+                {
+                    var uu = await _context.Users.SingleOrDefaultAsync(u => u.LoginName == putUser.LoginName);
+                    if (uu != null)
+                    {
+                        return new PutStudentResult { Error = PutResultType.Repeat };
+                    }
                 }
 
-                foreach (var userClaim in userClaims)
+                user.LoginName = putUser.LoginName;
+                user.UserName = putUser.UserName;
+
+                try
                 {
-                    _context.Entry(userClaim).State = EntityState.Modified;
+                    var role = await _authService.GetRoleFromRoleTypeAsync(Enum.Parse<RoleType>(putUser.RoleType.ToString()));
+                    if (role == null) return new PutUserResult { Error = PutResultType.Wrong };
+                    if (user.Role.Type == RoleType.Teacher && role.Type != RoleType.Teacher)
+                    {
+                        var teacher = await _context.Teachers.Include(t => t.Contests).Where(t => t.UserId == user.Id)
+                            .SingleOrDefaultAsync();
+                        if (teacher.Contests.Count > 0)
+                        {
+                            return new PutUserResult { Error = PutResultType.Forbiddance };
+                        }
+
+                        _context.Teachers.Remove(teacher);
+                        await _context.SaveChangesAsync();
+                    }
+                    else if (user.Role.Type != RoleType.Teacher && role.Type == RoleType.Teacher)
+                    {
+                        var teacher = new Teacher { UserId = user.Id };
+
+                        await _context.Teachers.AddAsync(teacher);
+                        await _context.SaveChangesAsync();
+                    }
+                    else user.RoleId = role.Id;
+                }
+                catch (Exception)
+                {
+                    return new PutUserResult { Error = PutResultType.Wrong };
                 }
             }
 
@@ -198,31 +179,179 @@ namespace VoidJudge.Services
             try
             {
                 await _context.SaveChangesAsync();
-                return new PutUserResult { Error = PutResultTypes.Ok, Data = putUser };
+                return new PutUserResult { Error = PutResultType.Ok, Data = putUser };
             }
             catch (DbUpdateConcurrencyException)
             {
-                return new PutUserResult { Error = PutResultTypes.ConcurrencyException };
+                return new PutUserResult { Error = PutResultType.ConcurrencyException };
             }
         }
 
         public async Task<ApiResult> DeleteUserAsync(long id)
         {
-            var user = await _context.Users.FindAsync(id);
+            var user = await _context.Users.Include(u => u.Role).Where(u => u.Id == id).SingleOrDefaultAsync();
             if (user == null)
             {
-                return new ApiResult { Error = DeleteResultTypes.UserNotFound };
+                return new ApiResult { Error = DeleteResultType.UserNotFound };
             }
 
-            var userRole = await _context.UserRoles.SingleOrDefaultAsync(x => x.UserId == id);
-            _context.UserRoles.Remove(userRole);
-            var userClaims = await _context.UserClaims.Where(x => x.UserId == id).ToListAsync();
-            _context.UserClaims.RemoveRange(userClaims);
+            if (user.Role.Type == RoleType.Teacher)
+            {
+                var count = (await _context.Teachers.Include(t => t.Contests).Where(t => t.UserId == id)
+                    .SingleOrDefaultAsync()).Contests.Count;
+                if (count > 0)
+                {
+                    return new ApiResult { Error = DeleteResultType.Forbiddance };
+                }
+            }
 
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();
 
-            return new ApiResult { Error = DeleteResultTypes.Ok };
+            return new ApiResult { Error = DeleteResultType.Ok };
+        }
+
+        public async Task<ApiResult> AddStudentsAsync(IList<AddStudentViewModel> addStudents)
+        {
+            addStudents = addStudents.ToList();
+
+            var repeat = await (from u in _context.Users
+                                from au in addStudents
+                                where u.LoginName == au.LoginName
+                                select _mapper.Map<User, AddResultUser>(u)).ToListAsync();
+
+            if (repeat.Any())
+            {
+                return new AddUserResult { Error = AddResultType.Repeat, Data = repeat };
+            }
+
+            var time = DateTime.Now;
+            var tasks = addStudents.Select(async au =>
+            {
+                var u = _mapper.Map<AddStudentViewModel, User>(au);
+                u.RoleId = (await _authService.GetRoleFromRoleTypeAsync(Enum.Parse<RoleType>(au.RoleType.ToString()))).Id;
+                u.PasswordHash = _passwordHasher.HashPassword(u, u.PasswordHash);
+                u.CreateTime = time;
+                return u;
+            }).ToList();
+
+            var users = new ConcurrentBag<User>();
+            try
+            {
+                foreach (var task in tasks)
+                {
+                    users.Add(await task);
+                }
+            }
+            catch (Exception)
+            {
+                return new AddUserResult { Error = AddResultType.Wrong };
+            }
+
+            await _context.Users.AddRangeAsync(users);
+            await _context.SaveChangesAsync();
+
+            var ss = addStudents.Select(_mapper.Map<AddStudentViewModel, Student>).ToList();
+            var students = await (from u in _context.Users
+                                  from s in ss
+                                  where u.LoginName == s.Id.ToString()
+                                  select new Student { Id = s.Id, UserId = u.Id, Group = s.Group }).ToListAsync();
+
+            await _context.Students.AddRangeAsync(students);
+            await _context.SaveChangesAsync();
+
+            return new AddUserResult { Error = AddResultType.Ok };
+        }
+
+        public async Task<ApiResult> GetStudentAsync(long id)
+        {
+            var student = await _context.Students.Where(s => s.UserId == id).Include(s => s.User).SingleOrDefaultAsync();
+            if (student == null) return new GetStudentResult { Error = GetResultType.UserNotFound };
+
+            return new GetStudentResult
+            {
+                Error = GetResultType.Ok,
+                Data = _mapper.Map<Student, GetStudentViewModel>(student)
+            };
+        }
+
+        public async Task<ApiResult> GetStudentsAsync()
+        {
+            var ss = await _context.Students.Include(s => s.User).ToListAsync();
+            var students = ss.Select(_mapper.Map<Student, GetStudentViewModel>).ToList();
+
+            return new GetStudentsResult { Error = GetResultType.Ok, Data = students };
+        }
+
+        public async Task<ApiResult> PutStudentAsync(PutStudentViewModel putStudent)
+        {
+            var user = await _context.Users.Include(u => u.Role).SingleOrDefaultAsync(u => u.Id == putStudent.Id);
+            if (user == null) return new PutUserResult { Error = PutResultType.UserNotFound };
+
+            var count = (await _context.Enrollments.Where(e => e.StudentId == long.Parse(user.LoginName)).ToListAsync())
+                .Count;
+            if (count > 0)
+            {
+                return new PutStudentResult { Error = PutResultType.Forbiddance };
+            }
+
+            if (putStudent.Password != null)
+            {
+                putStudent.Password = GetRandomPassword();
+                user.PasswordHash = _passwordHasher.HashPassword(user, putStudent.Password);
+            }
+            else
+            {
+                if (user.LoginName != putStudent.LoginName)
+                {
+                    var uu = await _context.Users.SingleOrDefaultAsync(u => u.LoginName == putStudent.LoginName);
+                    if (uu != null)
+                    {
+                        return new PutStudentResult { Error = PutResultType.Repeat };
+                    }
+                }
+
+                user.LoginName = putStudent.LoginName;
+                user.UserName = putStudent.UserName;
+
+                var student = await _context.Students.FindAsync(long.Parse(user.LoginName));
+                student.Group = putStudent.Group;
+
+                _context.Entry(student).State = EntityState.Modified;
+            }
+
+            _context.Entry(user).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+                return new PutStudentResult { Error = PutResultType.Ok, Data = putStudent };
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return new PutStudentResult { Error = PutResultType.ConcurrencyException };
+            }
+        }
+
+        public async Task<ApiResult> DeleteStudentAsync(long id)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+            {
+                return new ApiResult { Error = DeleteResultType.UserNotFound };
+            }
+
+            var count = (await _context.Enrollments.Where(e => e.StudentId == long.Parse(user.LoginName)).ToListAsync())
+                .Count;
+            if (count > 0)
+            {
+                return new PutUserResult { Error = DeleteResultType.Forbiddance };
+            }
+
+            _context.Users.Remove(user);
+            await _context.SaveChangesAsync();
+
+            return new ApiResult { Error = DeleteResultType.Ok };
         }
 
         private static string GetRandomPassword()
@@ -240,8 +369,8 @@ namespace VoidJudge.Services
         {
             try
             {
-                var rs = roleTypes.ToList();
-                var ts = rs.Select(async x => await _authService.CheckRoleTypeAsync(x));
+                var rs = roleTypes.Select(Enum.Parse<RoleType>).ToList();
+                var ts = rs.Select(async x => await _authService.GetRoleFromRoleTypeAsync(x,true)).ToList();
                 var roles = new List<Role>();
                 foreach (var t in ts)
                 {

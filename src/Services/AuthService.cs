@@ -9,8 +9,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using VoidJudge.Data;
-using VoidJudge.Models;
-using VoidJudge.Models.Auth;
+using VoidJudge.Models.Identity;
+using VoidJudge.ViewModels;
+using VoidJudge.ViewModels.Auth;
+using VoidJudge.ViewModels.Identity;
 using Claim = System.Security.Claims.Claim;
 using ClaimTypes = System.Security.Claims.ClaimTypes;
 
@@ -29,28 +31,20 @@ namespace VoidJudge.Services
             _passwordHasher = passwordHasher;
         }
 
-        public async Task<ApiResult> LoginAsync(LoginUser loginUser, string ipAddress)
+        public async Task<ApiResult> LoginAsync(LoginUserViewModel loginUser, string ipAddress)
         {
             var jwsth = new JwtSecurityTokenHandler();
 
-            var user = await _context.Users.SingleOrDefaultAsync(u =>
-                u.LoginName == loginUser.LoginName);
-            if (user == null) return new ApiResult { Error = AuthResultTypes.Wrong };
-            if (_passwordHasher.VerifyHashedPassword(user, user.Password, loginUser.Password) !=
-                PasswordVerificationResult.Success) return new ApiResult { Error = AuthResultTypes.Wrong };
-
-            var role = await (from u in _context.Users
-                              join ur in _context.UserRoles on u.Id equals ur.UserId
-                              join r in _context.Roles on ur.RoleId equals r.Id
-                              where u.Id == user.Id
-                              select r).SingleOrDefaultAsync();
-
-            if (role == null) return new ApiResult { Error = AuthResultTypes.Error };
+            var user = await _context.Users.Where(u => u.LoginName == loginUser.LoginName).Include(u => u.Role)
+                .SingleOrDefaultAsync();
+            if (user == null) return new ApiResult { Error = AuthResultType.Wrong };
+            if (_passwordHasher.VerifyHashedPassword(user, user.PasswordHash, loginUser.Password) !=
+                PasswordVerificationResult.Success) return new ApiResult { Error = AuthResultType.Wrong };
 
             // push the user’s name into a claim, so we can identify the user later on.
             var claims = new[]
             {
-                new Claim(ClaimTypes.Role, role.Type),
+                new Claim(ClaimTypes.Role, $"{(int)user.Role.Type}"),
                 new Claim("id", user.Id.ToString()),
                 new Claim("ipAddress", ipAddress)
             };
@@ -80,18 +74,18 @@ namespace VoidJudge.Services
             user.LastLoginTime = DateTime.Now;
             await _context.SaveChangesAsync();
 
-            return new ApiDataResult { Error = AuthResultTypes.Ok, Data = new { Token = token } };
+            return new ApiDataResult { Error = AuthResultType.Ok, Data = new { Token = token } };
         }
 
-        public async Task<ApiResult> ResetPasswordAsync(ResetUser resetUser)
+        public async Task<ApiResult> ResetPasswordAsync(ResetUserViewModel resetUser)
         {
             var user = await _context.Users.FindAsync(resetUser.Id);
-            if (user == null) return new ApiResult { Error = AuthResultTypes.Wrong };
-            if (_passwordHasher.VerifyHashedPassword(user, user.Password, resetUser.Password) !=
-                PasswordVerificationResult.Success) return new ApiResult { Error = AuthResultTypes.Wrong };
-            user.Password = _passwordHasher.HashPassword(user, resetUser.NewPassword);
+            if (user == null) return new ApiResult { Error = AuthResultType.Wrong };
+            if (_passwordHasher.VerifyHashedPassword(user, user.PasswordHash, resetUser.Password) !=
+                PasswordVerificationResult.Success) return new ApiResult { Error = AuthResultType.Wrong };
+            user.PasswordHash = _passwordHasher.HashPassword(user, resetUser.NewPassword);
             await _context.SaveChangesAsync();
-            return new ApiResult { Error = AuthResultTypes.Ok };
+            return new ApiResult { Error = AuthResultType.Ok };
         }
 
         public async Task<bool> IsUserExistAsync(long id)
@@ -99,14 +93,15 @@ namespace VoidJudge.Services
             return (await _context.Users.FindAsync(id)) != null;
         }
 
-        public bool CompareRoleAuth(string roleTypeA, string roleTypeB)
+        public bool CompareRoleAuth(RoleType a, RoleType b)
         {
-            return int.Parse(roleTypeA) <= int.Parse(roleTypeB);
+            return (int)a <= (int)b;
         }
 
-        public string GetRoleTypeFromRequest(IEnumerable<Claim> claims)
+        public RoleType GetRoleTypeFromRequest(IEnumerable<Claim> claims)
         {
-            return claims.SingleOrDefault(x => x.Type == ClaimTypes.Role)?.Value;
+            var v = claims.SingleOrDefault(x => x.Type == ClaimTypes.Role)?.Value;
+            return Enum.Parse<RoleType>(v);
         }
 
         public long GetUserIdFromRequest(IEnumerable<Claim> claims)
@@ -114,8 +109,9 @@ namespace VoidJudge.Services
             return long.Parse(claims.SingleOrDefault(x => x.Type == "id")?.Value);
         }
 
-        public async Task<Role> CheckRoleTypeAsync(string roleType)
+        public async Task<Role> GetRoleFromRoleTypeAsync(RoleType roleType, bool isLoadUsers = false)
         {
+            if (isLoadUsers) return await _context.Roles.Include(r => r.Users).SingleOrDefaultAsync(x => x.Type == roleType);
             return await _context.Roles.SingleOrDefaultAsync(x => x.Type == roleType);
         }
     }

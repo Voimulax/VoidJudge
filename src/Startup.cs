@@ -1,7 +1,7 @@
 using System;
 using System.Data.SqlClient;
 using System.Text;
-using Microsoft.AspNetCore.Authentication;
+using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -14,7 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using VoidJudge.Data;
 using VoidJudge.Helpers.Auth;
-using VoidJudge.Models.Auth;
+using VoidJudge.Models.Identity;
 using VoidJudge.Services;
 
 namespace VoidJudge
@@ -37,6 +37,8 @@ namespace VoidJudge
             var builder = new SqlConnectionStringBuilder(
                 Configuration.GetConnectionString("LocalSQLServerConnection"))
             { Password = Configuration["DbPassword"] };
+
+            services.AddAutoMapper();
 
             services.AddDbContext<VoidJudgeContext>(options =>
                 options.UseSqlServer(builder.ConnectionString));
@@ -104,8 +106,8 @@ namespace VoidJudge
 
                 if (env.IsDevelopment())
                 {
-                    spa.UseAngularCliServer(npmScript: "start");
-                    //spa.UseProxyToSpaDevelopmentServer("http://localhost:5244");
+                    //spa.UseAngularCliServer(npmScript: "start");
+                    spa.UseProxyToSpaDevelopmentServer("http://localhost:5244");
                 }
             });
         }

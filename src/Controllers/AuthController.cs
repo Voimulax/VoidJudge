@@ -3,9 +3,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using VoidJudge.Models;
-using VoidJudge.Models.Auth;
 using VoidJudge.Services;
+using VoidJudge.ViewModels.Auth;
+using VoidJudge.ViewModels.Identity;
 
 namespace VoidJudge.Controllers
 {
@@ -25,23 +25,20 @@ namespace VoidJudge.Controllers
         [AllowAnonymous]
         [Route("login")]
         [HttpPost]
-        public async Task<IActionResult> LoginAsync([FromBody] LoginUser loginUser)
+        public async Task<IActionResult> LoginAsync([FromBody] LoginUserViewModel loginUser)
         {
             var ipAddress = Request.HttpContext.Connection.RemoteIpAddress.ToString();
             var result = await _authService.LoginAsync(loginUser, ipAddress);
             switch (result.Error)
             {
-                case AuthResultTypes.Wrong:
+                case AuthResultType.Wrong:
                     return new ObjectResult(result)
                     {
                         StatusCode = StatusCodes.Status401Unauthorized
                     };
-                case AuthResultTypes.Error:
-                    return new ObjectResult(result)
-                    {
-                        StatusCode = StatusCodes.Status400BadRequest
-                    };
-                case AuthResultTypes.Ok:
+                case AuthResultType.Error:
+                    return BadRequest(result);
+                case AuthResultType.Ok:
                     return Ok(result);
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -50,22 +47,21 @@ namespace VoidJudge.Controllers
 
         [Route("resetpassword")]
         [HttpPost]
-        public async Task<IActionResult> ResetPasswordAsync([FromBody] ResetUser resetUser)
+        public async Task<IActionResult> ResetPasswordAsync([FromBody] ResetUserViewModel resetUser)
         {
+            var id = _authService.GetUserIdFromRequest(Request.HttpContext.User.Claims);
+            resetUser.Id = id;
             var result = await _authService.ResetPasswordAsync(resetUser);
             switch (result.Error)
             {
-                case AuthResultTypes.Wrong:
+                case AuthResultType.Wrong:
                     return new ObjectResult(result)
                     {
                         StatusCode = StatusCodes.Status401Unauthorized
                     };
-                case AuthResultTypes.Error:
-                    return new ObjectResult(result)
-                    {
-                        StatusCode = StatusCodes.Status400BadRequest
-                    };
-                case AuthResultTypes.Ok:
+                case AuthResultType.Error:
+                    return BadRequest(result);
+                case AuthResultType.Ok:
                     return Ok(result);
                 default:
                     throw new ArgumentOutOfRangeException();

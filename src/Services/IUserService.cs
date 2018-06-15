@@ -1,17 +1,23 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using VoidJudge.Models;
-using VoidJudge.Models.Auth;
-using VoidJudge.Models.User;
+using VoidJudge.Models.Identity;
+using VoidJudge.ViewModels;
+using VoidJudge.ViewModels.Identity;
 
 namespace VoidJudge.Services
 {
     public interface IUserService
     {
-        Task<ApiResult> AddUsersAsync(IEnumerable<UserInfo<AddUserBasicInfo>> addUsers);
-        Task<ApiResult> GetUserAsync(long id, string roleType = null);
-        Task<ApiResult> GetUsersAsync(IEnumerable<string> roleTypes);
-        Task<ApiResult> PutUserAsync(UserInfo<PutUserBasicInfo> putUser);
+        Task<ApiResult> AddUsersAsync(IList<AddUserViewModel> addUsers);
+        Task<ApiResult> GetUserAsync(long id, RoleType? roleType = null);
+        Task<ApiResult> GetUsersAsync(IList<string> roleTypes);
+        Task<ApiResult> PutUserAsync(PutUserViewModel putUser);
         Task<ApiResult> DeleteUserAsync(long id);
+
+        Task<ApiResult> AddStudentsAsync(IList<AddStudentViewModel> addStudents);
+        Task<ApiResult> GetStudentAsync(long id);
+        Task<ApiResult> GetStudentsAsync();
+        Task<ApiResult> PutStudentAsync(PutStudentViewModel putStudent);
+        Task<ApiResult> DeleteStudentAsync(long id);
     }
 }

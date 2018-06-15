@@ -1,8 +1,10 @@
-﻿namespace VoidJudge.Models
+﻿using System;
+
+namespace VoidJudge.ViewModels
 {
     public class ApiResult
     {
-        public string Error { get; set; }
+        public object Error { get; set; }
     }
 
     public class ApiDataResult : ApiResult

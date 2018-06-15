@@ -1,10 +1,5 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
-import {
-  FormGroup,
-  FormBuilder,
-  FormControl,
-  Validators
-} from '@angular/forms';
+import { FormGroup, FormBuilder, FormControl, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 
 import { AuthService, AuthResult } from '../../core/auth/auth.service';
@@ -36,11 +31,7 @@ export class ChangePasswordComponent implements OnInit {
 
   createForm(): void {
     this.resetForm = this.fb.group({
-      oldPass: new FormControl('', [
-        Validators.required,
-        Validators.maxLength(32),
-        Validators.pattern(/^\S+$/)
-      ]),
+      oldPass: new FormControl('', [Validators.required, Validators.maxLength(32), Validators.pattern(/^\S+$/)]),
       newPass1: new FormControl('', [
         Validators.required,
         Validators.minLength(6),
@@ -77,21 +68,15 @@ export class ChangePasswordComponent implements OnInit {
     const newPass2 = this.resetForm.get('newPass2').value as string;
 
     try {
-      if (
-        this.checkOldNew(oldPass, newPass1) &&
-        this.checkNew1New2(newPass1, newPass2)
-      ) {
+      if (this.checkOldNew(oldPass, newPass1) && this.checkNew1New2(newPass1, newPass2)) {
         this.authService
           .resetPassword({
-            id: this.authService.user.id,
             password: oldPass,
             newPassword: newPass2
           })
           .subscribe(x => {
             if (x === AuthResult.ok) {
-              this.dialogService.showNoticeMessage(
-                '修改密码成功，即将退出登录...'
-              );
+              this.dialogService.showNoticeMessage('修改密码成功，即将退出登录...');
               setTimeout(() => {
                 this.authService.logout();
                 this.router.navigate([`${this.authService.redirectUrl}`]);
@@ -99,13 +84,13 @@ export class ChangePasswordComponent implements OnInit {
             } else if (x === AuthResult.wrong) {
               this.dialogService.showErrorMessage('旧密码错误', () => {
                 this.isLoading = false;
-                this.resetForm.reset();
+                this.form.nativeElement.reset();
                 this.oldPass.nativeElement.focus();
               });
             } else {
               this.dialogService.showErrorMessage('网络错误', () => {
                 this.isLoading = false;
-                this.resetForm.reset();
+                this.form.nativeElement.reset();
                 this.oldPass.nativeElement.focus();
               });
             }

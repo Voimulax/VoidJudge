@@ -21,15 +21,17 @@ export interface LoginUser {
 }
 
 export interface ResetUser {
-  id: number;
   password: string;
   newPassword: string;
 }
 
 export enum PutResultType {
   ok,
+  forbiddance,
   concurrencyException,
   userNotFound,
+  repeat,
+  wrong,
   error
 }
 

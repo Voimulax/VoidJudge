@@ -24,7 +24,7 @@ export class AuthService {
   redirectUrl: string;
 
   private authBaseUrl = '/api/auth';
-  private userBaseUrl = '/api/user';
+  private usersBaseUrl = '/api/users';
 
   constructor(
     private dialogService: DialogService,
@@ -35,21 +35,19 @@ export class AuthService {
   ) {}
 
   getUser<T extends User>(id: number): Observable<T> {
-    return this.http.get(`${this.userBaseUrl}/${id}`).pipe(
+    return this.http.get(`${this.usersBaseUrl}/${id}`).pipe(
       map(x => {
-        if (x['error'] === '0') {
-          const basicInfo = x['data']['basicInfo'];
-          const roleType = x['data']['roleType'];
-          const claimInfos = x['data']['claimInfos'];
+        if (x['error'] === 0) {
+          const data = x['data'];
           const user: T = <T>{
-            id: Number(basicInfo['id']),
-            loginName: String(basicInfo['loginName']),
-            userName: String(basicInfo['userName']),
-            roleType: getRoleType(roleType)
+            id: Number(data['id']),
+            loginName: String(data['loginName']),
+            userName: String(data['userName']),
+            roleType: Number(data['roleType'])
           };
-          claimInfos.forEach(c => {
-            user[c['type']] = c['value'];
-          });
+          if (user.roleType === RoleType.student) {
+            user['group'] = String(data['group']);
+          }
           return user;
         }
       }),
@@ -119,7 +117,7 @@ export class AuthService {
           this.dialogService.isLoadingDialogActive = false;
         }),
         map(x => {
-          if (x['error'] === '0') {
+          if (x['error'] === 0) {
             return AuthResult.ok;
           }
         }),

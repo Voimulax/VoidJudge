@@ -11,23 +11,21 @@ import { SubmissionFile } from './contest-detail/contest-submission/submission.m
 })
 export class ContestService {
   contestInfo: ContestInfo;
-  private contestBaseUrl = '/api/contest';
+  private contestBaseUrl = '/api/contests';
 
   constructor(private http: HttpClient) {}
 
   get(id: number) {
     return this.http.get<GetContestsResult>(`${this.contestBaseUrl}/${id}`).pipe(
       map(x => {
-        const b = x['data']['basicInfo'];
-        const n = x['data']['claimInfos'].find(z => z['type'] === 'notice');
-        const a = x['data']['claimInfos'].find(z => z['type'] === 'authorName');
+        const data = x['data'];
         return {
-          id: b['id'],
-          name: b['name'],
-          startTime: new Date(b['startTime']).getTime(),
-          endTime: new Date(b['endTime']).getTime(),
-          authorName: a['value'],
-          notice: n['value']
+          id: data['id'],
+          name: data['name'],
+          startTime: new Date(data['startTime']).getTime(),
+          endTime: new Date(data['endTime']).getTime(),
+          ownerName: data['ownerName'],
+          notice: data['notice']
         };
       }),
       map(x => {
@@ -62,14 +60,13 @@ export class ContestService {
     return this.http.get<GetContestsResult>(this.contestBaseUrl).pipe(
       map(x => {
         return x['data'].map(y => {
-          const b = y['basicInfo'];
-          const a = y['claimInfos'].find(z => z['type'] === 'authorName');
           return {
-            id: b['id'],
-            name: b['name'],
-            startTime: new Date(b['startTime']).getTime(),
-            endTime: new Date(b['endTime']).getTime(),
-            authorName: a['value']
+            id: y['id'],
+            name: y['name'],
+            startTime: new Date(y['startTime']).getTime(),
+            endTime: new Date(y['endTime']).getTime(),
+            ownerName: y['ownerName'],
+            notice: y['notice']
           };
         });
       }),
