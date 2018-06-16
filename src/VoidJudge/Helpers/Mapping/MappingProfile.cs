@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using AutoMapper;
+﻿using AutoMapper;
 using VoidJudge.Models.Contest;
 using VoidJudge.Models.Identity;
 using VoidJudge.ViewModels.Contest;
@@ -11,30 +10,30 @@ namespace VoidJudge.Helpers.Mapping
     {
         public MappingProfile()
         {
-            CreateMap<AddUserViewModel, User>()
+            CreateMap<AddUserViewModel, UserModel>()
                 .ForMember(u => u.PasswordHash, o => o.MapFrom(a => a.Password));
-            CreateMap<User, GetUserViewModel>();
-            CreateMap<PutUserViewModel, User>();
-            CreateMap<User, AddResultUser>();
+            CreateMap<UserModel, GetUserViewModel>();
+            CreateMap<PutUserViewModel, UserModel>();
+            CreateMap<UserModel, AddResultUser>();
 
-            CreateMap<AddStudentViewModel, User>()
+            CreateMap<AddStudentViewModel, UserModel>()
                 .ForMember(u => u.PasswordHash, o => o.MapFrom(a => a.Password));
-            CreateMap<AddStudentViewModel, Student>()
+            CreateMap<AddStudentViewModel, StudentModel>()
                 .ForMember(s => s.Id, o => o.MapFrom(u => u.LoginName));
-            CreateMap<Student, GetStudentViewModel>()
+            CreateMap<StudentModel, GetStudentViewModel>()
                 .ForMember(g => g.Id, o => o.MapFrom(s => s.User.Id))
                 .ForMember(g => g.LoginName, o => o.MapFrom(s => s.User.LoginName))
                 .ForMember(g => g.UserName, o => o.MapFrom(s => s.User.UserName))
                 .ForMember(g => g.RoleType, o => o.MapFrom(s => s.User.Role.Type));
 
-            CreateMap<PutStudentViewModel, Student>()
+            CreateMap<PutStudentViewModel, StudentModel>()
                 .ForMember(s => s.Id, o => o.MapFrom(p => p.LoginName))
                 .ForMember(s => s.UserId, o => o.MapFrom(p => p.Id));
 
-            CreateMap<Contest, AdminContestViewModel>()
+            CreateMap<ContestModel, AdminContestViewModel>()
                 .ForMember(c => c.OwnerName, o => o.MapFrom(c => c.Owner.User.UserName));
-            CreateMap<Contest, TeacherContestViewModel>();
-            CreateMap<Contest, StudentContestViewModel>()
+            CreateMap<ContestModel, TeacherContestViewModel>().ReverseMap();
+            CreateMap<ContestModel, StudentContestViewModel>()
                 .ForMember(c => c.OwnerName, o => o.MapFrom(c => c.Owner.User.UserName));
         }
     }

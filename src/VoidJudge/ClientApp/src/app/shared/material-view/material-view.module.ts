@@ -10,39 +10,27 @@ import {
   MatDividerModule,
   MatIconModule,
   MatInputModule,
+  MatMenuModule,
   MatPaginatorModule,
   MatProgressBarModule,
   MatProgressSpinnerModule,
   MatSelectModule,
+  MatSlideToggleModule,
   MatSortModule,
   MatStepperModule,
   MatTableModule,
   MatTabsModule,
   MatTooltipModule,
-  MatToolbarModule,
-  MatIcon,
+  MatToolbarModule
 } from '@angular/material';
 import { MatMomentDateModule } from '@angular/material-moment-adapter';
 import { MatDatetimepickerModule } from '@mat-datetimepicker/core';
 import { MatMomentDatetimeModule } from '@mat-datetimepicker/moment';
 
-import {
-  DateAdapter,
-  MAT_DATE_FORMATS,
-  MAT_DATE_LOCALE
-} from '@angular/material';
-import {
-  MAT_MOMENT_DATE_FORMATS,
-  MomentDateAdapter
-} from '@angular/material-moment-adapter';
-import {
-  MAT_MOMENT_DATETIME_FORMATS,
-  MomentDatetimeAdapter
-} from '@mat-datetimepicker/moment';
-import {
-  DatetimeAdapter,
-  MAT_DATETIME_FORMATS
-} from '@mat-datetimepicker/core';
+import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material';
+import { MAT_MOMENT_DATE_FORMATS, MomentDateAdapter } from '@angular/material-moment-adapter';
+import { MAT_MOMENT_DATETIME_FORMATS, MomentDatetimeAdapter } from '@mat-datetimepicker/moment';
+import { DatetimeAdapter, MAT_DATETIME_FORMATS } from '@mat-datetimepicker/core';
 
 @NgModule({
   imports: [CommonModule],
@@ -57,12 +45,14 @@ import {
     MatDividerModule,
     MatIconModule,
     MatInputModule,
+    MatMenuModule,
     MatMomentDateModule,
     MatMomentDatetimeModule,
     MatPaginatorModule,
     MatProgressBarModule,
     MatProgressSpinnerModule,
     MatSelectModule,
+    MatSlideToggleModule,
     MatSortModule,
     MatStepperModule,
     MatTableModule,

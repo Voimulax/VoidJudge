@@ -7,7 +7,7 @@ namespace VoidJudge.ViewModels.Identity
         public string LoginName { get; set; }
     }
 
-    public enum AddResultType
+    public enum AddUserResultType
     {
         Ok,
         Wrong,
@@ -20,7 +20,7 @@ namespace VoidJudge.ViewModels.Identity
         public IList<AddResultUser> Data { get; set; } = null;
     }
 
-    public enum GetResultType
+    public enum GetUserResultType
     {
         Ok,
         Unauthorized,
@@ -48,7 +48,7 @@ namespace VoidJudge.ViewModels.Identity
         public IList<GetStudentViewModel> Data { get; set; } = null;
     }
 
-    public enum PutResultType
+    public enum PutUserResultType
     {
         Ok,
         Forbiddance,
@@ -69,7 +69,7 @@ namespace VoidJudge.ViewModels.Identity
         public PutStudentViewModel Data { get; set; } = null;
     }
 
-    public enum DeleteResultType
+    public enum DeleteUserResultType
     {
         Ok,
         Forbiddance,

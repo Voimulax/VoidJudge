@@ -38,14 +38,14 @@
                 编
                 <span style="visibility: hidden;">我</span>辑
               </button>
-              <span>（已发布）</span>
+              <span>（未发布）</span>
             </ng-container>
             <ng-container *ngSwitchCase='1'>
               <button mat-button (click)="goContestDetail(element)">
                 编
                 <span style="visibility: hidden;">我</span>辑
               </button>
-              <span>（未发布）</span>
+              <span>（已发布）</span>
             </ng-container>
             <button mat-button *ngSwitchCase='2' color='primary' (click)="goContestDetail(element)">进行中</button>
             <button mat-button *ngSwitchCase='3' color='warn' (click)="goContestDetail(element)">已结束</button>

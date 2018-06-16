@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace VoidJudge.Models.Contest
@@ -8,17 +9,17 @@ namespace VoidJudge.Models.Contest
         Binary, Text
     }
 
-    public class Submission
+    public class SubmissionModel
     {
         public long Id { get; set; }
 
         [Required]
         public long ProblemId { get; set; }
-        public Problem Problem { get; set; }
+        public ProblemModel Problem { get; set; }
 
         [Required]
         public long? StudentId { get; set; }
-        public Student Student { get; set; }
+        public StudentModel Student { get; set; }
 
         [Required]
         [Column(TypeName ="int")]
@@ -26,6 +27,7 @@ namespace VoidJudge.Models.Contest
 
         [Column(TypeName ="nvarchar(max)")]
         public string Content { get; set; }
+        public DateTime CreateTime { get; set; }
 
     }
 }

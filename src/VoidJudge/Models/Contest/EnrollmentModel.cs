@@ -1,15 +1,14 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 
 namespace VoidJudge.Models.Contest
 {
-    public class Enrollment
+    public class EnrollmentModel
     {
         public long Id { get; set; }
         public long? StudentId { get; set; }
-        public Student Student { get; set; }
+        public StudentModel Student { get; set; }
         public long ContestId { get; set; }
-        public Contest Contest { get; set; }
+        public ContestModel Contest { get; set; }
 
         [Column(TypeName = "nvarchar(max)")]
         public string Token { get; set; }

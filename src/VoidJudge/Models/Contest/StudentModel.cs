@@ -1,20 +1,19 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using VoidJudge.Models.Identity;
 
 namespace VoidJudge.Models.Contest
 {
-    public class Student
+    public class StudentModel
     {
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public long Id { get; set; }
         public long UserId { get; set; }
-        public User User { get; set; }
+        public UserModel User { get; set; }
 
         [Column(TypeName = "nvarchar(256)")]
         public string Group { get; set; }
-        public ICollection<Enrollment> ContestStudents { get; set; } = new Collection<Enrollment>();
+        public ICollection<EnrollmentModel> ContestStudents { get; set; } = new Collection<EnrollmentModel>();
     }
 }

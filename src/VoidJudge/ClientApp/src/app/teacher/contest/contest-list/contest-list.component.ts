@@ -31,8 +31,6 @@ export class ContestListComponent implements OnInit, AfterViewInit {
     return !this.isLoading && (this.dataSource.data === undefined || this.dataSource.data.length <= 0);
   }
 
-  publish(x: ContestInfo) {}
-
   goContestCreate() {
     this.contestService.contestInfo = { name: '新考试' };
     this.router.navigate([`${this.url}/create`]);
@@ -53,9 +51,9 @@ export class ContestListComponent implements OnInit, AfterViewInit {
         })
       )
       .subscribe(data => {
-        if (data.type === GetContestResultType.Ok) {
+        if (data.type === GetContestResultType.ok) {
           this.dataSource.data = data.data;
-        } else if (data.type === GetContestResultType.Error) {
+        } else if (data.type === GetContestResultType.error) {
           this.dialogService.showErrorMessage('获取失败');
         }
       });

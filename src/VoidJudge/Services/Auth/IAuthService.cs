@@ -5,7 +5,7 @@ using VoidJudge.ViewModels;
 using VoidJudge.ViewModels.Identity;
 using Claim = System.Security.Claims.Claim;
 
-namespace VoidJudge.Services
+namespace VoidJudge.Services.Auth
 {
     public interface IAuthService
     {
@@ -15,6 +15,6 @@ namespace VoidJudge.Services
         bool CompareRoleAuth(RoleType a, RoleType b);
         RoleType GetRoleTypeFromRequest(IEnumerable<Claim> claims);
         long GetUserIdFromRequest(IEnumerable<Claim> claims);
-        Task<Role> GetRoleFromRoleTypeAsync(RoleType roleType, bool isLoadUsers = false);
+        Task<RoleModel> GetRoleFromRoleTypeAsync(RoleType roleType, bool isLoadUsers = false);
     }
 }

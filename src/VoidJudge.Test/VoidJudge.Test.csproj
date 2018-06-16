@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\VoidJudge.csproj" />
+    <ProjectReference Include="..\VoidJudge\VoidJudge.csproj" />
   </ItemGroup>
 
 </Project>

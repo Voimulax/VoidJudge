@@ -1,20 +1,11 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
-import {
-  FormBuilder,
-  FormControl,
-  FormGroup,
-  Validators
-} from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 
 import { DialogService } from '../../../../shared/dialog/dialog.service';
 import { FormErrorStateMatcher } from '../../../../shared/form-error-state-matcher';
 import { StudentService } from '../../student.service';
-import {
-  RoleType,
-  UserResultType,
-  StudentInfo
-} from '../../../../core/auth/user.model';
+import { RoleType, AddUserResultType, StudentInfo } from '../../../../core/auth/user.model';
 import { ElementDef } from '@angular/core/src/view';
 
 @Component({
@@ -77,7 +68,7 @@ export class StudentCreateSingleComponent implements OnInit {
     const si: StudentInfo = this.studentForm.value;
     si.roleType = RoleType.student;
     this.studentService.add(si).subscribe(x => {
-      if (x.type === UserResultType.ok) {
+      if (x.type === AddUserResultType.ok) {
         this.dialogService.showNoticeMessage('创建成功');
         this.studentService.studentInfo = {
           loginName: '',
@@ -86,13 +77,11 @@ export class StudentCreateSingleComponent implements OnInit {
           password: ''
         };
         this.form.nativeElement.reset();
-      } else if (x.type === UserResultType.wrong) {
-        this.dialogService.showErrorMessage('创建失败, 上传内容有错');
-      } else if (x.type === UserResultType.repeat) {
+      } else if (x.type === AddUserResultType.wrong) {
+        this.dialogService.showErrorMessage('上传内容有错，创建失败');
+      } else if (x.type === AddUserResultType.repeat) {
         const s = new Set(x.repeat.map(xx => xx.loginName));
-        this.dialogService.showErrorMessage(
-          `用户名为“${si.loginName}”的用户已经被创建`
-        );
+        this.dialogService.showErrorMessage(`用户名为“${si.loginName}”的用户已经被创建`);
       } else {
         this.dialogService.showErrorMessage('网络错误');
       }

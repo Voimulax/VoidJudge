@@ -101,6 +101,7 @@ export class AuthService {
 
   logoutOf401() {
     this.dialogService.showNoticeMessage('当前登录已过期，请重新登录...', () => {
+      this.dialogService.isLoadingDialogActive = false;
       this.logout();
       this.router.navigate([`${this.redirectUrl}`]);
     });

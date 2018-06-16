@@ -44,7 +44,7 @@ export class ContestDetailComponent implements OnInit, AfterViewInit, OnDestroy 
     } else {
       if (
         !this.contestInfo.students &&
-        (this.contestInfo.state === ContestState.NoPublished || this.contestInfo.state === ContestState.NoStarted)
+        (this.contestInfo.state === ContestState.noPublished || this.contestInfo.state === ContestState.noStarted)
       ) {
         this.getContest(this.contestInfo.id);
       } else {
@@ -56,7 +56,7 @@ export class ContestDetailComponent implements OnInit, AfterViewInit, OnDestroy 
   private getContest(nid: number) {
     this.contestService.get(nid).subscribe(
       x => {
-        if (x.type === GetContestResultType.Ok) {
+        if (x.type === GetContestResultType.ok) {
           this.isLoading = false;
         } else {
           this.router.navigate(['/teacher/contest']);

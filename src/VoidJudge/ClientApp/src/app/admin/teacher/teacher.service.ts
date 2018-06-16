@@ -5,10 +5,10 @@ import { of, Observable } from 'rxjs';
 
 import {
   PutResult,
-  PutResultType,
-  UserResult,
-  UserResultType,
-  DeleteResultType,
+  PutUserResultType,
+  AddUserResult,
+  AddUserResultType,
+  DeleteUserResultType,
   UserInfo,
   getRoleType
 } from '../../core/auth/user.model';
@@ -65,30 +65,30 @@ export class TeacherService {
       map(x => {
         if (x['error'] === 0) {
           this.teacherInfo = x['data'];
-          return { type: PutResultType.ok, user: x['data'] };
+          return { type: PutUserResultType.ok, user: x['data'] };
         }
       }),
       catchError((e: HttpErrorResponse) => {
-        if (e.status === 403 && e.error['error'] === PutResultType.forbiddance) {
-          return of({ type: PutResultType.forbiddance });
+        if (e.status === 403 && e.error['error'] === PutUserResultType.forbiddance) {
+          return of({ type: PutUserResultType.forbiddance });
         } else if (e.status === 400) {
           return of({ type: e.error['error'] });
-        } else if (e.status === 404 && e.error['error'] === PutResultType.userNotFound) {
-          return of({ type: PutResultType.userNotFound });
+        } else if (e.status === 404 && e.error['error'] === PutUserResultType.userNotFound) {
+          return of({ type: PutUserResultType.userNotFound });
         } else {
-          return of({ type: PutResultType.error });
+          return of({ type: PutUserResultType.error });
         }
       })
     );
   }
 
-  add(teacherInfo: UserInfo): Observable<UserResult> {
+  add(teacherInfo: UserInfo): Observable<AddUserResult> {
     const sis = Array<UserInfo>();
     sis.push(teacherInfo);
     return this.adds(sis);
   }
 
-  adds(teacherInfos: Array<UserInfo>): Observable<UserResult> {
+  adds(teacherInfos: Array<UserInfo>): Observable<AddUserResult> {
     this.dialogService.isLoadingDialogActive = true;
     return this.http.post(`${this.usersBaseUrl}`, teacherInfos, httpOptions).pipe(
       finalize(() => {
@@ -96,25 +96,25 @@ export class TeacherService {
       }),
       map(x => {
         if (x['error'] === 0) {
-          return { type: UserResultType.ok };
+          return { type: AddUserResultType.ok };
         }
       }),
       catchError((e: HttpErrorResponse) => {
-        if (e.status === 422 && e.error['error'] === UserResultType.wrong) {
-          return of({ type: UserResultType.wrong });
-        } else if (e.status === 409 && e.error['error'] === UserResultType.repeat) {
+        if (e.status === 422 && e.error['error'] === AddUserResultType.wrong) {
+          return of({ type: AddUserResultType.wrong });
+        } else if (e.status === 409 && e.error['error'] === AddUserResultType.repeat) {
           return of({
-            type: UserResultType.repeat,
+            type: AddUserResultType.repeat,
             repeat: e.error['data']
           });
         } else {
-          return of({ type: UserResultType.error });
+          return of({ type: AddUserResultType.error });
         }
       })
     );
   }
 
-  delete(id: number): Observable<DeleteResultType> {
+  delete(id: number): Observable<DeleteUserResultType> {
     this.dialogService.isLoadingDialogActive = true;
     return this.http.delete(`${this.usersBaseUrl}/${id}`).pipe(
       finalize(() => {
@@ -122,16 +122,16 @@ export class TeacherService {
       }),
       map(x => {
         if (x['error'] === 0) {
-          return DeleteResultType.ok;
+          return DeleteUserResultType.ok;
         }
       }),
       catchError((e: HttpErrorResponse) => {
         if (e.status === 403) {
-          return of(DeleteResultType.forbiddance);
+          return of(DeleteUserResultType.forbiddance);
         } else if (e.status === 404) {
-          return of(DeleteResultType.userNotFound);
+          return of(DeleteUserResultType.userNotFound);
         } else {
-          return of(DeleteResultType.error);
+          return of(DeleteUserResultType.error);
         }
       })
     );

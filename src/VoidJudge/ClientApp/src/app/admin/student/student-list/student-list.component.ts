@@ -6,7 +6,7 @@ import { finalize } from 'rxjs/operators';
 
 import { DialogService } from '../../../shared/dialog/dialog.service';
 import { StudentService } from '../student.service';
-import { StudentInfo, DeleteResultType } from '../../../core/auth/user.model';
+import { StudentInfo, DeleteUserResultType } from '../../../core/auth/user.model';
 
 @Component({
   selector: 'app-student-list',
@@ -54,14 +54,14 @@ export class StudentListComponent implements OnInit, AfterViewInit {
         () => {
           const id = this.selection.selected[0].id;
           this.studentService.delete(id).subscribe(x => {
-            if (x === DeleteResultType.ok) {
+            if (x === DeleteUserResultType.ok) {
               this.dialogService.showNoticeMessage('删除成功', () => {
                 this.selection.clear();
                 this.getStudents();
               });
-            } else if (x === DeleteResultType.forbiddance) {
+            } else if (x === DeleteUserResultType.forbiddance) {
               this.dialogService.showErrorMessage('由于此学生正在参与考试，暂时无法进行删除');
-            } else if (x === DeleteResultType.userNotFound) {
+            } else if (x === DeleteUserResultType.userNotFound) {
               this.dialogService.showErrorMessage('此用户不存在');
             } else {
               this.dialogService.showErrorMessage('网络错误');

@@ -9,19 +9,20 @@ using Microsoft.EntityFrameworkCore;
 using VoidJudge.Data;
 using VoidJudge.Models.Contest;
 using VoidJudge.Models.Identity;
+using VoidJudge.Services.Auth;
 using VoidJudge.ViewModels;
 using VoidJudge.ViewModels.Identity;
 
-namespace VoidJudge.Services
+namespace VoidJudge.Services.Identity
 {
     public class UserService : IUserService
     {
         private readonly VoidJudgeContext _context;
-        private readonly PasswordHasher<User> _passwordHasher;
+        private readonly PasswordHasher<UserModel> _passwordHasher;
         private readonly IAuthService _authService;
         private readonly IMapper _mapper;
 
-        public UserService(VoidJudgeContext context, PasswordHasher<User> passwordHasher, IAuthService authService, IMapper mapper)
+        public UserService(VoidJudgeContext context, PasswordHasher<UserModel> passwordHasher, IAuthService authService, IMapper mapper)
         {
             _context = context;
             _passwordHasher = passwordHasher;
@@ -36,24 +37,23 @@ namespace VoidJudge.Services
             var repeat = await (from u in _context.Users
                                 from au in addUsers
                                 where u.LoginName == au.LoginName
-                                select _mapper.Map<User, AddResultUser>(u)).ToListAsync();
+                                select _mapper.Map<UserModel, AddResultUser>(u)).ToListAsync();
 
             if (repeat.Any())
             {
-                return new AddUserResult { Error = AddResultType.Repeat, Data = repeat };
+                return new AddUserResult { Error = AddUserResultType.Repeat, Data = repeat };
             }
 
-            var time = DateTime.Now;
             var tasks = addUsers.Select(async au =>
             {
-                var u = _mapper.Map<AddUserViewModel, User>(au);
+                var u = _mapper.Map<AddUserViewModel, UserModel>(au);
                 u.RoleId = (await _authService.GetRoleFromRoleTypeAsync(Enum.Parse<RoleType>(au.RoleType.ToString()))).Id;
                 u.PasswordHash = _passwordHasher.HashPassword(u, u.PasswordHash);
-                u.CreateTime = time;
+                u.CreateTime = DateTime.Now;
                 return u;
             }).ToList();
 
-            var users = new ConcurrentBag<User>();
+            var users = new ConcurrentBag<UserModel>();
             try
             {
                 foreach (var task in tasks)
@@ -63,56 +63,56 @@ namespace VoidJudge.Services
             }
             catch (Exception)
             {
-                return new AddUserResult { Error = AddResultType.Wrong };
+                return new AddUserResult { Error = AddUserResultType.Wrong };
             }
 
-            await _context.Users.AddRangeAsync(users);
+            await _context.Users.AddRangeAsync(users.OrderBy(u => u.CreateTime));
             await _context.SaveChangesAsync();
 
             var ats = addUsers.Where(au => au.RoleType == (int)RoleType.Teacher).ToList();
-            if (ats.Count <= 0) return new AddUserResult { Error = AddResultType.Ok };
+            if (ats.Count <= 0) return new AddUserResult { Error = AddUserResultType.Ok };
 
             var teachers = (from s in ats
                             join u in _context.Users on s.LoginName equals u.LoginName
-                            select new Teacher { UserId = u.Id }).ToList();
+                            select new TeacherModel { UserId = u.Id }).ToList();
 
             await _context.Teachers.AddRangeAsync(teachers);
             await _context.SaveChangesAsync();
 
-            return new AddUserResult { Error = AddResultType.Ok };
+            return new AddUserResult { Error = AddUserResultType.Ok };
         }
 
         public async Task<ApiResult> GetUserAsync(long id, RoleType? roleType = null)
         {
             var user = await _context.Users.Include(u => u.Role).Where(u => u.Id == id).SingleOrDefaultAsync();
-            if (user == null) return new GetUserResult { Error = GetResultType.UserNotFound };
+            if (user == null) return new GetUserResult { Error = GetUserResultType.UserNotFound };
 
             if (roleType != null && !_authService.CompareRoleAuth(roleType.Value, user.Role.Type))
             {
-                return new GetUserResult { Error = GetResultType.Unauthorized };
+                return new GetUserResult { Error = GetUserResultType.Unauthorized };
             }
 
             return new GetUserResult
             {
-                Error = GetResultType.Ok,
-                Data = _mapper.Map<User, GetUserViewModel>(user)
+                Error = GetUserResultType.Ok,
+                Data = _mapper.Map<UserModel, GetUserViewModel>(user)
             };
         }
 
         public async Task<ApiResult> GetUsersAsync(IList<string> roleTypes)
         {
             var roles = await GetRolesAsync(roleTypes);
-            if (roles == null) return new GetUserResult { Error = GetResultType.UserNotFound };
+            if (roles == null) return new GetUserResult { Error = GetUserResultType.UserNotFound };
             var users = roles.ToList().Aggregate(new List<GetUserViewModel>(),
-                (lr, r) => lr.Concat(r.Users.Select(_mapper.Map<User, GetUserViewModel>).ToList()).ToList());
+                (lr, r) => lr.Concat(r.Users.Select(_mapper.Map<UserModel, GetUserViewModel>).ToList()).OrderBy(gu => gu.Id).ToList());
 
-            return new GetUsersResult { Error = GetResultType.Ok, Data = users };
+            return new GetUsersResult { Error = GetUserResultType.Ok, Data = users };
         }
 
         public async Task<ApiResult> PutUserAsync(PutUserViewModel putUser)
         {
             var user = await _context.Users.Include(u => u.Role).SingleOrDefaultAsync(u => u.Id == putUser.Id);
-            if (user == null) return new PutUserResult { Error = PutResultType.UserNotFound };
+            if (user == null) return new PutUserResult { Error = PutUserResultType.UserNotFound };
 
             if (user.Role.Type == RoleType.Teacher)
             {
@@ -120,7 +120,7 @@ namespace VoidJudge.Services
                     .SingleOrDefaultAsync()).Contests.Count;
                 if (count > 0)
                 {
-                    return new PutUserResult { Error = PutResultType.Forbiddance };
+                    return new PutUserResult { Error = PutUserResultType.Forbiddance };
                 }
             }
 
@@ -136,7 +136,7 @@ namespace VoidJudge.Services
                     var uu = await _context.Users.SingleOrDefaultAsync(u => u.LoginName == putUser.LoginName);
                     if (uu != null)
                     {
-                        return new PutStudentResult { Error = PutResultType.Repeat };
+                        return new PutStudentResult { Error = PutUserResultType.Repeat };
                     }
                 }
 
@@ -146,14 +146,14 @@ namespace VoidJudge.Services
                 try
                 {
                     var role = await _authService.GetRoleFromRoleTypeAsync(Enum.Parse<RoleType>(putUser.RoleType.ToString()));
-                    if (role == null) return new PutUserResult { Error = PutResultType.Wrong };
+                    if (role == null) return new PutUserResult { Error = PutUserResultType.Wrong };
                     if (user.Role.Type == RoleType.Teacher && role.Type != RoleType.Teacher)
                     {
                         var teacher = await _context.Teachers.Include(t => t.Contests).Where(t => t.UserId == user.Id)
                             .SingleOrDefaultAsync();
                         if (teacher.Contests.Count > 0)
                         {
-                            return new PutUserResult { Error = PutResultType.Forbiddance };
+                            return new PutUserResult { Error = PutUserResultType.Forbiddance };
                         }
 
                         _context.Teachers.Remove(teacher);
@@ -161,7 +161,7 @@ namespace VoidJudge.Services
                     }
                     else if (user.Role.Type != RoleType.Teacher && role.Type == RoleType.Teacher)
                     {
-                        var teacher = new Teacher { UserId = user.Id };
+                        var teacher = new TeacherModel { UserId = user.Id };
 
                         await _context.Teachers.AddAsync(teacher);
                         await _context.SaveChangesAsync();
@@ -170,7 +170,7 @@ namespace VoidJudge.Services
                 }
                 catch (Exception)
                 {
-                    return new PutUserResult { Error = PutResultType.Wrong };
+                    return new PutUserResult { Error = PutUserResultType.Wrong };
                 }
             }
 
@@ -179,11 +179,11 @@ namespace VoidJudge.Services
             try
             {
                 await _context.SaveChangesAsync();
-                return new PutUserResult { Error = PutResultType.Ok, Data = putUser };
+                return new PutUserResult { Error = PutUserResultType.Ok, Data = putUser };
             }
             catch (DbUpdateConcurrencyException)
             {
-                return new PutUserResult { Error = PutResultType.ConcurrencyException };
+                return new PutUserResult { Error = PutUserResultType.ConcurrencyException };
             }
         }
 
@@ -192,7 +192,7 @@ namespace VoidJudge.Services
             var user = await _context.Users.Include(u => u.Role).Where(u => u.Id == id).SingleOrDefaultAsync();
             if (user == null)
             {
-                return new ApiResult { Error = DeleteResultType.UserNotFound };
+                return new ApiResult { Error = DeleteUserResultType.UserNotFound };
             }
 
             if (user.Role.Type == RoleType.Teacher)
@@ -201,14 +201,14 @@ namespace VoidJudge.Services
                     .SingleOrDefaultAsync()).Contests.Count;
                 if (count > 0)
                 {
-                    return new ApiResult { Error = DeleteResultType.Forbiddance };
+                    return new ApiResult { Error = DeleteUserResultType.Forbiddance };
                 }
             }
 
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();
 
-            return new ApiResult { Error = DeleteResultType.Ok };
+            return new ApiResult { Error = DeleteUserResultType.Ok };
         }
 
         public async Task<ApiResult> AddStudentsAsync(IList<AddStudentViewModel> addStudents)
@@ -218,24 +218,23 @@ namespace VoidJudge.Services
             var repeat = await (from u in _context.Users
                                 from au in addStudents
                                 where u.LoginName == au.LoginName
-                                select _mapper.Map<User, AddResultUser>(u)).ToListAsync();
+                                select _mapper.Map<UserModel, AddResultUser>(u)).ToListAsync();
 
             if (repeat.Any())
             {
-                return new AddUserResult { Error = AddResultType.Repeat, Data = repeat };
+                return new AddUserResult { Error = AddUserResultType.Repeat, Data = repeat };
             }
 
-            var time = DateTime.Now;
             var tasks = addStudents.Select(async au =>
             {
-                var u = _mapper.Map<AddStudentViewModel, User>(au);
+                var u = _mapper.Map<AddStudentViewModel, UserModel>(au);
                 u.RoleId = (await _authService.GetRoleFromRoleTypeAsync(Enum.Parse<RoleType>(au.RoleType.ToString()))).Id;
                 u.PasswordHash = _passwordHasher.HashPassword(u, u.PasswordHash);
-                u.CreateTime = time;
+                u.CreateTime = DateTime.Now;
                 return u;
             }).ToList();
 
-            var users = new ConcurrentBag<User>();
+            var users = new ConcurrentBag<UserModel>();
             try
             {
                 foreach (var task in tasks)
@@ -245,54 +244,54 @@ namespace VoidJudge.Services
             }
             catch (Exception)
             {
-                return new AddUserResult { Error = AddResultType.Wrong };
+                return new AddUserResult { Error = AddUserResultType.Wrong };
             }
 
-            await _context.Users.AddRangeAsync(users);
+            await _context.Users.AddRangeAsync(users.OrderBy(u => u.CreateTime));
             await _context.SaveChangesAsync();
 
-            var ss = addStudents.Select(_mapper.Map<AddStudentViewModel, Student>).ToList();
+            var ss = addStudents.Select(_mapper.Map<AddStudentViewModel, StudentModel>).ToList();
             var students = await (from u in _context.Users
                                   from s in ss
                                   where u.LoginName == s.Id.ToString()
-                                  select new Student { Id = s.Id, UserId = u.Id, Group = s.Group }).ToListAsync();
+                                  select new StudentModel { Id = s.Id, UserId = u.Id, Group = s.Group }).ToListAsync();
 
             await _context.Students.AddRangeAsync(students);
             await _context.SaveChangesAsync();
 
-            return new AddUserResult { Error = AddResultType.Ok };
+            return new AddUserResult { Error = AddUserResultType.Ok };
         }
 
         public async Task<ApiResult> GetStudentAsync(long id)
         {
             var student = await _context.Students.Where(s => s.UserId == id).Include(s => s.User).SingleOrDefaultAsync();
-            if (student == null) return new GetStudentResult { Error = GetResultType.UserNotFound };
+            if (student == null) return new GetStudentResult { Error = GetUserResultType.UserNotFound };
 
             return new GetStudentResult
             {
-                Error = GetResultType.Ok,
-                Data = _mapper.Map<Student, GetStudentViewModel>(student)
+                Error = GetUserResultType.Ok,
+                Data = _mapper.Map<StudentModel, GetStudentViewModel>(student)
             };
         }
 
         public async Task<ApiResult> GetStudentsAsync()
         {
             var ss = await _context.Students.Include(s => s.User).ToListAsync();
-            var students = ss.Select(_mapper.Map<Student, GetStudentViewModel>).ToList();
+            var students = ss.Select(_mapper.Map<StudentModel, GetStudentViewModel>).OrderBy(s => s.Id).ToList();
 
-            return new GetStudentsResult { Error = GetResultType.Ok, Data = students };
+            return new GetStudentsResult { Error = GetUserResultType.Ok, Data = students };
         }
 
         public async Task<ApiResult> PutStudentAsync(PutStudentViewModel putStudent)
         {
             var user = await _context.Users.Include(u => u.Role).SingleOrDefaultAsync(u => u.Id == putStudent.Id);
-            if (user == null) return new PutUserResult { Error = PutResultType.UserNotFound };
+            if (user == null) return new PutUserResult { Error = PutUserResultType.UserNotFound };
 
             var count = (await _context.Enrollments.Where(e => e.StudentId == long.Parse(user.LoginName)).ToListAsync())
                 .Count;
             if (count > 0)
             {
-                return new PutStudentResult { Error = PutResultType.Forbiddance };
+                return new PutStudentResult { Error = PutUserResultType.Forbiddance };
             }
 
             if (putStudent.Password != null)
@@ -307,7 +306,7 @@ namespace VoidJudge.Services
                     var uu = await _context.Users.SingleOrDefaultAsync(u => u.LoginName == putStudent.LoginName);
                     if (uu != null)
                     {
-                        return new PutStudentResult { Error = PutResultType.Repeat };
+                        return new PutStudentResult { Error = PutUserResultType.Repeat };
                     }
                 }
 
@@ -325,11 +324,11 @@ namespace VoidJudge.Services
             try
             {
                 await _context.SaveChangesAsync();
-                return new PutStudentResult { Error = PutResultType.Ok, Data = putStudent };
+                return new PutStudentResult { Error = PutUserResultType.Ok, Data = putStudent };
             }
             catch (DbUpdateConcurrencyException)
             {
-                return new PutStudentResult { Error = PutResultType.ConcurrencyException };
+                return new PutStudentResult { Error = PutUserResultType.ConcurrencyException };
             }
         }
 
@@ -338,20 +337,20 @@ namespace VoidJudge.Services
             var user = await _context.Users.FindAsync(id);
             if (user == null)
             {
-                return new ApiResult { Error = DeleteResultType.UserNotFound };
+                return new ApiResult { Error = DeleteUserResultType.UserNotFound };
             }
 
             var count = (await _context.Enrollments.Where(e => e.StudentId == long.Parse(user.LoginName)).ToListAsync())
                 .Count;
             if (count > 0)
             {
-                return new PutUserResult { Error = DeleteResultType.Forbiddance };
+                return new PutUserResult { Error = DeleteUserResultType.Forbiddance };
             }
 
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();
 
-            return new ApiResult { Error = DeleteResultType.Ok };
+            return new ApiResult { Error = DeleteUserResultType.Ok };
         }
 
         private static string GetRandomPassword()
@@ -365,13 +364,13 @@ namespace VoidJudge.Services
             return string.Join("", res);
         }
 
-        private async Task<IEnumerable<Role>> GetRolesAsync(IEnumerable<string> roleTypes)
+        private async Task<IEnumerable<RoleModel>> GetRolesAsync(IEnumerable<string> roleTypes)
         {
             try
             {
                 var rs = roleTypes.Select(Enum.Parse<RoleType>).ToList();
-                var ts = rs.Select(async x => await _authService.GetRoleFromRoleTypeAsync(x,true)).ToList();
-                var roles = new List<Role>();
+                var ts = rs.Select(async x => await _authService.GetRoleFromRoleTypeAsync(x, true)).ToList();
+                var roles = new List<RoleModel>();
                 foreach (var t in ts)
                 {
                     roles.Add(await t);

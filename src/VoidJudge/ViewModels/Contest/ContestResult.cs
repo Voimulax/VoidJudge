@@ -3,10 +3,10 @@ using VoidJudge.ViewModels;
 
 namespace VoidJudge.ViewModels.Contest
 {
-    public enum ContestResultType
+    public enum GetContestResultType
     {
         Ok,
-        NotFound,
+        ContestNotFound,
         Error
     }
 
@@ -20,4 +20,29 @@ namespace VoidJudge.ViewModels.Contest
         public IList<T> Data { get; set; }
     }
 
+    public enum AddContestResultType
+    {
+        Ok,
+        Wrong,
+        Error
+    }
+
+    public enum PutContestResultType
+    {
+        Ok,
+        Unauthorized,
+        ConcurrencyException,
+        ContestNotFound,
+        Wrong,
+        Error
+    }
+
+    public enum DeleteContestResultType
+    {
+        Ok,
+        Unauthorized,
+        Forbiddance,
+        ContestNotFound,
+        Error
+    }
 }

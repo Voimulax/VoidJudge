@@ -10,13 +10,13 @@ namespace VoidJudge.Models.Contest
         TestPaper, Judge
     }
 
-    public class Problem
+    public class ProblemModel
     {
         public long Id { get; set; }
 
-        [Required]
         public long ContestId { get; set; }
-        public Contest Contest { get; set; }
+        public ContestModel Contest { get; set; }
+        public long Number { get; set; }
 
         [Required]
         [Column(TypeName ="nvarchar(256)")]
@@ -28,7 +28,7 @@ namespace VoidJudge.Models.Contest
 
         [Column(TypeName ="nvarchar(max)")]
         public string Content { get; set; }
-        public ICollection<Submission> Submissions { get; set; } = new Collection<Submission>();
+        public ICollection<SubmissionModel> Submissions { get; set; } = new Collection<SubmissionModel>();
 
     }
 }

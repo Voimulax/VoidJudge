@@ -25,7 +25,7 @@ export interface ResetUser {
   newPassword: string;
 }
 
-export enum PutResultType {
+export enum PutUserResultType {
   ok,
   forbiddance,
   concurrencyException,
@@ -36,26 +36,26 @@ export enum PutResultType {
 }
 
 export interface PutResult<T extends UserInfo> {
-  type: PutResultType;
+  type: PutUserResultType;
   user?: T;
 }
 
-export enum DeleteResultType {
+export enum DeleteUserResultType {
   ok,
   forbiddance,
   userNotFound,
   error
 }
 
-export enum UserResultType {
+export enum AddUserResultType {
   ok,
   wrong,
   repeat,
   error
 }
 
-export interface UserResult {
-  type: UserResultType;
+export interface AddUserResult {
+  type: AddUserResultType;
   repeat?: { loginName: string }[];
 }
 

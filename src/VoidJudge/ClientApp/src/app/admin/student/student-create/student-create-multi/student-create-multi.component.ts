@@ -11,7 +11,7 @@ import {
   RoleType,
   StudentInfoWithSymbol,
   StudentInfo,
-  UserResultType,
+  AddUserResultType,
   UserListDialogData
 } from '../../../../core/auth/user.model';
 
@@ -78,14 +78,14 @@ export class StudentCreateMultiComponent implements OnInit {
       };
     });
     this.studentService.adds(sis).subscribe(x => {
-      if (x.type === UserResultType.ok) {
+      if (x.type === AddUserResultType.ok) {
         this.dialogService.showNoticeMessage('创建成功', () => {
           this.selection.clear();
           this.dataSource.data = [];
         });
-      } else if (x.type === UserResultType.wrong) {
-        this.dialogService.showErrorMessage('创建失败, 上传内容有错');
-      } else if (x.type === UserResultType.repeat) {
+      } else if (x.type === AddUserResultType.wrong) {
+        this.dialogService.showErrorMessage('上传内容有错，创建失败');
+      } else if (x.type === AddUserResultType.repeat) {
         const s = new Set(x.repeat.map(xx => xx.loginName));
         this.showStudentListDialog({
           type: '创建',

@@ -3,11 +3,11 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using VoidJudge.Services;
+using VoidJudge.Services.Auth;
 using VoidJudge.ViewModels.Auth;
 using VoidJudge.ViewModels.Identity;
 
-namespace VoidJudge.Controllers
+namespace VoidJudge.Controllers.Auth
 {
     [Route("api/[controller]")]
     [Produces("application/json")]

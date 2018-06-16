@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using VoidJudge.Services;
+using VoidJudge.Services.Auth;
 
 namespace VoidJudge.Helpers.Auth
 {

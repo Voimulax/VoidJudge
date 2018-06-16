@@ -1,10 +1,14 @@
-<form [formGroup]="contestForm">
-  <div fxLayout="column" fxLayoutAlign="start stretch" fxLayoutGap="25px">
-    <div fxLayout="row" fxLayoutAlign="space-between center" fxLayoutGap="0px">
-      <button mat-raised-button (click)="goBack()">返回</button>
+<div fxLayout="column" fxLayoutAlign="start stretch" fxLayoutGap="25px">
+  <div fxLayout="row" fxLayoutAlign="space-between center" fxLayoutGap="0px">
+    <button mat-raised-button (click)="goBack()">返回</button>
+    <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="10px">
+      <mat-slide-toggle #publishSlideToggle [checked]="contestInfo.state !== 0">发布</mat-slide-toggle>
+      <button mat-raised-button color="primary" (click)="save()" [disabled]="contestForm.invalid">保存</button>
     </div>
-    <mat-vertical-stepper [linear]="true" #stepper>
-      <mat-step label="输入考试的基本信息" [stepControl]="contestForm">
+  </div>
+  <mat-vertical-stepper [linear]="true" #stepper>
+    <mat-step label="输入考试的基本信息" [stepControl]="contestForm">
+      <form [formGroup]="contestForm">
         <div class="matStepContent" fxLayout="column" fxLayoutAlign="start stretch" fxLayoutGap="25px">
           <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="25px">
             <mat-form-field class="contestFormControl">
@@ -54,36 +58,26 @@
             <textarea class="noticeTextArea" matInput placeholder="请输入考试公告" type="text" formControlName="notice"></textarea>
           </mat-form-field>
         </div>
-      </mat-step>
+      </form>
+    </mat-step>
 
-      <mat-step label="选择参加考试的学生">
-        <div class="matStepContent" fxLayout="column" fxLayoutAlign="start stretch" fxLayoutGap="0px">
-          <app-contest-student-create #studentCreate></app-contest-student-create>
-        </div>
-      </mat-step>
+    <mat-step label="选择参加考试的学生">
+      <div class="matStepContent" fxLayout="column" fxLayoutAlign="start stretch" fxLayoutGap="0px">
+        <app-contest-student-create #studentCreate></app-contest-student-create>
+      </div>
+    </mat-step>
 
-      <mat-step label="{{contestInfo.state === 0? '保存' : '发布'}}">
-        <div class="matStepContent" fxLayout="column" fxLayoutAlign="start stretch" fxLayoutGap="12.5px">
-          <p>请确认考试的信息</p>
-          <p *ngIf="contestInfo.state !== 0">现在你可以进行
-            <button mat-raised-button color="accent" (click)="publish(true)" [disabled]="contestForm.invalid">发布</button>
-            或暂时不发布并
-            <button mat-raised-button color="primary" (click)="save()" [disabled]="contestForm.invalid">保存</button>
-          </p>
-          <p *ngIf="contestInfo.state === 0">
-            现在你可以
-            <button mat-raised-button color="accent" (click)="publish(false)" [disabled]="contestForm.invalid">取消发布</button>
-            或在确认好后
-            <button mat-raised-button color="primary" (click)="save()" [disabled]="contestForm.invalid">保存</button>
-          </p>
-          <p>如有需要可以
-            <button mat-raised-button color="warn" (click)="reset()">重置</button>
-          </p>
-        </div>
-      </mat-step>
-    </mat-vertical-stepper>
-    <div fxLayout="row" fxLayoutAlign="end center" fxLayoutGap="0px">
-      <button mat-raised-button color="warn" (click)="delete()">删除</button>
-    </div>
+    <mat-step label="确认">
+      <div class="matStepContent" fxLayout="column" fxLayoutAlign="start stretch" fxLayoutGap="12.5px">
+        <p>请确认考试的信息</p>
+        <p>确认好后请点击右上角菜单选择需要进行的下一步操作</p>
+        <p>如有需要可以
+          <button mat-raised-button type="button" color="warn" (click)="reset()">重置</button>
+        </p>
+      </div>
+    </mat-step>
+  </mat-vertical-stepper>
+  <div fxLayout="row" fxLayoutAlign="end center" fxLayoutGap="0px">
+    <button mat-raised-button type="button" color="warn" (click)="delete()">删除</button>
   </div>
-</form>
+</div>

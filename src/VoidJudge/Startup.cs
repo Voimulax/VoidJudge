@@ -12,10 +12,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 using VoidJudge.Data;
 using VoidJudge.Helpers.Auth;
 using VoidJudge.Models.Identity;
 using VoidJudge.Services;
+using VoidJudge.Services.Auth;
+using VoidJudge.Services.Contest;
+using VoidJudge.Services.Identity;
 
 namespace VoidJudge
 {
@@ -60,12 +64,16 @@ namespace VoidJudge
                     };
                 });
 
-            services.AddScoped<PasswordHasher<User>>();
+            services.AddScoped<PasswordHasher<UserModel>>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IContestService, ContestService>();
 
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
+                .AddJsonOptions(setupAction =>
+                {
+                    setupAction.SerializerSettings.DateTimeZoneHandling = DateTimeZoneHandling.Local;
+                });
 
             // In production, the Angular files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
@@ -110,8 +118,8 @@ namespace VoidJudge
 
                 if (env.IsDevelopment())
                 {
-                    spa.UseAngularCliServer(npmScript: "start");
-                    //spa.UseProxyToSpaDevelopmentServer("http://localhost:5244");
+                    //spa.UseAngularCliServer(npmScript: "start");
+                    spa.UseProxyToSpaDevelopmentServer("http://localhost:5244");
                 }
             });
         }

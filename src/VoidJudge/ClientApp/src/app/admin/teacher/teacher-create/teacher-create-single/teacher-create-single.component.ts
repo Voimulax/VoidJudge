@@ -14,7 +14,7 @@ import { TeacherService } from '../../teacher.service';
 import {
   UserInfo,
   getRoleType,
-  UserResultType
+  AddUserResultType
 } from '../../../../core/auth/user.model';
 
 @Component({
@@ -82,7 +82,7 @@ export class TeacherCreateSingleComponent implements OnInit {
     const si: UserInfo = this.teacherForm.value;
     si.roleType = getRoleType(this.teacherForm.get('roleType').value);
     this.teacherService.add(si).subscribe(x => {
-      if (x.type === UserResultType.ok) {
+      if (x.type === AddUserResultType.ok) {
         this.dialogService.showNoticeMessage('创建成功', () => {
           this.teacherService.teacherInfo = {
             loginName: '',
@@ -92,9 +92,9 @@ export class TeacherCreateSingleComponent implements OnInit {
           };
           this.form.nativeElement.reset();
         });
-      } else if (x.type === UserResultType.wrong) {
-        this.dialogService.showErrorMessage('创建失败, 上传内容有错');
-      } else if (x.type === UserResultType.repeat) {
+      } else if (x.type === AddUserResultType.wrong) {
+        this.dialogService.showErrorMessage('上传内容有错，创建失败');
+      } else if (x.type === AddUserResultType.repeat) {
         const s = new Set(x.repeat.map(xx => xx.loginName));
         this.dialogService.showErrorMessage(
           `用户名为“${si.loginName}”的用户已经被创建`

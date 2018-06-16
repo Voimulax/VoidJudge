@@ -16,15 +16,15 @@ using VoidJudge.ViewModels.Identity;
 using Claim = System.Security.Claims.Claim;
 using ClaimTypes = System.Security.Claims.ClaimTypes;
 
-namespace VoidJudge.Services
+namespace VoidJudge.Services.Auth
 {
     public class AuthService : IAuthService
     {
         private readonly IConfiguration _configuration;
         private readonly VoidJudgeContext _context;
-        private readonly PasswordHasher<User> _passwordHasher;
+        private readonly PasswordHasher<UserModel> _passwordHasher;
 
-        public AuthService(IConfiguration configuration, VoidJudgeContext context, PasswordHasher<User> passwordHasher)
+        public AuthService(IConfiguration configuration, VoidJudgeContext context, PasswordHasher<UserModel> passwordHasher)
         {
             _configuration = configuration;
             _context = context;
@@ -109,7 +109,7 @@ namespace VoidJudge.Services
             return long.Parse(claims.SingleOrDefault(x => x.Type == "id")?.Value);
         }
 
-        public async Task<Role> GetRoleFromRoleTypeAsync(RoleType roleType, bool isLoadUsers = false)
+        public async Task<RoleModel> GetRoleFromRoleTypeAsync(RoleType roleType, bool isLoadUsers = false)
         {
             if (isLoadUsers) return await _context.Roles.Include(r => r.Users).SingleOrDefaultAsync(x => x.Type == roleType);
             return await _context.Roles.SingleOrDefaultAsync(x => x.Type == roleType);

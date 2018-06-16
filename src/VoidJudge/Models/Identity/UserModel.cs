@@ -7,7 +7,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace VoidJudge.Models.Identity
 {
 
-    public class User
+    public class UserModel
     {
         public long Id { get; set; }
 
@@ -27,6 +27,6 @@ namespace VoidJudge.Models.Identity
 
         [Required]
         public long RoleId { get; set; }
-        public Role Role { get; set; }
+        public RoleModel Role { get; set; }
     }
 }

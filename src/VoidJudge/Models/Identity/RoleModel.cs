@@ -12,7 +12,7 @@ namespace VoidJudge.Models.Identity
         Student
     }
 
-    public class Role
+    public class RoleModel
     {
         public long Id { get; set; }
 
@@ -23,6 +23,6 @@ namespace VoidJudge.Models.Identity
         [Required]
         [Column(TypeName = "int")]
         public RoleType Type { get; set; }
-        public ICollection<User> Users { get; set; } = new Collection<User>();
+        public ICollection<UserModel> Users { get; set; } = new Collection<UserModel>();
     }
 }

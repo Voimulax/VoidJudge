@@ -1,10 +1,10 @@
 import { ContestStudentInfo } from './contest-student/contest-student.model';
 
 export enum ContestState {
-  NoPublished,
-  NoStarted,
-  InProgress,
-  Ended
+  noPublished,
+  noStarted,
+  inProgress,
+  ended
 }
 
 export interface ContestInfo {
@@ -18,12 +18,35 @@ export interface ContestInfo {
 }
 
 export enum GetContestResultType {
-  Ok,
-  NotFound,
-  Error
+  ok,
+  contestNotFound,
+  error
 }
 
 export interface GetContestsResult {
   type: GetContestResultType;
   data: ContestInfo[];
+}
+
+export enum AddContestResultType {
+  ok,
+  wrong,
+  error
+}
+
+export enum PutContestResultType {
+  ok,
+  unauthorized,
+  concurrencyException,
+  contestNotFound,
+  wrong,
+  error
+}
+
+export enum DeleteContestResultType {
+  ok,
+  unauthorized,
+  forbiddance,
+  contestNotFound,
+  error
 }

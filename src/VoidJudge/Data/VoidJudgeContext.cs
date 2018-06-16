@@ -11,73 +11,73 @@ namespace VoidJudge.Data
         {
         }
 
-        public DbSet<User> Users { get; set; }
-        public DbSet<Role> Roles { get; set; }
-        public DbSet<Contest> Contests { get; set; }
-        public DbSet<Student> Students { get; set; }
-        public DbSet<Teacher> Teachers { get; set; }
-        public DbSet<Enrollment> Enrollments { get; set; }
-        public DbSet<Problem> Problems { get; set; }
-        public DbSet<Submission> Submissions { get; set; }
-        public DbSet<File> Files { get; set; }
+        public DbSet<UserModel> Users { get; set; }
+        public DbSet<RoleModel> Roles { get; set; }
+        public DbSet<ContestModel> Contests { get; set; }
+        public DbSet<StudentModel> Students { get; set; }
+        public DbSet<TeacherModel> Teachers { get; set; }
+        public DbSet<EnrollmentModel> Enrollments { get; set; }
+        public DbSet<ProblemModel> Problems { get; set; }
+        public DbSet<SubmissionModel> Submissions { get; set; }
+        public DbSet<FileModel> Files { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<User>()
+            modelBuilder.Entity<UserModel>()
                 .HasOne(u => u.Role)
                 .WithMany(r => r.Users);
 
-            modelBuilder.Entity<User>()
+            modelBuilder.Entity<UserModel>()
                 .HasIndex(u => u.LoginName)
                 .IsUnique();
 
-            modelBuilder.Entity<Role>()
+            modelBuilder.Entity<RoleModel>()
                 .HasIndex(r => r.Type)
                 .IsUnique();
 
-            modelBuilder.Entity<User>()
-                .HasOne<Student>()
+            modelBuilder.Entity<UserModel>()
+                .HasOne<StudentModel>()
                 .WithOne(s => s.User)
-                .HasForeignKey<Student>(s => s.UserId);
+                .HasForeignKey<StudentModel>(s => s.UserId);
 
-            modelBuilder.Entity<User>()
-                .HasOne<Teacher>()
+            modelBuilder.Entity<UserModel>()
+                .HasOne<TeacherModel>()
                 .WithOne(t => t.User)
-                .HasForeignKey<Teacher>(t => t.UserId);
+                .HasForeignKey<TeacherModel>(t => t.UserId);
 
-            modelBuilder.Entity<Enrollment>()
+            modelBuilder.Entity<EnrollmentModel>()
                 .HasOne(c => c.Student)
                 .WithMany(s => s.ContestStudents)
                 .HasForeignKey(c => c.StudentId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<Enrollment>()
+            modelBuilder.Entity<EnrollmentModel>()
                 .HasOne(c => c.Contest)
                 .WithMany(c => c.Enrollments)
                 .HasForeignKey(c => c.ContestId);
 
-            modelBuilder.Entity<Contest>()
+            modelBuilder.Entity<ContestModel>()
                 .HasOne(c => c.Owner)
                 .WithMany(o => o.Contests)
                 .HasForeignKey(c => c.OwnerId);
 
-            modelBuilder.Entity<Submission>()
+            modelBuilder.Entity<SubmissionModel>()
                 .HasOne(s => s.Problem)
                 .WithMany(p => p.Submissions)
                 .HasForeignKey(s => s.ProblemId);
 
-            modelBuilder.Entity<Student>()
-                .HasMany<Submission>()
+            modelBuilder.Entity<StudentModel>()
+                .HasMany<SubmissionModel>()
                 .WithOne(s => s.Student)
                 .HasForeignKey(s => s.StudentId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<Problem>()
+            modelBuilder.Entity<ProblemModel>()
                 .HasOne(p => p.Contest)
                 .WithMany(c => c.Problems)
                 .HasForeignKey(p => p.ContestId);
 
-            modelBuilder.Entity<File>()
+            modelBuilder.Entity<FileModel>()
                 .HasIndex(f => f.SaveName)
                 .IsUnique();
         }

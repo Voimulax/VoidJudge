@@ -9,9 +9,9 @@ namespace VoidJudge.Test
     public class CryptoTest
     {
         [TestMethod]
-        public void HashPassword()
+        public void HashPasswordAsync()
         {
-            var pher = new PasswordHasher<User>();
+            var pher = new PasswordHasher<UserModel>();
 
             var hp1 = pher.HashPassword(null, "a");
             Debug.WriteLine(hp1);

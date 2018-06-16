@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace VoidJudge.Models.Contest
@@ -11,7 +10,7 @@ namespace VoidJudge.Models.Contest
         UnPublished, NotDownloaded, DownLoaded
     }
 
-    public class Contest
+    public class ContestModel
     {
         public long Id { get; set; }
 
@@ -26,10 +25,12 @@ namespace VoidJudge.Models.Contest
         [Column(TypeName = "int")]
         public ContestState State { get; set; }
 
-        public ICollection<Enrollment> Enrollments { get; set; } = new Collection<Enrollment>();
-        public ICollection<Problem> Problems { get; set; } = new Collection<Problem>();
+        public ICollection<EnrollmentModel> Enrollments { get; set; } = new Collection<EnrollmentModel>();
+        public ICollection<ProblemModel> Problems { get; set; } = new Collection<ProblemModel>();
 
         public long OwnerId { get; set; }
-        public Teacher Owner { get; set; }
+        public TeacherModel Owner { get; set; }
+
+        public DateTime CreateTime { get; set; }
     }
 }

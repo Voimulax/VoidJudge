@@ -1,20 +1,16 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import {
-  FormBuilder,
-  FormControl,
-  FormGroup,
-  Validators
-} from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatStepper } from '@angular/material';
 import { Router } from '@angular/router';
 import * as moment from 'moment';
 import { Moment } from 'moment';
 
-import { AuthService } from '../../../core/auth/auth.service';
 import { ContestService } from '../contest.service';
 import { ContestStudentCreateComponent } from '../contest-student/contest-student-create/contest-student-create.component';
 import { ContestStudentInfo } from '../contest-student/contest-student.model';
 import { FormErrorStateMatcher } from '../../../shared/form-error-state-matcher';
+import { DialogService } from '../../../shared/dialog/dialog.service';
+import { AddContestResultType } from '../contest.model';
 
 @Component({
   selector: 'app-contest-create',
@@ -32,6 +28,7 @@ export class ContestCreateComponent implements OnInit {
 
   constructor(
     private contestService: ContestService,
+    private dialogService: DialogService,
     private fb: FormBuilder,
     private router: Router
   ) {
@@ -59,11 +56,22 @@ export class ContestCreateComponent implements OnInit {
   }
 
   create() {
-    this.contestService.contestInfo.name = this.contestForm.get('name').value;
-    this.contestService.contestInfo.startTime = moment(this.contestForm.get('startTime').value).valueOf();
-    this.contestService.contestInfo.endTime = moment(this.contestForm.get('endTime').value).valueOf();
-    this.contestService.contestInfo.notice = this.contestForm.get('notice').value;
-    console.log(this.contestService.contestInfo);
+    const startTime = new Date(this.contestForm.value.startTime).getTime();
+    const endTime = new Date(this.contestForm.value.endTime).getTime();
+    if (startTime >= endTime) {
+      this.dialogService.showErrorMessage('考试开始时间应早于结束时间');
+    } else {
+      this.contestService.add(this.contestForm.value).subscribe(r => {
+        if (r === AddContestResultType.ok) {
+          this.dialogService.showNoticeMessage('创建成功');
+          this.reset();
+        } else if (r === AddContestResultType.wrong) {
+          this.dialogService.showErrorMessage('上传内容有错，创建失败');
+        } else {
+          this.dialogService.showErrorMessage('网络错误');
+        }
+      });
+    }
   }
 
   reset() {

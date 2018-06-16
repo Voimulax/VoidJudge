@@ -1,8 +1,8 @@
-<form (ngSubmit)="create()" [formGroup]="contestForm">
+<form [formGroup]="contestForm">
   <div fxLayout="column" fxLayoutAlign="start stretch" fxLayoutGap="25px">
     <div fxLayout="row" fxLayoutAlign="space-between center" fxLayoutGap="0px">
       <button mat-raised-button (click)="goBack()">返回</button>
-      <button mat-raised-button color="accent" type="submit" [disabled]="contestForm.invalid">创建</button>
+      <button mat-raised-button color="accent" (click)="create()" [disabled]="contestForm.invalid">创建</button>
     </div>
     <mat-vertical-stepper [linear]="true" #stepper>
       <mat-step label="输入考试的基本信息" [stepControl]="contestForm">
@@ -67,7 +67,7 @@
         <div class="matStepContent" fxLayout="column" fxLayoutAlign="start stretch" fxLayoutGap="12.5px">
           <p>请在确认好后请点击右上角的“创建”。</p>
           <p>如有需要可以
-            <button mat-raised-button color="warn" (click)="reset()">重置</button>
+            <button mat-raised-button color="warn" type="button" (click)="reset()">重置</button>
           </p>
         </div>
       </mat-step>

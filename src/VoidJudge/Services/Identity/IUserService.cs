@@ -4,7 +4,7 @@ using VoidJudge.Models.Identity;
 using VoidJudge.ViewModels;
 using VoidJudge.ViewModels.Identity;
 
-namespace VoidJudge.Services
+namespace VoidJudge.Services.Identity
 {
     public interface IUserService
     {

@@ -4,11 +4,12 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using VoidJudge.Services;
+using VoidJudge.Services.Auth;
+using VoidJudge.Services.Identity;
 using VoidJudge.ViewModels;
 using VoidJudge.ViewModels.Identity;
 
-namespace VoidJudge.Controllers
+namespace VoidJudge.Controllers.Identity
 {
     [Route("api/users")]
     [Produces("application/json")]
@@ -31,16 +32,16 @@ namespace VoidJudge.Controllers
             var result = await _userService.AddUsersAsync(addUsers);
             switch (result.Error)
             {
-                case AddResultType.Repeat:
+                case AddUserResultType.Repeat:
                     return Conflict(result);
-                case AddResultType.Wrong:
+                case AddUserResultType.Wrong:
                     return new ObjectResult(result)
                     {
                         StatusCode = StatusCodes.Status422UnprocessableEntity
                     };
-                case AddResultType.Error:
+                case AddUserResultType.Error:
                     return BadRequest(result);
-                case AddResultType.Ok:
+                case AddUserResultType.Ok:
                     return Ok(result);
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -56,13 +57,13 @@ namespace VoidJudge.Controllers
 
             switch (result.Error)
             {
-                case GetResultType.Unauthorized:
+                case GetUserResultType.Unauthorized:
                     return new ObjectResult(result) { StatusCode = StatusCodes.Status401Unauthorized };
-                case GetResultType.UserNotFound:
+                case GetUserResultType.UserNotFound:
                     return NotFound(result);
-                case GetResultType.Ok:
+                case GetUserResultType.Ok:
                     return Ok(result);
-                case GetResultType.Error:
+                case GetUserResultType.Error:
                     return BadRequest(result);
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -77,13 +78,13 @@ namespace VoidJudge.Controllers
 
             switch (result.Error)
             {
-                case GetResultType.Unauthorized:
+                case GetUserResultType.Unauthorized:
                     return new ObjectResult(result) { StatusCode = StatusCodes.Status401Unauthorized };
-                case GetResultType.UserNotFound:
+                case GetUserResultType.UserNotFound:
                     return NotFound(result);
-                case GetResultType.Ok:
+                case GetUserResultType.Ok:
                     return Ok(result);
-                case GetResultType.Error:
+                case GetUserResultType.Error:
                     return BadRequest(result);
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -96,33 +97,33 @@ namespace VoidJudge.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(new ApiDataResult { Error = PutResultType.Wrong, Data = new { ModelState } });
+                return BadRequest(new ApiDataResult { Error = PutUserResultType.Wrong, Data = new { ModelState } });
             }
 
             if (id != putUser.Id)
             {
-                return BadRequest(new ApiResult { Error = PutResultType.Wrong });
+                return BadRequest(new ApiResult { Error = PutUserResultType.Wrong });
             }
 
             var result = await _userService.PutUserAsync(putUser);
             switch (result.Error)
             {
-                case PutResultType.Forbiddance:
+                case PutUserResultType.Forbiddance:
                     return new ObjectResult(result)
                     {
                         StatusCode = StatusCodes.Status403Forbidden
                     };
-                case PutResultType.ConcurrencyException:
+                case PutUserResultType.ConcurrencyException:
                     return BadRequest(result);
-                case PutResultType.UserNotFound:
+                case PutUserResultType.UserNotFound:
                     return NotFound(result);
-                case PutResultType.Repeat:
+                case PutUserResultType.Repeat:
                     return BadRequest(result);
-                case PutResultType.Wrong:
+                case PutUserResultType.Wrong:
                     return new ObjectResult(result) { StatusCode = StatusCodes.Status422UnprocessableEntity };
-                case PutResultType.Error:
+                case PutUserResultType.Error:
                     return BadRequest(result);
-                case PutResultType.Ok:
+                case PutUserResultType.Ok:
                     return Ok(result);
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -136,16 +137,16 @@ namespace VoidJudge.Controllers
             var result = await _userService.DeleteUserAsync(id);
             switch (result.Error)
             {
-                case DeleteResultType.Forbiddance:
+                case DeleteUserResultType.Forbiddance:
                     return new ObjectResult(result)
                     {
                         StatusCode = StatusCodes.Status403Forbidden
                     };
-                case DeleteResultType.UserNotFound:
+                case DeleteUserResultType.UserNotFound:
                     return NotFound(result);
-                case DeleteResultType.Error:
+                case DeleteUserResultType.Error:
                     return BadRequest(result);
-                case DeleteResultType.Ok:
+                case DeleteUserResultType.Ok:
                     return Ok(result);
                 default:
                     throw new ArgumentOutOfRangeException();

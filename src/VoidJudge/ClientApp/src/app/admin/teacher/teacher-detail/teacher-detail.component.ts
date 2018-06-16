@@ -9,13 +9,11 @@ import { FormErrorStateMatcher } from '../../../shared/form-error-state-matcher'
 import { TeacherService } from '../teacher.service';
 import {
   UserInfo,
-  DeleteResultType,
-  PutResultType,
-  RoleType,
+  DeleteUserResultType,
+  PutUserResultType,
   getRoleType,
   getRoleTypeName
 } from '../../../core/auth/user.model';
-import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-teacher-detail',
@@ -82,19 +80,19 @@ export class TeacherDetailComponent implements OnInit, AfterViewInit, OnDestroy 
     teacherInfo.id = this.teacherInfo.id;
     teacherInfo.roleType = getRoleType(teacherInfo.roleType);
     this.teacherService.put(teacherInfo).subscribe(x => {
-      if (x.type === PutResultType.ok) {
+      if (x.type === PutUserResultType.ok) {
         this.dialogService.showNoticeMessage('修改成功', () => {
           this.createForm();
         });
-      } else if (x.type === PutResultType.forbiddance) {
+      } else if (x.type === PutUserResultType.forbiddance) {
         this.dialogService.showErrorMessage('此教师拥有未删除的考试，暂时无法进行修改');
-      } else if (x.type === PutResultType.concurrencyException) {
+      } else if (x.type === PutUserResultType.concurrencyException) {
         this.dialogService.showErrorMessage('修改时出现同步问题，暂时无法进行修改');
-      } else if (x.type === PutResultType.userNotFound) {
+      } else if (x.type === PutUserResultType.userNotFound) {
         this.dialogService.showErrorMessage('此用户不存在');
-      } else if (x.type === PutResultType.repeat) {
+      } else if (x.type === PutUserResultType.repeat) {
         this.dialogService.showErrorMessage('此用户名已存在');
-      } else if (x.type === PutResultType.wrong) {
+      } else if (x.type === PutUserResultType.wrong) {
         this.dialogService.showErrorMessage('提交信息有误');
       } else {
         this.dialogService.showErrorMessage('网络错误');
@@ -108,13 +106,13 @@ export class TeacherDetailComponent implements OnInit, AfterViewInit, OnDestroy 
       () => {
         const id = this.teacherInfo.id;
         this.teacherService.delete(id).subscribe(x => {
-          if (x === DeleteResultType.ok) {
+          if (x === DeleteUserResultType.ok) {
             this.dialogService.showNoticeMessage('删除成功', () => {
               this.goBack();
             });
-          } else if (x === DeleteResultType.forbiddance) {
+          } else if (x === DeleteUserResultType.forbiddance) {
             this.dialogService.showErrorMessage('此教师拥有未删除的考试，暂时无法进行删除');
-          } else if (x === DeleteResultType.userNotFound) {
+          } else if (x === DeleteUserResultType.userNotFound) {
             this.dialogService.showErrorMessage('此用户不存在');
           } else {
             this.dialogService.showErrorMessage('网络错误');
@@ -128,19 +126,19 @@ export class TeacherDetailComponent implements OnInit, AfterViewInit, OnDestroy 
     const teacherInfo = this.teacherInfo;
     teacherInfo.password = '';
     this.teacherService.put(teacherInfo).subscribe(x => {
-      if (x.type === PutResultType.ok) {
+      if (x.type === PutUserResultType.ok) {
         this.dialogService.showNoticeMessage(`重置成功，新密码是“${x.user.password}”, 请保存好！`, () => {
           this.createForm();
         });
-      } else if (x.type === PutResultType.forbiddance) {
+      } else if (x.type === PutUserResultType.forbiddance) {
         this.dialogService.showErrorMessage('此教师拥有未删除的考试，暂时无法进行修改');
-      } else if (x.type === PutResultType.concurrencyException) {
+      } else if (x.type === PutUserResultType.concurrencyException) {
         this.dialogService.showErrorMessage('修改时出现同步问题，暂时无法进行修改');
-      } else if (x.type === PutResultType.userNotFound) {
+      } else if (x.type === PutUserResultType.userNotFound) {
         this.dialogService.showErrorMessage('此用户不存在');
-      } else if (x.type === PutResultType.repeat) {
+      } else if (x.type === PutUserResultType.repeat) {
         this.dialogService.showErrorMessage('此用户名已存在');
-      } else if (x.type === PutResultType.wrong) {
+      } else if (x.type === PutUserResultType.wrong) {
         this.dialogService.showErrorMessage('提交信息有误');
       } else {
         this.dialogService.showErrorMessage('网络错误');
