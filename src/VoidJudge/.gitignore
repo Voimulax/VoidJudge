@@ -234,3 +234,6 @@ _Pvt_Extensions
 
 # Visual Studio Code
 .vscode/
+
+# ASP.NET Core
+appsettings.Production.json
