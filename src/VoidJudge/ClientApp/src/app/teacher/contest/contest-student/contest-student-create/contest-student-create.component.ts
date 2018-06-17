@@ -23,7 +23,6 @@ export class ContestStudentCreateComponent implements OnInit {
   displayedColumns = ['select', 'studentId', 'userName', 'group'];
   dataSource = new MatTableDataSource<ContestStudentInfo>();
   selection = new SelectionModel<ContestStudentInfo>(true, []);
-  isLoading = false;
 
   get contestInfo() {
     return this.contestService.contestInfo;
@@ -87,7 +86,6 @@ export class ContestStudentCreateComponent implements OnInit {
     return (data: Array<ContestStudentInfo>, error: Error) => {
       if (error) {
         this.dialogService.showErrorMessage(error.message);
-        fileForm.reset();
       } else {
         const repeatList = this.dataSource.data.filter(x => data.find(y => Number(y.studentId) === x.studentId));
         if (repeatList.length > 0) {
@@ -114,8 +112,8 @@ export class ContestStudentCreateComponent implements OnInit {
             return x;
           });
         }
-        fileForm.reset();
       }
+      fileForm.reset();
     };
   }
 

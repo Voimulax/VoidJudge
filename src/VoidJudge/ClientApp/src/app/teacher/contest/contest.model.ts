@@ -1,4 +1,5 @@
 import { ContestStudentInfo } from './contest-student/contest-student.model';
+import { ContestProblemInfo } from './contest-problem/contest-problem.model';
 
 export enum ContestState {
   noPublished,

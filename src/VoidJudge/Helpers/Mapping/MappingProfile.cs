@@ -41,6 +41,9 @@ namespace VoidJudge.Helpers.Mapping
             CreateMap<StudentModel, GetStudentViewModel>()
                 .ForMember(s => s.StudentId, o => o.MapFrom(s => s.Id))
                 .ForMember(s => s.UserName, o => o.MapFrom(s => s.User.UserName));
+
+            CreateMap<AddProblemViewModel, ProblemModel>();
+            CreateMap<ProblemModel, GetProblemViewModel>();
         }
     }
 }

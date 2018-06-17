@@ -39,6 +39,10 @@ export class ContestDetailComponent implements OnInit, AfterViewInit, OnDestroy 
 
   ngOnInit() {}
 
+  download(event: MouseEvent) {
+    event.stopPropagation();
+  }
+
   ngAfterViewInit() {
     this.isLoading = true;
     this.initContestInfo();

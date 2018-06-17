@@ -68,6 +68,7 @@ namespace VoidJudge
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IContestService, ContestService>();
             services.AddScoped<IStudentService, StudentService>();
+            services.AddScoped<IProblemService, ProblemService>();
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
                 .AddJsonOptions(setupAction =>

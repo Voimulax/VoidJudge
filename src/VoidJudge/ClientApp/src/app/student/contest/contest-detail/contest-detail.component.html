@@ -23,25 +23,13 @@
         </div>
       </mat-card-content>
     </mat-card>
-    <div fxLayout="row" fxLayoutAlign="space-between stretch" fxLayoutGap="10px" *ngIf="contestInfo.state===1">
-      <mat-card fxFlex="50%">
+    <div fxLayout="column" fxLayoutAlign="start stretch" fxLayoutGap="10px" *ngIf="contestInfo.state===1">
+      <mat-card>
         <mat-card-header>
           <mat-card-title>公告</mat-card-title>
         </mat-card-header>
         <mat-card-content>
           {{contestInfo.notice}}
-        </mat-card-content>
-      </mat-card>
-      <mat-card fxFlex="50%">
-        <mat-card-header>
-          <mat-card-title>试题</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <div fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="0px">
-            <form #downloadForm action="{{downloadUrl}}" method="GET">
-              <button mat-button color="accent" type="submit" (click)="downloadForm.submit()">下载试题</button>
-            </form>
-          </div>
         </mat-card-content>
       </mat-card>
     </div>
@@ -50,7 +38,7 @@
         <mat-card-title>答题</mat-card-title>
       </mat-card-header>
       <mat-card-content>
-        <app-contest-submission></app-contest-submission>
+        <app-contest-problem-list></app-contest-problem-list>
       </mat-card-content>
     </mat-card>
   </div>

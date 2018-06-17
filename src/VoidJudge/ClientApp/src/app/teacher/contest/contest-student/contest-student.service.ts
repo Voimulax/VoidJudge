@@ -1,9 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { map, tap, catchError, finalize } from 'rxjs/operators';
+import { map, catchError, finalize } from 'rxjs/operators';
 import { of } from 'rxjs';
 
-import { ContestInfo } from '../contest.model';
 import { DialogService } from '../../../shared/dialog/dialog.service';
 import { ContestService } from '../contest.service';
 import {

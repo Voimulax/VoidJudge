@@ -1,0 +1,36 @@
+<div fxLayout="column" fxLayoutAlign="start stretch" fxLayoutGap="25px">
+  <div fxLayout="row" fxLayoutAlign="space-between center" fxLayoutGap="0px">
+    <form #fileForm>
+      <button mat-raised-button color="accent" (click)="importInput.click()" [disabled]="problemForm.invalid">
+        创建
+        <input hidden #importInput type="file" (change)="create($event, fileForm)">
+      </button>
+    </form>
+    <button mat-raised-button type="button" color="warn" (click)="reset()">重置</button>
+  </div>
+  <form #form [formGroup]="problemForm">
+    <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="25px">
+      <mat-form-field class="problemFormControl">
+        <mat-label>名称</mat-label>
+        <input matInput placeholder="请输入题目名称" type="text" required formControlName="name" [errorStateMatcher]="matcher" required>
+        <mat-error *ngIf="!problemForm.get('name').hasError('required') && (problemForm.get('name').hasError('mixLength') || !problemForm.get('name').hasError('maxLength'))">
+          请输入一个长度为3到255的名称
+        </mat-error>
+        <mat-error *ngIf="problemForm.get('name').hasError('required')">
+          名称是
+          <strong>必须</strong>的
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field class="problemFormControl">
+        <mat-select #roleTypeSelect placeholder="题目类型" formControlName="type" type="text" [errorStateMatcher]="matcher" required>
+          <mat-option value="0">试卷</mat-option>
+        </mat-select>
+        <mat-error *ngIf="problemForm.get('type').hasError('required')">
+          题目类型是
+          <strong>必须</strong>的
+        </mat-error>
+      </mat-form-field>
+    </div>
+  </form>
+</div>

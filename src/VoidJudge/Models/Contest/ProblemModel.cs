@@ -16,7 +16,6 @@ namespace VoidJudge.Models.Contest
 
         public long ContestId { get; set; }
         public ContestModel Contest { get; set; }
-        public long Number { get; set; }
 
         [Required]
         [Column(TypeName ="nvarchar(256)")]

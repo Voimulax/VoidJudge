@@ -4,7 +4,7 @@ import { catchError, finalize, map, startWith, tap } from 'rxjs/operators';
 import { of } from 'rxjs';
 
 import { ContestInfo, ContestState, GetContestResultType, GetContestsResult } from './contest.model';
-import { SubmissionFile } from './contest-detail/contest-submission/submission.model';
+import { GetContestProblemResultType } from './contest-detail/contest-problem-list/contest-problem.model';
 
 @Injectable({
   providedIn: 'root'
@@ -12,6 +12,9 @@ import { SubmissionFile } from './contest-detail/contest-submission/submission.m
 export class ContestService {
   contestInfo: ContestInfo;
   private contestBaseUrl = '/api/contests';
+  private get contestProblemBaseUrl() {
+    return `/api/contest/${this.contestInfo.id}/problems`;
+  }
 
   constructor(private http: HttpClient) {}
 
@@ -97,8 +100,23 @@ export class ContestService {
     );
   }
 
-  getSubmissionFileList() {
-    return this.http.get<SubmissionFile[]>(`/api/submissionfile`);
+  getProblems() {
+    return this.http.get(this.contestProblemBaseUrl).pipe(
+      map(x => {
+        if (x['error'] === 0) {
+          return { type: GetContestProblemResultType.ok, data: x['data'] };
+        }
+      }),
+      catchError((e: HttpErrorResponse) => {
+        if (e.status === 401 && e.error['error'] === GetContestProblemResultType.unauthorized) {
+          return of({ type: GetContestProblemResultType.unauthorized, data: undefined });
+        } else if (e.status === 404 && e.error['error'] === GetContestProblemResultType.contestNotFound) {
+          return of({ type: GetContestProblemResultType.contestNotFound, data: undefined });
+        } else {
+          return of({ type: GetContestProblemResultType.error, data: undefined });
+        }
+      })
+    );
   }
 
   updateCurrentContestInfo() {
