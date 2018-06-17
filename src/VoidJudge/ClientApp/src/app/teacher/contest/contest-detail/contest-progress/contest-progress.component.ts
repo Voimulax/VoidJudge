@@ -14,10 +14,10 @@ export class ContestProgressComponent implements OnInit, OnDestroy {
   private timer;
 
   get contestProgress(): number {
-    return (this.totalTime - this.restTime) / this.totalTime * 100;
+    return ((this.totalTime - this.restTime) / this.totalTime) * 100;
   }
 
-  constructor() { }
+  constructor() {}
 
   ngOnInit() {
     this.updateContestInfo();
@@ -31,8 +31,6 @@ export class ContestProgressComponent implements OnInit, OnDestroy {
 
   private updateContestInfo() {
     this.timer = setInterval(() => {
-      const e = new Date(this.contestInfo.endTime).getTime();
-      const n = Date.now();
       this.restTime = new Date(this.contestInfo.endTime).getTime() - Date.now();
       this.update();
       if (this.restTime <= 0) {
@@ -40,8 +38,6 @@ export class ContestProgressComponent implements OnInit, OnDestroy {
         clearInterval(this.timer);
       }
     }, 1000);
-    this.totalTime =
-      new Date(this.contestInfo.endTime).getTime() -
-      new Date(this.contestInfo.startTime).getTime();
+    this.totalTime = new Date(this.contestInfo.endTime).getTime() - new Date(this.contestInfo.startTime).getTime();
   }
 }

@@ -30,7 +30,7 @@ export class ContestService {
       }),
       map(x => {
         return {
-          type: GetContestResultType.Ok,
+          type: GetContestResultType.ok,
           data: this.updateContestState(x)
         };
       }),
@@ -43,12 +43,17 @@ export class ContestService {
       catchError((e: HttpErrorResponse) => {
         if (e.status === 404) {
           return of({
-            type: GetContestResultType.NotFound,
+            type: GetContestResultType.contestNotFound,
+            data: undefined
+          });
+        } else if (e.status === 400 && e.error['error'] === GetContestResultType.invaildToken) {
+          return of({
+            type: GetContestResultType.invaildToken,
             data: undefined
           });
         } else {
           return of({
-            type: GetContestResultType.Error,
+            type: GetContestResultType.error,
             data: undefined
           });
         }
@@ -72,19 +77,19 @@ export class ContestService {
       }),
       map(x => {
         return {
-          type: GetContestResultType.Ok,
+          type: GetContestResultType.ok,
           data: x.map(y => this.updateContestState(y))
         };
       }),
       catchError((e: HttpErrorResponse) => {
         if (e.status === 404) {
           return of({
-            type: GetContestResultType.NotFound,
+            type: GetContestResultType.contestNotFound,
             data: undefined
           });
         } else {
           return of({
-            type: GetContestResultType.Error,
+            type: GetContestResultType.error,
             data: undefined
           });
         }

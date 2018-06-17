@@ -50,12 +50,15 @@ namespace VoidJudge.Controllers.Contest
         {
             var roleType = _authService.GetRoleTypeFromRequest(Request.HttpContext.User.Claims);
             var userId = _authService.GetUserIdFromRequest(Request.HttpContext.User.Claims);
-            var result = await _contestService.GetContestAsync(id, roleType, userId);
+            var token = _authService.GetIpAddressFromRequest(Request.HttpContext.User.Claims);
+            var result = await _contestService.GetContestAsync(id, roleType, userId, token);
 
             switch (result.Error)
             {
                 case GetContestResultType.ContestNotFound:
                     return NotFound(result);
+                case GetContestResultType.InvaildToken:
+                    return BadRequest(result);
                 case GetContestResultType.Error:
                     return BadRequest(result);
                 case GetContestResultType.Ok:

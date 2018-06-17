@@ -15,6 +15,7 @@ namespace VoidJudge.Services.Auth
         bool CompareRoleAuth(RoleType a, RoleType b);
         RoleType GetRoleTypeFromRequest(IEnumerable<Claim> claims);
         long GetUserIdFromRequest(IEnumerable<Claim> claims);
+        string GetIpAddressFromRequest(IEnumerable<Claim> claims);
         Task<RoleModel> GetRoleFromRoleTypeAsync(RoleType roleType, bool isLoadUsers = false);
     }
 }

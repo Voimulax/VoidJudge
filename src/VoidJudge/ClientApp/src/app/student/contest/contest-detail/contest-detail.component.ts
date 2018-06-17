@@ -5,6 +5,7 @@ import { isNumber } from 'util';
 import { ContestInfo, ContestState, GetContestResultType } from '../contest.model';
 import { ContestService } from '../contest.service';
 import { StudentUser } from '../../../core/auth/user.model';
+import { DialogService } from '../../../shared/dialog/dialog.service';
 
 @Component({
   selector: 'app-contest-detail',
@@ -29,7 +30,12 @@ export class ContestDetailComponent implements OnInit, AfterViewInit, OnDestroy 
     return ((this.totalTime - this.restTime) / this.totalTime) * 100;
   }
 
-  constructor(private contestService: ContestService, private route: ActivatedRoute, private router: Router) {}
+  constructor(
+    private contestService: ContestService,
+    private dialogService: DialogService,
+    private route: ActivatedRoute,
+    private router: Router
+  ) {}
 
   ngOnInit() {}
 
@@ -54,11 +60,14 @@ export class ContestDetailComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   private updateContestInfo() {
+    clearInterval(this.timer);
     this.timer = setInterval(() => {
-      const e = new Date(this.contestInfo.endTime).getTime();
-      const n = Date.now();
+      const lastState = this.contestInfo.state;
       this.restTime = new Date(this.contestInfo.endTime).getTime() - Date.now();
       this.contestService.updateCurrentContestInfo();
+      if (lastState !== ContestState.InProgress && this.contestInfo.state === ContestState.InProgress) {
+        this.getContest(this.contestInfo.id);
+      }
       if (this.restTime <= 0) {
         this.restTime = 0;
         clearInterval(this.timer);
@@ -85,8 +94,13 @@ export class ContestDetailComponent implements OnInit, AfterViewInit, OnDestroy 
   private getContest(nid: number) {
     this.contestService.get(nid).subscribe(
       x => {
-        if (x.type === GetContestResultType.Ok) {
+        if (x.type === GetContestResultType.ok) {
           this.isLoading = false;
+          this.updateContestInfo();
+        } else if (x.type === GetContestResultType.invaildToken) {
+          this.dialogService.showErrorMessage('你当前登录的IP地址不合法，无法获取考试信息', () => {
+            this.goBack();
+          });
         } else {
           this.goBack();
         }

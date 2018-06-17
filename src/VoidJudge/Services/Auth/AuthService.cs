@@ -109,6 +109,11 @@ namespace VoidJudge.Services.Auth
             return long.Parse(claims.SingleOrDefault(x => x.Type == "id")?.Value);
         }
 
+        public string GetIpAddressFromRequest(IEnumerable<Claim> claims)
+        {
+            return claims.SingleOrDefault(x => x.Type == "ipAddress")?.Value;
+        }
+
         public async Task<RoleModel> GetRoleFromRoleTypeAsync(RoleType roleType, bool isLoadUsers = false)
         {
             if (isLoadUsers) return await _context.Roles.Include(r => r.Users).SingleOrDefaultAsync(x => x.Type == roleType);

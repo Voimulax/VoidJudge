@@ -15,9 +15,10 @@ export interface ContestInfo {
 }
 
 export enum GetContestResultType {
-  Ok,
-  NotFound,
-  Error
+  ok,
+  contestNotFound,
+  invaildToken,
+  error
 }
 
 export interface GetContestsResult {

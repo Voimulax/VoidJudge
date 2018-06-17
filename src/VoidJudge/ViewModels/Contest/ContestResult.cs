@@ -7,6 +7,7 @@ namespace VoidJudge.ViewModels.Contest
     {
         Ok,
         ContestNotFound,
+        InvaildToken,
         Error
     }
 

@@ -22,7 +22,7 @@ namespace VoidJudge.Services.Contest
             _mapper = mapper;
         }
 
-        public async Task<ApiResult> GetContestAsync(long id, RoleType roleType, long userId)
+        public async Task<ApiResult> GetContestAsync(long id, RoleType roleType, long userId, string token)
         {
             switch (roleType)
             {
@@ -31,7 +31,7 @@ namespace VoidJudge.Services.Contest
                 case RoleType.Teacher:
                     return await TeacherGetContestAsync(id, userId);
                 case RoleType.Student:
-                    return await StudentGetContestAsync(id, userId);
+                    return await StudentGetContestAsync(id, userId, token);
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -215,7 +215,7 @@ namespace VoidJudge.Services.Contest
                 new GetsContestResult<TeacherContestViewModel> { Error = GetContestResultType.Ok, Data = contests };
         }
 
-        private async Task<ApiResult> StudentGetContestAsync(long id, long userId)
+        private async Task<ApiResult> StudentGetContestAsync(long id, long userId, string token)
         {
             var enrollment = await _context.Enrollments
                 .Where(e => e.ContestId == id)
@@ -227,6 +227,23 @@ namespace VoidJudge.Services.Contest
                 .Where(e => e.Student.UserId == userId && e.Contest.State != ContestState.UnPublished)
                 .SingleOrDefaultAsync();
             if (enrollment == null) return new GetContestResult { Error = GetContestResultType.ContestNotFound };
+
+            if (enrollment.Contest.ProgressState == ContestProgressState.InProgress)
+            {
+                if (enrollment.Token != null)
+                {
+                    if (enrollment.Token != token)
+                    {
+                        return new GetContestResult {Error = GetContestResultType.InvaildToken};
+                    }
+                }
+                else
+                {
+                    enrollment.Token = token;
+                    await _context.SaveChangesAsync();
+                }
+            }
+
             var contest = _mapper.Map<ContestModel, StudentContestViewModel>(enrollment.Contest);
             return contest == null ? new GetContestResult { Error = GetContestResultType.ContestNotFound } : new GetContestResult { Error = GetContestResultType.Ok, Data = contest };
         }
