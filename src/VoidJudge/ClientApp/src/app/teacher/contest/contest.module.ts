@@ -2,12 +2,14 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { ContestBasicInfoComponent } from './contest-basic-info/contest-basic-info.component';
+import { ContestBasicInfoInProgressComponent } from './contest-basic-info/contest-basic-info-in-progress/contest-basic-info-in-progress.component';
 import { ContestCreateComponent } from './contest-create/contest-create.component';
 import { ContestDetailComponent } from './contest-detail/contest-detail.component';
 import { ContestDetailEndedComponent } from './contest-detail/contest-detail-ended/contest-detail-ended.component';
 import { ContestDetailInProgressComponent } from './contest-detail/contest-detail-in-progress/contest-detail-in-progress.component';
 import { ContestDetailNoStartedComponent } from './contest-detail/contest-detail-no-started/contest-detail-no-started.component';
 import { ContestListComponent } from './contest-list/contest-list.component';
+import { ContestProblemComponent } from './contest-problem/contest-problem.component';
 import { ContestProgressComponent } from './contest-detail/contest-progress/contest-progress.component';
 import { ContestStudentCreateComponent } from './contest-student/contest-student-create/contest-student-create.component';
 import { ContestStudentInfoComponent } from './contest-student/contest-student-info/contest-student-info.component';
@@ -23,6 +25,7 @@ import { SharedModule } from '../../shared/shared.module';
   entryComponents: [ContestStudentListDialogComponent],
   declarations: [
     ContestBasicInfoComponent,
+    ContestBasicInfoInProgressComponent,
     ContestCreateComponent,
     ContestDetailComponent,
     ContestDetailEndedComponent,
@@ -32,7 +35,8 @@ import { SharedModule } from '../../shared/shared.module';
     ContestProgressComponent,
     ContestStudentCreateComponent,
     ContestStudentInfoComponent,
-    ContestStudentListDialogComponent
+    ContestStudentListDialogComponent,
+    ContestProblemComponent
   ]
 })
 export class ContestModule {}

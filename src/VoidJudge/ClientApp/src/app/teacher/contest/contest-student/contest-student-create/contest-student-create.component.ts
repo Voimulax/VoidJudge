@@ -3,7 +3,12 @@ import { SelectionModel } from '@angular/cdk/collections';
 import { MatDialog, MatTableDataSource } from '@angular/material';
 
 import { DialogService } from '../../../../shared/dialog/dialog.service';
-import { ContestStudentInfo, GetContestStudentResultType } from '../contest-student.model';
+import {
+  ContestStudentInfo,
+  GetContestStudentResultType,
+  AddContestStudentResultType,
+  ContestStudentListDialogData
+} from '../contest-student.model';
 import { ContestStudentListDialogComponent } from '../contest-student-list-dialog/contest-student-list-dialog.component';
 import { ContestService } from '../../contest.service';
 import { FileService } from '../../../../shared/file/file.service';
@@ -19,6 +24,10 @@ export class ContestStudentCreateComponent implements OnInit {
   dataSource = new MatTableDataSource<ContestStudentInfo>();
   selection = new SelectionModel<ContestStudentInfo>(true, []);
   isLoading = false;
+
+  get contestInfo() {
+    return this.contestService.contestInfo;
+  }
 
   constructor(
     private dialog: MatDialog,
@@ -110,8 +119,22 @@ export class ContestStudentCreateComponent implements OnInit {
     };
   }
 
-  create() {
-    return this.contestStudentService.adds(this.contestService.contestInfo.students);
+  save() {
+    return this.contestStudentService.adds(this.contestService.contestInfo.students).subscribe(scr => {
+      if (scr.type === AddContestStudentResultType.ok) {
+        this.dialogService.showNoticeMessage('保存成功');
+      } else if (scr.type === AddContestStudentResultType.studentsNotFound) {
+        const nfIds = new Set(scr['notFoundList'].map(x => x.studentId));
+        const data: ContestStudentListDialogData = {
+          notFoundList: this.contestInfo.students.filter(x => nfIds.has(x.studentId))
+        };
+        this.dialogService.showErrorMessage('上传学生中有系统中不存在的，保存失败', () => {
+          this.dialog.open(ContestStudentListDialogComponent, { data: data });
+        });
+      } else {
+        this.dialogService.showErrorMessage('网路错误，保存失败');
+      }
+    });
   }
 
   delete() {

@@ -1,0 +1,26 @@
+<form (ngSubmit)="save()" [formGroup]="contestForm">
+  <div fxLayout="column" fxLayoutAlign="start stretch" fxLayoutGap="25px" style="padding-top: 10px;">
+    <div fxLayout="row" fxLayoutAlign="space-between center" fxLayoutGap="25px">
+      <mat-form-field class="contestFormControl">
+        <mat-label>结束时间</mat-label>
+        <mat-datetimepicker-toggle [for]="endDTP" matSuffix></mat-datetimepicker-toggle>
+        <mat-datetimepicker #endDTP type="datetime" openOnFocus="true" timeInterval="1"></mat-datetimepicker>
+        <input matInput placeholder="请输入结束时间" autocomplete="false" required formControlName="endTime" [matDatetimepicker]="endDTP"
+          [errorStateMatcher]="matcher" required>
+        <mat-error *ngIf="!contestForm.get('endTime').hasError('required') && contestForm.get('endTime').invalid">
+          请输入一个合法的时间
+        </mat-error>
+        <mat-error *ngIf="contestForm.get('endTime').hasError('required') ">
+          结束时间是
+          <strong>必须</strong>的
+        </mat-error>
+      </mat-form-field>
+
+      <button mat-raised-button color="accent" type="submit" [disabled]="contestForm.invalid">保存</button>
+    </div>
+    <mat-form-field class="contestFormControl" fxFlexFill>
+      <mat-label>公告</mat-label>
+      <textarea class="noticeTextArea" matInput placeholder="请输入考试公告" type="text" formControlName="notice"></textarea>
+    </mat-form-field>
+  </div>
+</form>

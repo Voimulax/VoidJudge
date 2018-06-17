@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using VoidJudge.ViewModels;
 
 namespace VoidJudge.ViewModels.Contest
 {
