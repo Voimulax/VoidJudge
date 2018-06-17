@@ -19,7 +19,6 @@ import { AddContestResultType } from '../contest.model';
 })
 export class ContestCreateComponent implements OnInit {
   @ViewChild('stepper') stepper: MatStepper;
-  @ViewChild('studentCreate') studentCreate: ContestStudentCreateComponent;
   studentList: ContestStudentInfo[];
   contestForm: FormGroup;
   matcher = new FormErrorStateMatcher();
@@ -75,7 +74,6 @@ export class ContestCreateComponent implements OnInit {
   }
 
   reset() {
-    this.studentCreate.reset();
     this.stepper.reset();
   }
 

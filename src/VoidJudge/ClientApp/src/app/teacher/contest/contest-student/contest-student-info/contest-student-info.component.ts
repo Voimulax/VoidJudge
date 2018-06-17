@@ -3,11 +3,7 @@ import { MatTableDataSource } from '@angular/material';
 import { Router } from '@angular/router';
 import { catchError, finalize, map, startWith } from 'rxjs/operators';
 
-import {
-  ContestStudentInfo,
-  LoginType,
-  SubmitType
-} from '../contest-student.model';
+import { ContestStudentInfo, LoginType, SubmitType } from '../contest-student.model';
 import { ContestService } from '../../contest.service';
 
 @Component({
@@ -16,14 +12,7 @@ import { ContestService } from '../../contest.service';
   styleUrls: ['./contest-student-info.component.css']
 })
 export class ContestStudentInfoComponent implements OnInit, AfterViewInit {
-  displayedColumns = [
-    'loginName',
-    'userName',
-    'group',
-    'isLogged',
-    'isSubmitted',
-    'id'
-  ];
+  displayedColumns = ['studentId', 'userName', 'group', 'isLogged', 'isSubmitted', 'sid'];
   dataSource = new MatTableDataSource<ContestStudentInfo>();
   isLoading = true;
 
@@ -36,8 +25,8 @@ export class ContestStudentInfoComponent implements OnInit, AfterViewInit {
   ngAfterViewInit() {
     this.dataSource.data = [
       {
-        id: 3,
-        loginName: '123',
+        sid: Symbol(),
+        studentId: 123,
         userName: 'student',
         group: '15-1',
         isLogged: LoginType.Logged,

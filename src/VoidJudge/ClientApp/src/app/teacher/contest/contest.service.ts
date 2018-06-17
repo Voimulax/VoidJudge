@@ -50,15 +50,9 @@ export class ContestService {
       }),
       catchError((e: HttpErrorResponse) => {
         if (e.status === 404) {
-          return of({
-            type: GetContestResultType.contestNotFound,
-            data: undefined
-          });
+          return of({ type: GetContestResultType.contestNotFound });
         } else {
-          return of({
-            type: GetContestResultType.error,
-            data: undefined
-          });
+          return of({ type: GetContestResultType.error });
         }
       })
     );

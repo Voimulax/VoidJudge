@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -100,8 +99,8 @@ namespace VoidJudge.Services.Contest
             }
             else if(contest.State == ContestState.NotDownloaded)
             {
-                var time = DateTime.Now;
-                if (contest.StartTime >= time)
+                 
+                if (contest.ProgressState == ContestProgressState.NoStarted)
                 {
                     contest.Name = putContest.Name;
                     contest.Notice = putContest.Notice;
@@ -109,7 +108,7 @@ namespace VoidJudge.Services.Contest
                     contest.EndTime = putContest.EndTime;
                     contest.State = Enum.Parse<ContestState>(putContest.State.ToString());
                 }
-                else if (contest.StartTime < time && contest.EndTime > time)
+                else if (contest.ProgressState == ContestProgressState.InProgress)
                 {
                     contest.EndTime = putContest.EndTime;
                     contest.Notice = putContest.Notice;
@@ -141,22 +140,20 @@ namespace VoidJudge.Services.Contest
             if (contest == null) return new ApiResult { Error = DeleteContestResultType.ContestNotFound };
             if (contest.Owner.UserId != userId) return new ApiResult { Error = DeleteContestResultType.Unauthorized };
 
-            var time = DateTime.Now;
             if (contest.State != ContestState.UnPublished)
             {
-                if (contest.StartTime >= time)
+                switch (contest.ProgressState)
                 {
-                    _context.Contests.Remove(contest);
-                    await _context.SaveChangesAsync();
-                    return new ApiResult { Error = DeleteContestResultType.Ok };
-                }
-                else if (contest.StartTime < time && contest.EndTime > time)
-                {
-                    return new ApiResult { Error = DeleteContestResultType.Forbiddance };
-                }
-                else
-                {
-                    return new ApiResult { Error = DeleteContestResultType.Forbiddance };
+                    case ContestProgressState.NoStarted:
+                        _context.Contests.Remove(contest);
+                        await _context.SaveChangesAsync();
+                        return new ApiResult { Error = DeleteContestResultType.Ok };
+                    case ContestProgressState.InProgress:
+                        return new ApiResult { Error = DeleteContestResultType.Forbiddance };
+                    case ContestProgressState.UnPublished:
+                    case ContestProgressState.Ended:
+                    default:
+                        return new ApiResult { Error = DeleteContestResultType.Forbiddance };
                 }
             }
             else

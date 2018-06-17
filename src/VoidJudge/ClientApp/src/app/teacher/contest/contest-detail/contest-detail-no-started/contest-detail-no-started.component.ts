@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { MatStepper, MatSlideToggle } from '@angular/material';
+import { MatStepper, MatSlideToggle, MatDialog } from '@angular/material';
 import { Router } from '@angular/router';
 import * as moment from 'moment';
 import { Moment } from 'moment';
@@ -10,6 +10,8 @@ import { ContestStudentCreateComponent } from '../../contest-student/contest-stu
 import { FormErrorStateMatcher } from '../../../../shared/form-error-state-matcher';
 import { DialogService } from '../../../../shared/dialog/dialog.service';
 import { PutContestResultType, ContestState, ContestInfo, DeleteContestResultType } from '../../contest.model';
+import { AddContestStudentResultType, ContestStudentListDialogData } from '../../contest-student/contest-student.model';
+import { ContestStudentListDialogComponent } from '../../contest-student/contest-student-list-dialog/contest-student-list-dialog.component';
 
 @Component({
   selector: 'app-contest-detail-no-started',
@@ -33,6 +35,7 @@ export class ContestDetailNoStartedComponent implements OnInit {
 
   constructor(
     private contestService: ContestService,
+    private dialog: MatDialog,
     private dialogService: DialogService,
     private fb: FormBuilder,
     private router: Router
@@ -72,7 +75,21 @@ export class ContestDetailNoStartedComponent implements OnInit {
 
       this.contestService.put(contestInfo).subscribe(r => {
         if (r === PutContestResultType.ok) {
-          this.dialogService.showNoticeMessage(`${isPublish ? '发布' : '保存'}成功`);
+          this.studentCreate.create().subscribe(scr => {
+            if (scr.type === AddContestStudentResultType.ok) {
+              this.dialogService.showNoticeMessage(`${isPublish ? '发布' : '保存'}成功`);
+            } else if (scr.type === AddContestStudentResultType.studentsNotFound) {
+              const nfIds = new Set(scr['notFoundList'].map(x => x.studentId));
+              const data: ContestStudentListDialogData = {
+                notFoundList: this.contestInfo.students.filter(x => nfIds.has(x.studentId))
+              };
+              this.dialogService.showErrorMessage(`${isPublish ? '发布' : '保存'}成功，但上传学生失败`, () => {
+                const dialog = this.dialog.open(ContestStudentListDialogComponent, { data: data });
+              });
+            } else {
+              this.dialogService.showErrorMessage(`${isPublish ? '发布' : '保存'}成功，但上传学生失败`);
+            }
+          });
         } else {
           if (this.lastState !== undefined) {
             this.contestService.contestInfo.state = this.lastState;

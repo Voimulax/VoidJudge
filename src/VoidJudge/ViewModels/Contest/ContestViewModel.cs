@@ -1,15 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace VoidJudge.ViewModels.Contest
 {
-    public class StudentViewModel
-    {
-        public long StudentId { get; set; }
-        public string UserName { get; set; }
-        public string Group { get; set; }
-    }
-
     public abstract class ContestViewModel
     {
         public long Id { get; set; }

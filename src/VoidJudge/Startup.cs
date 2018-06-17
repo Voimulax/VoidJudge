@@ -16,7 +16,6 @@ using Newtonsoft.Json;
 using VoidJudge.Data;
 using VoidJudge.Helpers.Auth;
 using VoidJudge.Models.Identity;
-using VoidJudge.Services;
 using VoidJudge.Services.Auth;
 using VoidJudge.Services.Contest;
 using VoidJudge.Services.Identity;
@@ -68,6 +67,7 @@ namespace VoidJudge
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IContestService, ContestService>();
+            services.AddScoped<IStudentService, StudentService>();
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
                 .AddJsonOptions(setupAction =>

@@ -97,7 +97,7 @@ namespace VoidJudge.Controllers.Identity
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(new ApiDataResult { Error = PutUserResultType.Wrong, Data = new { ModelState } });
+                return new ObjectResult(new ApiDataResult { Error = PutUserResultType.Wrong, Data = new { ModelState } }) { StatusCode = StatusCodes.Status422UnprocessableEntity };
             }
 
             if (id != putUser.Id)

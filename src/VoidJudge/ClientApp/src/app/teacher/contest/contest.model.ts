@@ -25,7 +25,7 @@ export enum GetContestResultType {
 
 export interface GetContestsResult {
   type: GetContestResultType;
-  data: ContestInfo[];
+  data?: ContestInfo[];
 }
 
 export enum AddContestResultType {

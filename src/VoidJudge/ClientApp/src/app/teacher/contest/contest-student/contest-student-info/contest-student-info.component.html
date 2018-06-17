@@ -5,9 +5,9 @@
   </div>
 
   <table mat-table #table [dataSource]="dataSource" *ngIf="!isLoading" fxFlexFill>
-    <ng-container matColumnDef="loginName">
+    <ng-container matColumnDef="studentId">
       <th mat-header-cell *matHeaderCellDef style="width: 20%"> 学号 </th>
-      <td mat-cell *matCellDef="let element"> {{element.loginName}} </td>
+      <td mat-cell *matCellDef="let element"> {{element.studentId}} </td>
     </ng-container>
 
     <ng-container matColumnDef="userName">
@@ -30,7 +30,7 @@
       <td mat-cell *matCellDef="let element">{{element.isSubmitted===0?'已提交':'未提交'}}</td>
     </ng-container>
 
-    <ng-container matColumnDef="id">
+    <ng-container matColumnDef="sid">
       <th mat-header-cell *matHeaderCellDef> 操作 </th>
       <td mat-cell *matCellDef="let element">
         <button mat-button color="warn" (click)="unlock()">解除IP锁定</button>

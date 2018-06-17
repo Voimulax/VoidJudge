@@ -1,11 +1,5 @@
 import { Component, OnDestroy } from '@angular/core';
-import {
-  Router,
-  NavigationStart,
-  NavigationEnd,
-  NavigationCancel,
-  NavigationError
-} from '@angular/router';
+import { Router, NavigationStart, NavigationEnd, NavigationCancel, NavigationError } from '@angular/router';
 import { Subscription } from 'rxjs';
 
 import { DialogService } from './shared/dialog/dialog.service';
@@ -42,7 +36,6 @@ export class AppComponent implements OnDestroy {
 
     this.isloadingDialogSub = this.dialogService.isLoadingDialogActive$.subscribe(
       x => {
-        console.log(x);
         this.isLoadingDialogActive = x;
       },
       (errpr: any) => {

@@ -3,6 +3,8 @@ using VoidJudge.Models.Contest;
 using VoidJudge.Models.Identity;
 using VoidJudge.ViewModels.Contest;
 using VoidJudge.ViewModels.Identity;
+using AddStudentViewModel = VoidJudge.ViewModels.Identity.AddStudentViewModel;
+using GetStudentViewModel = VoidJudge.ViewModels.Contest.GetStudentViewModel;
 
 namespace VoidJudge.Helpers.Mapping
 {
@@ -20,7 +22,7 @@ namespace VoidJudge.Helpers.Mapping
                 .ForMember(u => u.PasswordHash, o => o.MapFrom(a => a.Password));
             CreateMap<AddStudentViewModel, StudentModel>()
                 .ForMember(s => s.Id, o => o.MapFrom(u => u.LoginName));
-            CreateMap<StudentModel, GetStudentViewModel>()
+            CreateMap<StudentModel, ViewModels.Identity.GetStudentViewModel>()
                 .ForMember(g => g.Id, o => o.MapFrom(s => s.User.Id))
                 .ForMember(g => g.LoginName, o => o.MapFrom(s => s.User.LoginName))
                 .ForMember(g => g.UserName, o => o.MapFrom(s => s.User.UserName))
@@ -35,6 +37,10 @@ namespace VoidJudge.Helpers.Mapping
             CreateMap<ContestModel, TeacherContestViewModel>().ReverseMap();
             CreateMap<ContestModel, StudentContestViewModel>()
                 .ForMember(c => c.OwnerName, o => o.MapFrom(c => c.Owner.User.UserName));
+
+            CreateMap<StudentModel, GetStudentViewModel>()
+                .ForMember(s => s.StudentId, o => o.MapFrom(s => s.Id))
+                .ForMember(s => s.UserName, o => o.MapFrom(s => s.User.UserName));
         }
     }
 }

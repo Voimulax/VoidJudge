@@ -10,18 +10,16 @@ import { ContestStudentListDialogData } from '../contest-student.model';
   styleUrls: ['./contest-student-list-dialog.component.css']
 })
 export class ContestStudentListDialogComponent implements OnInit {
-  displayedColumns = ['loginName', 'userName', 'group'];
+  displayedColumns = ['studentId', 'userName', 'group'];
   repeatSource = new MatTableDataSource<ContestStudentInfo>();
-  errorSource = new MatTableDataSource<ContestStudentInfo>();
+  notFoundSource = new MatTableDataSource<ContestStudentInfo>();
 
-  constructor(
-    @Inject(MAT_DIALOG_DATA) public data: ContestStudentListDialogData
-  ) {
+  constructor(@Inject(MAT_DIALOG_DATA) public data: ContestStudentListDialogData) {
     if (data.repeatList) {
       this.repeatSource.data = data.repeatList;
     }
-    if (data.errorList) {
-      this.errorSource.data = data.errorList;
+    if (data.notFoundList) {
+      this.notFoundSource.data = data.notFoundList;
     }
   }
 
@@ -31,7 +29,7 @@ export class ContestStudentListDialogComponent implements OnInit {
     return this.data.repeatList !== undefined;
   }
 
-  isError() {
-    return this.data.errorList !== undefined;
+  isNotFound() {
+    return this.data.notFoundList !== undefined;
   }
 }

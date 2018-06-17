@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -12,6 +11,7 @@ using VoidJudge.ViewModels.Contest;
 namespace VoidJudge.Controllers.Contest
 {
     [Route("api/contests")]
+    [Produces("application/json")]
     [ApiController]
     [Authorize]
     public class ContestController : ControllerBase
@@ -91,7 +91,7 @@ namespace VoidJudge.Controllers.Contest
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(new ApiDataResult {Error = PutContestResultType.Wrong, Data = new {ModelState}});
+                return new ObjectResult(new ApiDataResult { Error = PutContestResultType.Wrong, Data = new { ModelState } }) { StatusCode = StatusCodes.Status422UnprocessableEntity };
             }
 
             if (id != putContest.Id)

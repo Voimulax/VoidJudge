@@ -2,7 +2,7 @@ import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { isNumber } from 'util';
 
-import { ContestInfo, GetContestResultType, ContestState } from '../contest.model';
+import { ContestInfo, GetContestResultType } from '../contest.model';
 import { ContestService } from '../contest.service';
 
 @Component({
@@ -42,14 +42,7 @@ export class ContestDetailComponent implements OnInit, AfterViewInit, OnDestroy 
         this.router.navigate(['/teacher/contest']);
       }
     } else {
-      if (
-        !this.contestInfo.students &&
-        (this.contestInfo.state === ContestState.noPublished || this.contestInfo.state === ContestState.noStarted)
-      ) {
-        this.getContest(this.contestInfo.id);
-      } else {
-        this.isLoading = false;
-      }
+      this.isLoading = false;
     }
   }
 

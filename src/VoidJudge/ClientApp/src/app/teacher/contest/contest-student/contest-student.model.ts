@@ -9,8 +9,8 @@ export enum SubmitType {
 }
 
 export interface ContestStudentInfo {
-  id?: number;
-  loginName: string;
+  sid?: symbol;
+  studentId: number;
   userName: string;
   group: string;
   isLogged?: LoginType;
@@ -19,5 +19,32 @@ export interface ContestStudentInfo {
 
 export interface ContestStudentListDialogData {
   repeatList?: ContestStudentInfo[];
-  errorList?: ContestStudentInfo[];
+  notFoundList?: ContestStudentInfo[];
+}
+
+export enum AddContestStudentResultType {
+  ok,
+  unauthorized,
+  forbiddance,
+  contestNotFound,
+  studentsNotFound,
+  wrong,
+  error
+}
+
+export interface AddContestStudentsResult {
+  type: AddContestStudentResultType;
+  notFoundList: { studentId: number }[];
+}
+
+export enum GetContestStudentResultType {
+  ok,
+  unauthorized,
+  contestNotFound,
+  error
+}
+
+export interface GetContestStudentsResult {
+  type: GetContestStudentResultType;
+  notFoundList: ContestStudentInfo[];
 }

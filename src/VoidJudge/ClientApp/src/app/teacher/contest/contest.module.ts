@@ -13,12 +13,13 @@ import { ContestStudentCreateComponent } from './contest-student/contest-student
 import { ContestStudentInfoComponent } from './contest-student/contest-student-info/contest-student-info.component';
 import { ContestStudentListDialogComponent } from './contest-student/contest-student-list-dialog/contest-student-list-dialog.component';
 import { ContestService } from './contest.service';
+import { ContestStudentService } from './contest-student/contest-student.service';
 
 import { SharedModule } from '../../shared/shared.module';
 
 @NgModule({
   imports: [CommonModule, SharedModule],
-  providers: [ContestService],
+  providers: [ContestService, ContestStudentService],
   entryComponents: [ContestStudentListDialogComponent],
   declarations: [
     ContestBasicInfoComponent,
