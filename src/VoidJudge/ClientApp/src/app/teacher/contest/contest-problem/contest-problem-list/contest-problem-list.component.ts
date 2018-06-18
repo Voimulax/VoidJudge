@@ -101,13 +101,15 @@ export class ContestProblemListComponent implements OnInit {
         this.selection.clear();
       });
     } else {
-      this.contestProblemService.delete(this.selection.selected[0].id).subscribe(r => {
-        if (r === DeleteContestProblemResultType.ok) {
-          this.gets();
-          this.selection.clear();
-        } else {
-          this.dialogService.showErrorMessage('删除失败');
-        }
+      this.dialogService.showOkMessage(`请问你确定要删除名称为“${this.selection.selected[0].name}”的题目吗`, () => {
+        this.contestProblemService.delete(this.selection.selected[0].id).subscribe(r => {
+          if (r === DeleteContestProblemResultType.ok) {
+            this.gets();
+            this.selection.clear();
+          } else {
+            this.dialogService.showErrorMessage('删除失败');
+          }
+        });
       });
     }
   }

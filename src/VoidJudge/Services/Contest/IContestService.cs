@@ -12,5 +12,6 @@ namespace VoidJudge.Services.Contest
         Task<ApiResult> AddContestAsync(TeacherContestViewModel addContest, long userId);
         Task<ApiResult> PutContestAsync(TeacherContestViewModel putContest, long userId);
         Task<ApiResult> DeleteContestAsync(long id, long userId);
+        Task<ApiResult> ClearContestAsync(long id);
     }
 }

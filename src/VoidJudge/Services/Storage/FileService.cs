@@ -52,7 +52,7 @@ namespace VoidJudge.Services.Storage
         {
             var file = await _context.Files.SingleOrDefaultAsync(f => f.SaveName == fileName);
 
-            var filePath = Path.Combine(GetUploadsFolderPath(), fileName);
+            var filePath = file.Type == FileType.Upload? Path.Combine(GetUploadsFolderPath(), fileName): Path.Combine(GetBuildsFolderPath(), fileName);
             File.Delete(filePath);
 
             _context.Files.Remove(file);

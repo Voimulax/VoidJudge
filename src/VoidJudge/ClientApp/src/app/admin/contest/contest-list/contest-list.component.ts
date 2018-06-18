@@ -7,6 +7,7 @@ import { catchError, finalize, map, startWith } from 'rxjs/operators';
 import { ContestInfo, GetContestResultType } from '../contest.model';
 import { ContestService } from '../contest.service';
 import { DialogService } from '../../../shared/dialog/dialog.service';
+import { DeleteContestResultType } from '../../../teacher/contest/contest.model';
 
 @Component({
   selector: 'app-contest-list',
@@ -45,8 +46,30 @@ export class ContestListComponent implements OnInit, AfterViewInit {
     this.isAllSelected() ? this.selection.clear() : this.dataSource.data.forEach(row => this.selection.select(row));
   }
 
-  delete() {
-    console.log(this.selection.selected);
+  clear() {
+    if (this.selection.selected.length > 1) {
+      this.dialogService.showErrorMessage('暂无批量清理功能', () => {
+        this.selection.clear();
+      });
+    } else {
+      this.dialogService.showOkMessage('请问你确定要清理该考试吗', () => {
+        this.contestService.clear(this.selection.selected[0].id).subscribe(r => {
+          if (r === DeleteContestResultType.ok) {
+            this.dialogService.showNoticeMessage('清理成功', () => {
+              this.getContests();
+            });
+          } else {
+            if (r === DeleteContestResultType.forbiddance) {
+              this.dialogService.showErrorMessage('禁止清理该考试');
+            } else if (r === DeleteContestResultType.contestNotFound) {
+              this.dialogService.showErrorMessage('该考试不存在');
+            } else {
+              this.dialogService.showErrorMessage('网络错误');
+            }
+          }
+        });
+      });
+    }
   }
 
   private getContests() {

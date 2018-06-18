@@ -1,8 +1,8 @@
 <mat-spinner *ngIf="getIsLoading()" style="margin: 0 auto"></mat-spinner>
 
-<ng-container *ngIf="!getIsLoading()" [ngSwitch]="contestInfo.state">
-  <app-contest-detail-no-started *ngSwitchCase="0"></app-contest-detail-no-started>
-  <app-contest-detail-no-started *ngSwitchCase="1"></app-contest-detail-no-started>
-  <app-contest-detail-in-progress *ngSwitchCase="2"></app-contest-detail-in-progress>
-  <app-contest-detail-ended *ngSwitchCase="3"></app-contest-detail-ended>
+<ng-container *ngIf="!getIsLoading()">
+  <app-contest-detail-no-started *ngIf="contestInfo.state === 0"></app-contest-detail-no-started>
+  <app-contest-detail-no-started *ngIf="contestInfo.state === 1"></app-contest-detail-no-started>
+  <app-contest-detail-in-progress *ngIf="contestInfo.state === 2"></app-contest-detail-in-progress>
+  <app-contest-detail-ended *ngIf="contestInfo.state === 3"></app-contest-detail-ended>
 </ng-container>

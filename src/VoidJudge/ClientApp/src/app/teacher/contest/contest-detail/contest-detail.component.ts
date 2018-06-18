@@ -1,8 +1,8 @@
-import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { isNumber } from 'util';
 
-import { ContestInfo, GetContestResultType } from '../contest.model';
+import { ContestInfo, GetContestResultType, ContestState } from '../contest.model';
 import { ContestService } from '../contest.service';
 
 @Component({
@@ -10,22 +10,28 @@ import { ContestService } from '../contest.service';
   templateUrl: './contest-detail.component.html',
   styleUrls: ['./contest-detail.component.css']
 })
-export class ContestDetailComponent implements OnInit, AfterViewInit, OnDestroy {
-  isLoading = true;
+export class ContestDetailComponent implements OnInit, OnDestroy {
+  isLoading = false;
   get contestInfo(): ContestInfo {
     return this.contestService.contestInfo;
   }
-  constructor(private contestService: ContestService, private route: ActivatedRoute, private router: Router) {}
+
+  private timer;
+
+  constructor(private contestService: ContestService, private route: ActivatedRoute, private router: Router) {
+    this.initContestInfo();
+    this.timer = setInterval(() => {
+      this.updateContestState();
+    }, 1000);
+  }
 
   ngOnInit() {}
 
-  ngAfterViewInit() {
-    this.isLoading = true;
-    this.initContestInfo();
-  }
-
   ngOnDestroy() {
     this.contestService.contestInfo = undefined;
+    if (this.timer) {
+      clearInterval(this.timer);
+    }
   }
 
   getIsLoading() {
@@ -47,6 +53,7 @@ export class ContestDetailComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   private getContest(nid: number) {
+    this.isLoading = true;
     this.contestService.get(nid).subscribe(
       x => {
         if (x.type === GetContestResultType.ok) {
@@ -59,5 +66,9 @@ export class ContestDetailComponent implements OnInit, AfterViewInit, OnDestroy 
         this.router.navigate(['/teacher/contest']);
       }
     );
+  }
+
+  private updateContestState() {
+    this.contestService.updateCurrentContestInfo();
   }
 }

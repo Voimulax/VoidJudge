@@ -6,8 +6,10 @@ using Microsoft.EntityFrameworkCore;
 using VoidJudge.Data;
 using VoidJudge.Models.Contest;
 using VoidJudge.Models.Identity;
+using VoidJudge.Services.Storage;
 using VoidJudge.ViewModels;
 using VoidJudge.ViewModels.Contest;
+using VoidJudge.ViewModels.Storage;
 
 namespace VoidJudge.Services.Contest
 {
@@ -15,11 +17,13 @@ namespace VoidJudge.Services.Contest
     {
         private readonly VoidJudgeContext _context;
         private readonly IMapper _mapper;
+        private readonly IFileService _fileService;
 
-        public ContestService(VoidJudgeContext context, IMapper mapper)
+        public ContestService(VoidJudgeContext context, IMapper mapper, IFileService fileService)
         {
             _context = context;
             _mapper = mapper;
+            _fileService = fileService;
         }
 
         public async Task<ApiResult> GetContestAsync(long id, RoleType roleType, long userId, string token)
@@ -97,9 +101,9 @@ namespace VoidJudge.Services.Contest
                 contest.EndTime = putContest.EndTime;
                 contest.State = Enum.Parse<ContestState>(putContest.State.ToString());
             }
-            else if(contest.State == ContestState.NotDownloaded)
+            else if (contest.State == ContestState.NotDownloaded)
             {
-                 
+
                 if (contest.ProgressState == ContestProgressState.NoStarted)
                 {
                     contest.Name = putContest.Name;
@@ -139,28 +143,68 @@ namespace VoidJudge.Services.Contest
             var contest = await _context.Contests.Include(c => c.Owner).SingleOrDefaultAsync(c => c.Id == id);
             if (contest == null) return new ApiResult { Error = DeleteContestResultType.ContestNotFound };
             if (contest.Owner.UserId != userId) return new ApiResult { Error = DeleteContestResultType.Unauthorized };
-
-            if (contest.State != ContestState.UnPublished)
+            switch (contest.State)
             {
-                switch (contest.ProgressState)
+                case ContestState.NotDownloaded:
+                    switch (contest.ProgressState)
+                    {
+                        case ContestProgressState.NoStarted:
+                            _context.Contests.Remove(contest);
+                            await _context.SaveChangesAsync();
+                            return new ApiResult { Error = DeleteContestResultType.Ok };
+                        case ContestProgressState.InProgress:
+                            return new ApiResult { Error = DeleteContestResultType.Forbiddance };
+                        case ContestProgressState.UnPublished:
+                        case ContestProgressState.Ended:
+                        default:
+                            return new ApiResult { Error = DeleteContestResultType.Forbiddance };
+                    }
+                case ContestState.UnPublished:
+                    _context.Contests.Remove(contest);
+                    await _context.SaveChangesAsync();
+                    return new ApiResult { Error = DeleteContestResultType.Ok };
+                case ContestState.DownLoaded:
+                    return new ApiResult { Error = DeleteContestResultType.Forbiddance };
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        public async Task<ApiResult> ClearContestAsync(long id)
+        {
+            var contest = await _context.Contests.Include(c => c.Problems).ThenInclude(p => p.Submissions).SingleOrDefaultAsync(c => c.Id == id);
+            if (contest == null) return new ApiResult { Error = DeleteContestResultType.ContestNotFound };
+
+            if (contest.State == ContestState.DownLoaded)
+            {
+                if (!string.IsNullOrEmpty(contest.SubmissionsFileName))
                 {
-                    case ContestProgressState.NoStarted:
-                        _context.Contests.Remove(contest);
-                        await _context.SaveChangesAsync();
-                        return new ApiResult { Error = DeleteContestResultType.Ok };
-                    case ContestProgressState.InProgress:
-                        return new ApiResult { Error = DeleteContestResultType.Forbiddance };
-                    case ContestProgressState.UnPublished:
-                    case ContestProgressState.Ended:
-                    default:
-                        return new ApiResult { Error = DeleteContestResultType.Forbiddance };
+                    var fileResult = await _fileService.DeleteFileAsync(contest.SubmissionsFileName);
+                    if(fileResult == DeleteFileResultType.Error) return new ApiResult { Error = DeleteContestResultType.Error };
                 }
+
+                foreach (var problem in contest.Problems)
+                {
+                    foreach (var submission in problem.Submissions)
+                    {
+                        if (submission.Type != SubmissionType.Binary) continue;
+                        var fileResultS = await _fileService.DeleteFileAsync(submission.Content);
+                        if (fileResultS == DeleteFileResultType.Error) return new ApiResult { Error = DeleteContestResultType.Error };
+                    }
+                    _context.Submissions.RemoveRange(problem.Submissions);
+                    if (problem.Type != ProblemType.TestPaper) continue;
+                    var fileResultP = await _fileService.DeleteFileAsync(problem.Content);
+                    if (fileResultP == DeleteFileResultType.Error) return new ApiResult { Error = DeleteContestResultType.Error };
+                }
+                _context.Problems.RemoveRange(contest.Problems);
+                _context.Contests.Remove(contest);
+                await _context.SaveChangesAsync();
+
+                return new ApiResult { Error = DeleteContestResultType.Ok };
             }
             else
             {
-                _context.Contests.Remove(contest);
-                await _context.SaveChangesAsync();
-                return new ApiResult { Error = DeleteContestResultType.Ok };
+                return new ApiResult { Error = DeleteContestResultType.Forbiddance };
             }
         }
 
@@ -234,7 +278,7 @@ namespace VoidJudge.Services.Contest
                 {
                     if (enrollment.Token != token)
                     {
-                        return new GetContestResult {Error = GetContestResultType.InvaildToken};
+                        return new GetContestResult { Error = GetContestResultType.InvaildToken };
                     }
                 }
                 else

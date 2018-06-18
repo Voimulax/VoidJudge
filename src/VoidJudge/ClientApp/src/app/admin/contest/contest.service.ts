@@ -1,20 +1,22 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { catchError, map } from 'rxjs/operators';
+import { catchError, map, finalize } from 'rxjs/operators';
 import { of } from 'rxjs';
 
 import { GetContestsResult, GetContestResultType } from './contest.model';
+import { DialogService } from '../../shared/dialog/dialog.service';
+import { DeleteContestResultType } from '../../teacher/contest/contest.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ContestService {
-  private contestsBaseUrl = '/api/contests';
+  private contestBaseUrl = '/api/contests';
 
-  constructor(private http: HttpClient) {}
+  constructor(private dialogService: DialogService, private http: HttpClient) {}
 
   gets() {
-    return this.http.get<GetContestsResult>(this.contestsBaseUrl).pipe(
+    return this.http.get<GetContestsResult>(this.contestBaseUrl).pipe(
       map(x => {
         return x['data'].map(y => {
           return {
@@ -43,6 +45,31 @@ export class ContestService {
             type: GetContestResultType.Error,
             data: undefined
           });
+        }
+      })
+    );
+  }
+
+  clear(id: number) {
+    this.dialogService.isLoadingDialogActive = true;
+    return this.http.delete(`${this.contestBaseUrl}/${id}/clear`).pipe(
+      finalize(() => (this.dialogService.isLoadingDialogActive = false)),
+      map(x => {
+        if (x['error'] === 0) {
+          return DeleteContestResultType.ok;
+        }
+      }),
+      catchError((e: HttpErrorResponse) => {
+        if (e.status === 401 && e.error['error'] === DeleteContestResultType.unauthorized) {
+          return of(DeleteContestResultType.unauthorized);
+        } else if (e.status === 404) {
+          return of(DeleteContestResultType.contestNotFound);
+        } else if (e.status === 403) {
+          return of(DeleteContestResultType.forbiddance);
+        } else if (e.status === 400) {
+          return of(e.error['error']);
+        } else {
+          return of(DeleteContestResultType.error);
         }
       })
     );

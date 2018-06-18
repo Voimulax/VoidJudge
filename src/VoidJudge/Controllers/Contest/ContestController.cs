@@ -156,5 +156,33 @@ namespace VoidJudge.Controllers.Contest
                     throw new ArgumentOutOfRangeException();
             }
         }
+
+        [Authorize(Roles = "0")]
+        [HttpDelete("{id}/clear")]
+        public async Task<IActionResult> ClearContestAsync(int id)
+        {
+            var result = await _contestService.ClearContestAsync(id);
+            switch (result.Error)
+            {
+                case DeleteContestResultType.Unauthorized:
+                    return new ObjectResult(result)
+                    {
+                        StatusCode = StatusCodes.Status401Unauthorized
+                    };
+                case DeleteContestResultType.Forbiddance:
+                    return new ObjectResult(result)
+                    {
+                        StatusCode = StatusCodes.Status403Forbidden
+                    };
+                case DeleteContestResultType.ContestNotFound:
+                    return NotFound(result);
+                case DeleteContestResultType.Error:
+                    return BadRequest(result);
+                case DeleteContestResultType.Ok:
+                    return Ok(result);
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
     }
 }
