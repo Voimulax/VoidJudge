@@ -37,6 +37,7 @@ namespace VoidJudge.Models.Contest
         public TeacherModel Owner { get; set; }
 
         public DateTime CreateTime { get; set; }
+        public string SubmissionsFileName { get; set; }
 
         public ContestProgressState ProgressState
         {

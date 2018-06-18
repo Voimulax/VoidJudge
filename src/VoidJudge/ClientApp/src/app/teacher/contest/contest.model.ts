@@ -16,6 +16,7 @@ export interface ContestInfo {
   notice?: string;
   students?: ContestStudentInfo[];
   state?: ContestState;
+  submissionsFileName?: string;
 }
 
 export enum GetContestResultType {
@@ -49,5 +50,13 @@ export enum DeleteContestResultType {
   unauthorized,
   forbiddance,
   contestNotFound,
+  error
+}
+
+export enum GetContestSubmissionsResultType {
+  ok,
+  unauthorized,
+  contestNotFound,
+  forbiddance,
   error
 }

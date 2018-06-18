@@ -54,12 +54,13 @@ export class ContestProblemCreateComponent implements OnInit {
     this.contestProblemService.add(problemInfo, target.files[0]).subscribe(r => {
       if (r === AddContestProblemResultType.ok) {
         this.dialogService.showNoticeMessage('创建成功');
+        this.reset();
       } else if (r === AddContestProblemResultType.fileTooBig) {
         this.dialogService.showErrorMessage('上传文件过大，创建失败');
+        this.fileForm.nativeElement.reset();
       } else {
         this.dialogService.showErrorMessage('网络错误，创建失败');
       }
-      this.reset();
     });
   }
 

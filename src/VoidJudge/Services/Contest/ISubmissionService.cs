@@ -7,5 +7,6 @@ namespace VoidJudge.Services.Contest
     public interface ISubmissionService
     {
         Task<ApiResult> AddSubmissionAsync(long contestId, long problemId, long userId, AddSubmissionViewModel addSubmission);
+        Task<ApiResult> GetSubmissionsAsync(long contestId, long userId);
     }
 }

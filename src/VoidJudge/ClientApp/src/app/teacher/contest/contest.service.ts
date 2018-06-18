@@ -10,7 +10,8 @@ import {
   GetContestsResult,
   AddContestResultType,
   PutContestResultType,
-  DeleteContestResultType
+  DeleteContestResultType,
+  GetContestSubmissionsResultType
 } from './contest.model';
 import { DialogService } from '../../shared/dialog/dialog.service';
 
@@ -20,6 +21,9 @@ import { DialogService } from '../../shared/dialog/dialog.service';
 export class ContestService {
   contestInfo: ContestInfo;
   private contestBaseUrl = '/api/contests';
+  private get contestSubmissionsBaseUrl() {
+    return `/api/contest/${this.contestInfo.id}/submissions`;
+  }
 
   constructor(private dialogService: DialogService, private http: HttpClient) {}
 
@@ -158,6 +162,28 @@ export class ContestService {
           return of(e.error['error']);
         } else {
           return of(DeleteContestResultType.error);
+        }
+      })
+    );
+  }
+
+  getSubmissions() {
+    return this.http.get(this.contestSubmissionsBaseUrl).pipe(
+      map(r => {
+        if (r['error'] === 0) {
+          this.contestInfo.submissionsFileName = r['data'];
+          return GetContestSubmissionsResultType.ok;
+        }
+      }),
+      catchError((e: HttpErrorResponse) => {
+        if (e.status === 401 && e.error['error'] === GetContestSubmissionsResultType.unauthorized) {
+          return of(GetContestSubmissionsResultType.unauthorized);
+        } else if (e.status === 404 && e.error['error'] === GetContestSubmissionsResultType.contestNotFound) {
+          return of(GetContestSubmissionsResultType.contestNotFound);
+        } else if (e.status === 403 && e.error['error'] === GetContestSubmissionsResultType.forbiddance) {
+          return of(GetContestSubmissionsResultType.forbiddance);
+        } else {
+          return of(GetContestSubmissionsResultType.error);
         }
       })
     );

@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
@@ -37,8 +39,9 @@ namespace VoidJudge.Services.Storage
             {
                 CreateTime = DateTime.Now,
                 SaveName = fileName,
-                UploadName = formFile.FileName,
-                UserId = userId
+                OriginName = formFile.FileName,
+                UserId = userId,
+                Type = FileType.Upload
             };
 
             await _context.Files.AddAsync(file);
@@ -73,7 +76,8 @@ namespace VoidJudge.Services.Storage
                 }
             }
 
-            var filePath = Path.Combine(GetUploadsFolderPath(), fileName);
+            var folderPath = file.Type == FileType.Upload ? GetUploadsFolderPath() : GetBuildsFolderPath();
+            var filePath = Path.Combine(folderPath, fileName);
 
             if (!File.Exists(filePath))
             {
@@ -88,6 +92,50 @@ namespace VoidJudge.Services.Storage
             return new GetFileResult { Error = GetFileResultType.Ok, Data = new GetFileViewModel { Stream = stream, Memi = memi, FileName = Path.GetFileName(filePath) } };
         }
 
+        public async Task<AddFileResult> ZipFoldersAsync(IList<ZipFolderViewModel> zipFolders, long userId)
+        {
+            var tempName = Guid.NewGuid().ToString();
+            var tempPath = Path.Combine(GetBuildsFolderPath(), tempName);
+            if (!Directory.Exists(tempPath))
+            {
+                Directory.CreateDirectory(tempPath);
+            }
+            else
+            {
+                Directory.Delete(tempPath, true);
+                Directory.CreateDirectory(tempPath);
+            }
+
+            foreach (var zipFolder in zipFolders)
+            {
+                var folderPath = Path.Combine(tempPath, zipFolder.ZipFolderName);
+                Directory.CreateDirectory(folderPath);
+                foreach (var zipFile in zipFolder.ZipFiles)
+                {
+                    var originPath = Path.Combine(GetUploadsFolderPath(), zipFile.OriginName);
+                    var movePath = Path.Combine(folderPath, zipFile.ZipName);
+                    File.Copy(originPath, movePath);
+                }
+                ZipFile.CreateFromDirectory(folderPath, Path.Combine(tempPath, zipFolder.ZipFolderName + ".zip"));
+                Directory.Delete(folderPath, true);
+            }
+            ZipFile.CreateFromDirectory(tempPath, Path.Combine(GetBuildsFolderPath(), tempName + ".zip"));
+            Directory.Delete(tempPath, true);
+
+            var file = new FileModel
+            {
+                CreateTime = DateTime.Now,
+                SaveName = tempName + ".zip",
+                OriginName = tempName + ".zip",
+                UserId = userId,
+                Type = FileType.Build
+            };
+
+            await _context.Files.AddAsync(file);
+            await _context.SaveChangesAsync();
+            return new AddFileResult {Error = AddFileResultType.Ok, Data = file.SaveName};
+        }
+
         private string GetUploadsFolderPath()
         {
             var uploadsFolderPath = Path.Combine(_hosting.WebRootPath, "Uploads");
@@ -97,6 +145,17 @@ namespace VoidJudge.Services.Storage
             }
 
             return uploadsFolderPath;
+        }
+
+        private string GetBuildsFolderPath()
+        {
+            var buildsFolderPath = Path.Combine(_hosting.WebRootPath, "Builds");
+            if (!Directory.Exists(buildsFolderPath))
+            {
+                Directory.CreateDirectory(buildsFolderPath);
+            }
+
+            return buildsFolderPath;
         }
     }
 }

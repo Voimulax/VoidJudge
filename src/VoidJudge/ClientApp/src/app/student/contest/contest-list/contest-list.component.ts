@@ -27,6 +27,10 @@ export class ContestListComponent implements OnInit, AfterViewInit {
     this.getContests();
   }
 
+  isNotEmpty() {
+    return this.dataSource.data && this.dataSource.data.length > 0;
+  }
+
   goContestDetail(x: ContestInfo) {
     this.contestService.contestInfo = x;
     if (x.state === ContestState.InProgress) {

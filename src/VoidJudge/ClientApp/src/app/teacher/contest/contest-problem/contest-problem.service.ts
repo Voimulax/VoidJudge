@@ -28,6 +28,7 @@ export class ContestProblemService {
   add(contestProblemInfo: ContestProblemInfo, file: any) {
     this.dialogService.isLoadingDialogActive = true;
     const data = new FormData();
+    data.append('contestId', contestProblemInfo.contestId.toString());
     data.append('name', contestProblemInfo.name);
     data.append('type', contestProblemInfo.type.toString());
     data.append('file', file);

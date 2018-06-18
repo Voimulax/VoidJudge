@@ -60,5 +60,36 @@ namespace VoidJudge.Controllers.Contest
                     throw new ArgumentOutOfRangeException();
             }
         }
+
+        [HttpGet]
+        [Authorize(Roles = "1")]
+        [Route("submissions")]
+        public async Task<IActionResult> GetSubmissionsAsync(long contestId)
+        {
+            var userId = _authService.GetUserIdFromRequest(Request.HttpContext.User.Claims);
+
+            var result = await _submissionService.GetSubmissionsAsync(contestId, userId);
+            switch (result.Error)
+            {
+                case GetSubmissionResultType.Unauthorized:
+                    return new ObjectResult(result)
+                    {
+                        StatusCode = StatusCodes.Status401Unauthorized
+                    };
+                case GetSubmissionResultType.ContestNotFound:
+                    return NotFound(result);
+                case AddSubmissionResultType.Forbiddance:
+                    return new ObjectResult(result)
+                    {
+                        StatusCode = StatusCodes.Status403Forbidden
+                    };
+                case GetSubmissionResultType.Error:
+                    return BadRequest(result);
+                case GetSubmissionResultType.Ok:
+                    return Ok(result);
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
     }
 }

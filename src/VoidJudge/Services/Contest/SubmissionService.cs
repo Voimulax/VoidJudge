@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -58,7 +60,7 @@ namespace VoidJudge.Services.Contest
                         default:
                             throw new ArgumentOutOfRangeException();
                     }
-                } 
+                }
                 _context.RemoveRange(submissions);
             }
 
@@ -84,6 +86,52 @@ namespace VoidJudge.Services.Contest
             await _context.SaveChangesAsync();
 
             return new ApiResult { Error = AddSubmissionResultType.Ok };
+        }
+
+        public async Task<ApiResult> GetSubmissionsAsync(long contestId, long userId)
+        {
+            var contest = await _context.Contests.Include(c => c.Owner).Include(c => c.Problems).ThenInclude(p => p.Submissions).SingleOrDefaultAsync(c => c.Id == contestId);
+            if (contest == null) return new ApiResult { Error = GetSubmissionResultType.ContestNotFound };
+            if (contest.Owner.UserId != userId) return new ApiResult { Error = GetSubmissionResultType.Unauthorized };
+            if (contest.ProgressState != ContestProgressState.Ended)
+            {
+                return new ApiResult { Error = GetSubmissionResultType.Forbiddance };
+            }
+
+            if (contest.State == ContestState.DownLoaded && !string.IsNullOrEmpty(contest.SubmissionsFileName))
+            {
+                return new GetSubmissionResult { Error = GetSubmissionResultType.Ok, Data = contest.SubmissionsFileName };
+            }
+
+            var zipFolders = new List<ZipFolderViewModel>();
+            try
+            {
+                foreach (var p in contest.Problems)
+                {
+                    var zipFiles = new List<ZipFileViewModel>();
+                    var zipFolder = new ZipFolderViewModel { ZipFolderName = p.Name, ZipFiles = zipFiles };
+                    zipFiles.AddRange(p.Submissions.Select(s => new ZipFileViewModel { OriginName = s.Content, ZipName = $"{s.StudentId}{Path.GetExtension(s.Content)}" }));
+                    zipFolders.Add(zipFolder);
+                }
+            }
+            catch (Exception)
+            {
+                return new ApiResult { Error = GetSubmissionResultType.Error };
+            }
+
+            var fileResult = await _fileService.ZipFoldersAsync(zipFolders, userId);
+            switch (fileResult.Error)
+            {
+                case AddFileResultType.Error:
+                    return new ApiResult { Error = GetSubmissionResultType.Error };
+                case AddFileResultType.Ok:
+                    contest.State = ContestState.DownLoaded;
+                    contest.SubmissionsFileName = fileResult.Data;
+                    await _context.SaveChangesAsync();
+                    return new GetSubmissionResult { Error = GetSubmissionResultType.Ok, Data = fileResult.Data };
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
     }
 }

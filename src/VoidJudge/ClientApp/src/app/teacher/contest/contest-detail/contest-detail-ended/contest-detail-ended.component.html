@@ -15,7 +15,10 @@
         </mat-card-header>
         <mat-card-content>
           <div fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="0px">
-            <button mat-raised-button color="accent" (click)="downloadSubmission()">下载提交答案</button>
+            <button mat-raised-button color="accent" (click)="downloadSubmission($event, true)">
+              下载提交答案
+              <a #downloada (click)="downloadSubmission($event)" style="display: none;"></a>
+            </button>
           </div>
         </mat-card-content>
       </mat-card>

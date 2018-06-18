@@ -19,6 +19,7 @@ namespace VoidJudge.ViewModels.Contest
     {
         public string Notice { get; set; }
         public int? State { get; set; }
+        public string SubmissionsFileName { get; set; }
     }
     public class StudentContestViewModel : ContestViewModel
     {
