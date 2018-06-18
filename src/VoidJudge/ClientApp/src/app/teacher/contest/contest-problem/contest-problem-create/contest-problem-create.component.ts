@@ -49,6 +49,7 @@ export class ContestProblemCreateComponent implements OnInit {
       return;
     }
     const problemInfo = this.problemForm.value;
+    problemInfo['contestId'] = this.contestInfo.id;
     problemInfo['type'] = Number(problemInfo['type']);
     this.contestProblemService.add(problemInfo, target.files[0]).subscribe(r => {
       if (r === AddContestProblemResultType.ok) {

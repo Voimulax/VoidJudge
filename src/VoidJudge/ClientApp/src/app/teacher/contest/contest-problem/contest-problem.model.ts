@@ -1,10 +1,11 @@
 export enum ProblemType {
-  TestPaper,
-  Judge
+  testPaper,
+  judge
 }
 
 export interface ContestProblemInfo {
   id?: number;
+  contestId: number;
   name: string;
   type: ProblemType;
   content?: string;

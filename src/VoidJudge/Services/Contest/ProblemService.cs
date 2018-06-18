@@ -1,35 +1,34 @@
 ﻿using System;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using VoidJudge.Data;
 using VoidJudge.Models.Contest;
-using VoidJudge.Models.storage;
+using VoidJudge.Services.Storage;
 using VoidJudge.ViewModels;
 using VoidJudge.ViewModels.Contest;
+using VoidJudge.ViewModels.Storage;
 
 namespace VoidJudge.Services.Contest
 {
     public class ProblemService : IProblemService
     {
-        private readonly IHostingEnvironment _hosting;
+        private readonly IFileService _fileService;
         private readonly VoidJudgeContext _context;
         private readonly IMapper _mapper;
 
-        public ProblemService(IHostingEnvironment hosting, VoidJudgeContext context, IMapper mapper)
+        public ProblemService(VoidJudgeContext context, IMapper mapper, IFileService fileService)
         {
-            _hosting = hosting;
             _context = context;
             _mapper = mapper;
+            _fileService = fileService;
         }
 
 
         public async Task<ApiResult> AddProblemAsync(long contestId, long userId, AddProblemViewModel addProblem)
         {
-            var contest = await _context.Contests.Include(c => c.Owner).SingleOrDefaultAsync(c => c.Id == contestId);
+            var contest = await _context.Contests.Include(c => c.Owner).SingleOrDefaultAsync(c => c.Id == contestId && c.Id == addProblem.ContestId);
             if (contest == null) return new ApiResult { Error = AddProblemResultType.ContestNotFound };
             if (contest.Owner.UserId != userId) return new ApiResult { Error = AddProblemResultType.Unauthorized };
             if (contest.ProgressState != ContestProgressState.NoStarted &&
@@ -39,32 +38,20 @@ namespace VoidJudge.Services.Contest
             }
 
             var problem = _mapper.Map<AddProblemViewModel, ProblemModel>(addProblem);
-            problem.ContestId = contestId;
 
-            var uploadsFolderPath = Path.Combine(_hosting.WebRootPath, "Uploads");
-            if (!Directory.Exists(uploadsFolderPath))
+            var fileResult = await _fileService.AddFileAsync(addProblem.File, userId);
+            switch (fileResult.Error)
             {
-                Directory.CreateDirectory(uploadsFolderPath);
-            }
-            var fileName = Guid.NewGuid() + Path.GetExtension(addProblem.File.FileName);
-            var filePath = Path.Combine(uploadsFolderPath, fileName);
-
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await addProblem.File.CopyToAsync(stream);
+                case AddFileResultType.Error:
+                    return new ApiResult { Error = AddProblemResultType.Error };
+                case AddFileResultType.Ok:
+                    problem.Content = fileResult.Data;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
 
-            var file = new FileModel
-            {
-                CreateTime = DateTime.Now,
-                SaveName = fileName,
-                UploadName = addProblem.File.FileName,
-                UserId = userId
-            };
-
-            problem.Content = fileName;
             await _context.Problems.AddAsync(problem);
-            await _context.Files.AddAsync(file);
             await _context.SaveChangesAsync();
 
             return new ApiResult { Error = AddProblemResultType.Ok };
@@ -72,7 +59,7 @@ namespace VoidJudge.Services.Contest
 
         public async Task<ApiResult> GetProblemsAsync(long contestId, long userId)
         {
-            var contest = await _context.Contests.Include(c => c.Owner).Include(c => c.Enrollments).ThenInclude(e => e.Student).Include(c => c.Problems).SingleOrDefaultAsync(c => c.Id == contestId);
+            var contest = await _context.Contests.Include(c => c.Owner).Include(c => c.Enrollments).ThenInclude(e => e.Student).Include(c => c.Problems).ThenInclude(p => p.Submissions).SingleOrDefaultAsync(c => c.Id == contestId);
             if (contest == null) return new ApiResult { Error = GetProblemResultType.ContestNotFound };
             var enrollment = contest.Enrollments.SingleOrDefault(e => e.Student.UserId == userId);
             if (contest.Owner.UserId != userId && enrollment == null || enrollment != null && contest.ProgressState != ContestProgressState.InProgress)
@@ -80,8 +67,25 @@ namespace VoidJudge.Services.Contest
                 return new ApiResult { Error = GetProblemResultType.Unauthorized };
             }
 
-            var problems = contest.Problems.Select(p => _mapper.Map<ProblemModel, GetProblemViewModel>(p)).ToList();
-            return new GetProblemResult { Error = GetProblemResultType.Ok, Data = problems };
+            if (enrollment != null)
+            {
+                var problems = contest.Problems.OrderBy(p => p.Id).Select(p => _mapper.Map<ProblemModel, GetStudentProblemViewModel>(p)).ToList();
+                var submissions = contest.Problems.OrderBy(p => p.Id).Select(p =>
+                {
+                    var submission = p.Submissions.SingleOrDefault(s => s.StudentId == enrollment.StudentId);
+                    return submission != null;
+                }).ToList();
+                for (var i = 0; i < problems.Count; i++)
+                {
+                    problems[i].IsSubmitted = submissions[i];
+                }
+                return new GetProblemResult<GetStudentProblemViewModel> { Error = GetProblemResultType.Ok, Data = problems };
+            }
+            else
+            {
+                var problems = contest.Problems.OrderBy(p => p.Id).Select(p => _mapper.Map<ProblemModel, GetProblemViewModel>(p)).ToList();
+                return new GetProblemResult<GetProblemViewModel> { Error = GetProblemResultType.Ok, Data = problems };
+            }
         }
 
         public async Task<ApiResult> DeleteProblemAsync(long contestId, long userId, long problemId)
@@ -100,15 +104,16 @@ namespace VoidJudge.Services.Contest
 
             if (problem.Type == ProblemType.TestPaper)
             {
-                var file = await _context.Files.SingleOrDefaultAsync(f => f.SaveName == problem.Content);
-                var uploadsFolderPath = Path.Combine(_hosting.WebRootPath, "Uploads");
-                if (Directory.Exists(uploadsFolderPath))
+                var fileResult = await _fileService.DeleteFileAsync(problem.Content);
+                switch (fileResult)
                 {
-                    var filePath = Path.Combine(uploadsFolderPath, problem.Content);
-                    File.Delete(filePath);
+                    case DeleteFileResultType.Error:
+                        return new ApiResult { Error = AddProblemResultType.Error };
+                    case DeleteFileResultType.Ok:
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
-
-                _context.Files.Remove(file);
             }
             _context.Problems.Remove(problem);
             await _context.SaveChangesAsync();

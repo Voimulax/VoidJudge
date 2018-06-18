@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ElementRef, ViewChild } from '@angular/core';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatDialog, MatTableDataSource } from '@angular/material';
 import { finalize } from 'rxjs/operators';
@@ -19,6 +19,7 @@ import { ContestProblemService } from '../contest-problem.service';
   styleUrls: ['./contest-problem-list.component.css']
 })
 export class ContestProblemListComponent implements OnInit {
+  @ViewChild('downloada') downloada: ElementRef;
   displayedColumns = ['select', 'name', 'type', 'content'];
   dataSource = new MatTableDataSource<ContestProblemInfo>();
   selection = new SelectionModel<ContestProblemInfo>(true, []);
@@ -60,12 +61,21 @@ export class ContestProblemListComponent implements OnInit {
     this.isAllSelected() ? this.selection.clear() : this.dataSource.data.forEach(row => this.selection.select(row));
   }
 
-  getDownloadLink(content: string) {
-    return `/Uploads/${content}`;
-  }
-
-  download(event: MouseEvent) {
+  download(event: MouseEvent, content: string) {
     event.stopPropagation();
+    if (content !== undefined) {
+      this.fileService.download(content).subscribe(r => {
+        if (!r) {
+          this.dialogService.showErrorMessage('下载失败');
+        } else {
+          this.downloada.nativeElement.href = r;
+          this.downloada.nativeElement.download = content;
+          this.downloada.nativeElement.click();
+          this.downloada.nativeElement.href = '';
+          this.downloada.nativeElement.download = '';
+        }
+      });
+    }
   }
 
   gets() {

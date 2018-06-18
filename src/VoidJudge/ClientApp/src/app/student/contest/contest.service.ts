@@ -3,8 +3,16 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { catchError, finalize, map, startWith, tap } from 'rxjs/operators';
 import { of } from 'rxjs';
 
-import { ContestInfo, ContestState, GetContestResultType, GetContestsResult } from './contest.model';
+import {
+  ContestInfo,
+  ContestState,
+  GetContestResultType,
+  GetContestsResult,
+  SubmissionInfo,
+  AddSubmissionResultType
+} from './contest.model';
 import { GetContestProblemResultType } from './contest-detail/contest-problem-list/contest-problem.model';
+import { DialogService } from '../../shared/dialog/dialog.service';
 
 @Injectable({
   providedIn: 'root'
@@ -16,7 +24,11 @@ export class ContestService {
     return `/api/contest/${this.contestInfo.id}/problems`;
   }
 
-  constructor(private http: HttpClient) {}
+  private contestSubmissionBaseUrl(problemId: number) {
+    return `/api/contest/${this.contestInfo.id}/problem/${problemId}/submissions`;
+  }
+
+  constructor(private dialogService: DialogService, private http: HttpClient) {}
 
   get(id: number) {
     return this.http.get<GetContestsResult>(`${this.contestBaseUrl}/${id}`).pipe(
@@ -114,6 +126,41 @@ export class ContestService {
           return of({ type: GetContestProblemResultType.contestNotFound, data: undefined });
         } else {
           return of({ type: GetContestProblemResultType.error, data: undefined });
+        }
+      })
+    );
+  }
+
+  addSubmission(submissionInfo: SubmissionInfo, file: any) {
+    this.dialogService.isLoadingDialogActive = true;
+    const data = new FormData();
+    data.append('contestId', submissionInfo.contestId.toString());
+    data.append('problemId', submissionInfo.problemId.toString());
+    data.append('studentId', submissionInfo.studentId);
+    data.append('type', submissionInfo.type.toString());
+    data.append('file', file);
+    return this.http.post(this.contestSubmissionBaseUrl(submissionInfo.problemId), data).pipe(
+      finalize(() => (this.dialogService.isLoadingDialogActive = false)),
+      map(x => {
+        if (x['error'] === 0) {
+          return AddSubmissionResultType.ok;
+        }
+      }),
+      catchError((e: HttpErrorResponse) => {
+        if (e.status === 401 && e.error['error'] === AddSubmissionResultType.unauthorized) {
+          return of(AddSubmissionResultType.unauthorized);
+        } else if (e.status === 403 && e.error['error'] === AddSubmissionResultType.forbiddance) {
+          return of(AddSubmissionResultType.forbiddance);
+        } else if (e.status === 404 && e.error['error'] === AddSubmissionResultType.contestNotFound) {
+          return of(AddSubmissionResultType.contestNotFound);
+        } else if (e.status === 404 && e.error['error'] === AddSubmissionResultType.problemNotFound) {
+          return of(AddSubmissionResultType.problemNotFound);
+        } else if (e.status === 404 && e.error['error'] === AddSubmissionResultType.fileTooBig) {
+          return of(AddSubmissionResultType.fileTooBig);
+        } else if (e.status === 422 && e.error['error'] === AddSubmissionResultType.wrong) {
+          return of(AddSubmissionResultType.wrong);
+        } else {
+          return of(AddSubmissionResultType.error);
         }
       })
     );

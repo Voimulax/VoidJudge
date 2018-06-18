@@ -19,6 +19,7 @@ using VoidJudge.Models.Identity;
 using VoidJudge.Services.Auth;
 using VoidJudge.Services.Contest;
 using VoidJudge.Services.Identity;
+using VoidJudge.Services.Storage;
 
 namespace VoidJudge
 {
@@ -63,12 +64,14 @@ namespace VoidJudge
                     };
                 });
 
+            services.AddScoped<IFileService, FileService>();
             services.AddScoped<PasswordHasher<UserModel>>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IContestService, ContestService>();
             services.AddScoped<IStudentService, StudentService>();
             services.AddScoped<IProblemService, ProblemService>();
+            services.AddScoped<ISubmissionService, SubmissionService>();
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
                 .AddJsonOptions(setupAction =>
@@ -97,7 +100,7 @@ namespace VoidJudge
                 app.UseHttpsRedirection();
             }
 
-            app.UseStaticFiles();
+            //app.UseStaticFiles();
             app.UseSpaStaticFiles();
 
             app.UseAuthentication();

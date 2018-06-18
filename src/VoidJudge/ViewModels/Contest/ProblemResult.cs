@@ -12,9 +12,9 @@ namespace VoidJudge.ViewModels.Contest
         Ok, Unauthorized, ContestNotFound, Error
     }
 
-    public class GetProblemResult : ApiResult
+    public class GetProblemResult<T> : ApiResult where T: GetProblemViewModel
     {
-        public IList<GetProblemViewModel> Data { get; set; }
+        public IList<T> Data { get; set; }
     }
 
     public enum DeleteProblemResultType

@@ -127,6 +127,7 @@ namespace VoidJudge.Controllers.Contest
             }
         }
 
+        [Authorize(Roles = "1")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteContestAsync(int id)
         {

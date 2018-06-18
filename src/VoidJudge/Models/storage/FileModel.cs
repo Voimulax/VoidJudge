@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using VoidJudge.Models.Identity;
 
-namespace VoidJudge.Models.storage
+namespace VoidJudge.Models.Storage
 {
     public class FileModel
     {

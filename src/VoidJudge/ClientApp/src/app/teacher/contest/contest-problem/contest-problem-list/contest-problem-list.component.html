@@ -38,7 +38,10 @@
       <ng-container matColumnDef="content">
         <th mat-header-cell *matHeaderCellDef style="width: 25%"> 内容 </th>
         <td mat-cell *matCellDef="let element">
-          <a mat-button color="accent" (click)="download($event)" href="{{getDownloadLink(element.content)}}" download="{{element.content}}">下载试题</a>
+          <button mat-button color="accent" (click)="download($event, element.content)">
+            下载试题
+            <a #downloada (click)="download($event)" style="display: none;"></a>
+          </button>
         </td>
       </ng-container>
 

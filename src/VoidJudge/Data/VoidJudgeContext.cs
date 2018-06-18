@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using VoidJudge.Models.Contest;
 using VoidJudge.Models.Identity;
-using VoidJudge.Models.storage;
+using VoidJudge.Models.Storage;
 
 namespace VoidJudge.Data
 {

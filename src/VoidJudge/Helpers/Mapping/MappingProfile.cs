@@ -44,6 +44,9 @@ namespace VoidJudge.Helpers.Mapping
 
             CreateMap<AddProblemViewModel, ProblemModel>();
             CreateMap<ProblemModel, GetProblemViewModel>();
+            CreateMap<ProblemModel, GetStudentProblemViewModel>();
+
+            CreateMap<AddSubmissionViewModel, SubmissionModel>();
         }
     }
 }

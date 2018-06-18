@@ -25,3 +25,28 @@ export interface GetContestsResult {
   type: GetContestResultType;
   data: ContestInfo[];
 }
+
+export enum SubmissionType {
+  binary,
+  text
+}
+
+export interface SubmissionInfo {
+  id?: number;
+  contestId: number;
+  problemId: number;
+  studentId: string;
+  type: SubmissionType;
+  content?: string;
+}
+
+export enum AddSubmissionResultType {
+  ok,
+  unauthorized,
+  contestNotFound,
+  problemNotFound,
+  forbiddance,
+  fileTooBig,
+  wrong,
+  error
+}

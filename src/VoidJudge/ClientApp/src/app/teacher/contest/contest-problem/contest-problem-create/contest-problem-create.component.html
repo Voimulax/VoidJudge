@@ -10,7 +10,7 @@
   </div>
   <form #form [formGroup]="problemForm">
     <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="25px">
-      <mat-form-field class="problemFormControl">
+      <mat-form-field fxFlex="100%">
         <mat-label>名称</mat-label>
         <input matInput placeholder="请输入题目名称" type="text" required formControlName="name" [errorStateMatcher]="matcher" required>
         <mat-error *ngIf="!problemForm.get('name').hasError('required') && (problemForm.get('name').hasError('mixLength') || !problemForm.get('name').hasError('maxLength'))">
