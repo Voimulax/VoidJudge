@@ -20,6 +20,7 @@ using VoidJudge.Services.Auth;
 using VoidJudge.Services.Contest;
 using VoidJudge.Services.Identity;
 using VoidJudge.Services.Storage;
+using VoidJudge.Services.System;
 
 namespace VoidJudge
 {
@@ -64,6 +65,7 @@ namespace VoidJudge
                     };
                 });
 
+            services.AddScoped<ISettingsService, SettingsService>();
             services.AddScoped<IFileService, FileService>();
             services.AddScoped<PasswordHasher<UserModel>>();
             services.AddScoped<IAuthService, AuthService>();

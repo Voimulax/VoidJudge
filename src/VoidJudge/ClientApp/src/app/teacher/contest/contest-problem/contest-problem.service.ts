@@ -46,7 +46,7 @@ export class ContestProblemService {
           return of(AddContestProblemResultType.forbiddance);
         } else if (e.status === 404 && e.error['error'] === AddContestProblemResultType.contestNotFound) {
           return of(AddContestProblemResultType.contestNotFound);
-        } else if (e.status === 404 && e.error['error'] === AddContestProblemResultType.fileTooBig) {
+        } else if (e.status === 400 && e.error['error'] === AddContestProblemResultType.fileTooBig) {
           return of(AddContestProblemResultType.fileTooBig);
         } else if (e.status === 422 && e.error['error'] === AddContestProblemResultType.wrong) {
           return of(AddContestProblemResultType.wrong);

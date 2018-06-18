@@ -5,7 +5,7 @@ import { map, catchError, switchMap, finalize } from 'rxjs/operators';
 import { JwtHelperService } from '@auth0/angular-jwt';
 
 import { TokenService } from './token.service';
-import { User, RoleType, getRoleType, LoginUser, ResetUser } from './user.model';
+import { User, RoleType, LoginUser, ResetUser } from './user.model';
 import { DialogService } from '../../shared/dialog/dialog.service';
 import { Router } from '@angular/router';
 
@@ -51,7 +51,7 @@ export class AuthService {
           return user;
         }
       }),
-      catchError((e: HttpErrorResponse) => {
+      catchError(() => {
         return of(null);
       })
     );

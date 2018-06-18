@@ -10,6 +10,8 @@ using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using VoidJudge.Data;
 using VoidJudge.Models.Storage;
+using VoidJudge.Models.System;
+using VoidJudge.Services.System;
 using VoidJudge.ViewModels.Storage;
 
 namespace VoidJudge.Services.Storage
@@ -18,11 +20,16 @@ namespace VoidJudge.Services.Storage
     {
         private readonly IHostingEnvironment _hosting;
         private readonly VoidJudgeContext _context;
+        private readonly ISettingsService _settingsService;
 
-        public FileService(IHostingEnvironment hosting, VoidJudgeContext context)
+        private readonly IDictionary<SettingsType, string> _setting = new Dictionary<SettingsType, string>();
+
+        public FileService(IHostingEnvironment hosting, VoidJudgeContext context, ISettingsService settingsService)
         {
             _hosting = hosting;
             _context = context;
+            _settingsService = settingsService;
+            GetSettings();
         }
 
         public async Task<AddFileResult> AddFileAsync(IFormFile formFile, long userId)
@@ -33,6 +40,11 @@ namespace VoidJudge.Services.Storage
             using (var stream = new FileStream(filePath, FileMode.Create))
             {
                 await formFile.CopyToAsync(stream);
+            }
+
+            if (formFile.Length > long.Parse(_setting[SettingsType.UploadLimit]) * 1024)
+            {
+                return new AddFileResult { Error = AddFileResultType.FileTooBig };
             }
 
             var file = new FileModel
@@ -52,7 +64,7 @@ namespace VoidJudge.Services.Storage
         {
             var file = await _context.Files.SingleOrDefaultAsync(f => f.SaveName == fileName);
 
-            var filePath = file.Type == FileType.Upload? Path.Combine(GetUploadsFolderPath(), fileName): Path.Combine(GetBuildsFolderPath(), fileName);
+            var filePath = file.Type == FileType.Upload ? Path.Combine(GetUploadsFolderPath(), fileName) : Path.Combine(GetBuildsFolderPath(), fileName);
             File.Delete(filePath);
 
             _context.Files.Remove(file);
@@ -133,7 +145,7 @@ namespace VoidJudge.Services.Storage
 
             await _context.Files.AddAsync(file);
             await _context.SaveChangesAsync();
-            return new AddFileResult {Error = AddFileResultType.Ok, Data = file.SaveName};
+            return new AddFileResult { Error = AddFileResultType.Ok, Data = file.SaveName };
         }
 
         private string GetUploadsFolderPath()
@@ -156,6 +168,14 @@ namespace VoidJudge.Services.Storage
             }
 
             return buildsFolderPath;
+        }
+
+        private void GetSettings()
+        {
+            _settingsService.GetSettings().ToList().ForEach(s =>
+            {
+                _setting.Add(s.Type, s.Value);
+            });
         }
     }
 }

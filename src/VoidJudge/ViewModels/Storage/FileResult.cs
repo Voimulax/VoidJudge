@@ -2,7 +2,7 @@
 {
     public enum AddFileResultType
     {
-        Ok, Error
+        Ok, FileTooBig, Error
     }
 
     public class AddFileResult : ApiResult

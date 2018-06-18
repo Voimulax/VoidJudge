@@ -155,7 +155,7 @@ export class ContestService {
           return of(AddSubmissionResultType.contestNotFound);
         } else if (e.status === 404 && e.error['error'] === AddSubmissionResultType.problemNotFound) {
           return of(AddSubmissionResultType.problemNotFound);
-        } else if (e.status === 404 && e.error['error'] === AddSubmissionResultType.fileTooBig) {
+        } else if (e.status === 400 && e.error['error'] === AddSubmissionResultType.fileTooBig) {
           return of(AddSubmissionResultType.fileTooBig);
         } else if (e.status === 422 && e.error['error'] === AddSubmissionResultType.wrong) {
           return of(AddSubmissionResultType.wrong);

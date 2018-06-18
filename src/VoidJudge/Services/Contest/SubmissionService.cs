@@ -74,6 +74,8 @@ namespace VoidJudge.Services.Contest
                 {
                     case AddFileResultType.Error:
                         return new ApiResult { Error = AddSubmissionResultType.Error };
+                    case AddFileResultType.FileTooBig:
+                        return new ApiResult { Error = AddSubmissionResultType.FileTooBig };
                     case AddFileResultType.Ok:
                         submission.Content = fileResult.Data;
                         break;

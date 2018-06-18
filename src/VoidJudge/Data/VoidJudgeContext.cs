@@ -2,6 +2,7 @@
 using VoidJudge.Models.Contest;
 using VoidJudge.Models.Identity;
 using VoidJudge.Models.Storage;
+using VoidJudge.Models.System;
 
 namespace VoidJudge.Data
 {
@@ -11,6 +12,7 @@ namespace VoidJudge.Data
         {
         }
 
+        public DbSet<SettingsModel> Settings { get; set; }
         public DbSet<UserModel> Users { get; set; }
         public DbSet<RoleModel> Roles { get; set; }
         public DbSet<ContestModel> Contests { get; set; }
@@ -79,6 +81,10 @@ namespace VoidJudge.Data
 
             modelBuilder.Entity<FileModel>()
                 .HasIndex(f => f.SaveName)
+                .IsUnique();
+
+            modelBuilder.Entity<SettingsModel>()
+                .HasIndex(s => s.Type)
                 .IsUnique();
         }
     }

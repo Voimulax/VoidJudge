@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
 using VoidJudge.Models.Contest;
 using VoidJudge.Models.Identity;
+using VoidJudge.Models.System;
 using VoidJudge.ViewModels.Contest;
 using VoidJudge.ViewModels.Identity;
+using VoidJudge.ViewModels.System;
 using AddStudentViewModel = VoidJudge.ViewModels.Identity.AddStudentViewModel;
 using GetStudentViewModel = VoidJudge.ViewModels.Contest.GetStudentViewModel;
 
@@ -47,6 +49,8 @@ namespace VoidJudge.Helpers.Mapping
             CreateMap<ProblemModel, GetStudentProblemViewModel>();
 
             CreateMap<AddSubmissionViewModel, SubmissionModel>();
+
+            CreateMap<SettingsModel, SettingsViewModel>();
         }
     }
 }

@@ -22,16 +22,8 @@ import { DialogModule } from '../shared/dialog/dialog.module';
       }
     })
   ],
-  providers: [
-    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }
-  ],
-  exports: [
-    HttpClientModule,
-    JwtModule,
-    MaterialViewModule,
-    DialogModule,
-    AuthModule
-  ],
+  providers: [{ provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }],
+  exports: [HttpClientModule, JwtModule, MaterialViewModule, DialogModule, AuthModule],
   declarations: []
 })
 export class CoreModule {

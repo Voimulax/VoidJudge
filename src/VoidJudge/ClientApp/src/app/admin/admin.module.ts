@@ -7,8 +7,8 @@ import { AdminRoutingModule } from './admin-routing.module';
 import { ContestModule } from './contest/contest.module';
 import { SharedModule } from '../shared/shared.module';
 import { StudentModule } from './student/student.module';
-import { SettingsModule } from './settings/settings.module';
 import { TeacherModule } from './teacher/teacher.module';
+import { SettingsModule } from './settings/settings.module';
 
 @NgModule({
   imports: [
