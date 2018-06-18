@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { Router } from '@angular/router';
 
-import { ContestInfo, GetContestSubmissionsResultType } from '../../contest.model';
+import { ContestInfo, GetContestSubmissionResultType } from '../../contest.model';
 import { ContestService } from '../../contest.service';
 import { FileService } from '../../../../shared/file/file.service';
 import { DialogService } from '../../../../shared/dialog/dialog.service';
@@ -32,11 +32,11 @@ export class ContestDetailEndedComponent implements OnInit {
     return () => this.contestService.updateCurrentContestInfo();
   }
 
-  downloadSubmission(event: MouseEvent, flag: boolean) {
+  downloadSubmissionFile(event: MouseEvent, flag: boolean = false) {
     event.stopPropagation();
     if (flag) {
-      this.contestService.getSubmissions().subscribe(res => {
-        if (res === GetContestSubmissionsResultType.ok) {
+      this.contestService.getSubmissionsFile().subscribe(res => {
+        if (res === GetContestSubmissionResultType.ok) {
           this.fileService.download(this.contestInfo.submissionsFileName).subscribe(r => {
             if (!r) {
               this.dialogService.showErrorMessage('下载失败');
@@ -55,7 +55,24 @@ export class ContestDetailEndedComponent implements OnInit {
     }
   }
 
-  downloadSubmissionInfo() {}
+  downloadSubmissionInfo() {
+    this.contestService.getSubmissionsInfo().subscribe(r => {
+      if (r.type === GetContestSubmissionResultType.ok) {
+        const data = r.data.map(x => {
+          const y = {};
+          y['学号'] = x['studentId'];
+          y['姓名'] = x['userName'];
+          y['班级'] = x['group'];
+          y['登录情况'] = x['isLogged'] === true ? '已登录' : '未登录';
+          x['submissionStates'].forEach(s => {
+            y[s['problemName']] = s['isSubmitted'] === true ? '已提交' : '未提交';
+          });
+          return y;
+        });
+        this.fileService.saveExcelFile(data, `${this.contestInfo.name}提交信息.xlsx`);
+      }
+    });
+  }
 
   goBack() {
     this.router.navigate([this.url]);

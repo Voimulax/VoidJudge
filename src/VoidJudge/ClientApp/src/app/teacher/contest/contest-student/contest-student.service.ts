@@ -47,6 +47,23 @@ export class ContestStudentService {
     );
   }
 
+  unlock(id: number) {
+    return this.http.get<GetContestStudentsResult>(`${this.contestStudentBaseUrl}/${id}`).pipe(
+      map(x => {
+        return GetContestStudentResultType.ok;
+      }),
+      catchError((e: HttpErrorResponse) => {
+        if (e.status === 404) {
+          return of(GetContestStudentResultType.contestNotFound);
+        } else if (e.status === 401) {
+          return of(GetContestStudentResultType.unauthorized);
+        } else {
+          return of(GetContestStudentResultType.error);
+        }
+      })
+    );
+  }
+
   adds(contestStudentInfos: ContestStudentInfo[]) {
     this.dialogService.isLoadingDialogActive = true;
     const csIds = contestStudentInfos.map(cs => {

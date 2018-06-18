@@ -1,4 +1,4 @@
-import { Component, OnInit, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, ElementRef, ViewChild, Input } from '@angular/core';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatDialog, MatTableDataSource } from '@angular/material';
 import { finalize } from 'rxjs/operators';
@@ -20,7 +20,8 @@ import { ContestProblemService } from '../contest-problem.service';
 })
 export class ContestProblemListComponent implements OnInit {
   @ViewChild('downloada') downloada: ElementRef;
-  displayedColumns = ['select', 'name', 'type', 'content'];
+  @Input('canDelete') canDelete: boolean;
+  displayedColumns = this.canDelete ? ['select', 'name', 'type', 'content'] : ['name', 'type', 'content'];
   dataSource = new MatTableDataSource<ContestProblemInfo>();
   selection = new SelectionModel<ContestProblemInfo>(true, []);
   isLoading = false;

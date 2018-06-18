@@ -230,7 +230,7 @@ namespace VoidJudge.Services.Contest
 
             if (enrollment.Contest.ProgressState == ContestProgressState.InProgress)
             {
-                if (enrollment.Token != null)
+                if (!string.IsNullOrEmpty(enrollment.Token))
                 {
                     if (enrollment.Token != token)
                     {

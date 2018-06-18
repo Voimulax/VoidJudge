@@ -5,6 +5,7 @@ import { ContestStudentCreateComponent } from './contest-student-create/contest-
 import { ContestStudentInfoComponent } from './contest-student-info/contest-student-info.component';
 import { ContestStudentListDialogComponent } from './contest-student-list-dialog/contest-student-list-dialog.component';
 import { ContestStudentService } from './contest-student.service';
+import { ContestSubmissionStateDialogComponent } from './contest-submission-state-dialog/contest-submission-state-dialog.component';
 
 import { SharedModule } from '../../../shared/shared.module';
 
@@ -12,7 +13,12 @@ import { SharedModule } from '../../../shared/shared.module';
   imports: [CommonModule, SharedModule],
   exports: [ContestStudentCreateComponent, ContestStudentInfoComponent, ContestStudentListDialogComponent],
   providers: [ContestStudentService],
-  entryComponents: [ContestStudentListDialogComponent],
-  declarations: [ContestStudentCreateComponent, ContestStudentInfoComponent, ContestStudentListDialogComponent]
+  entryComponents: [ContestStudentListDialogComponent, ContestSubmissionStateDialogComponent],
+  declarations: [
+    ContestStudentCreateComponent,
+    ContestStudentInfoComponent,
+    ContestStudentListDialogComponent,
+    ContestSubmissionStateDialogComponent
+  ]
 })
 export class ContestStudentModule {}

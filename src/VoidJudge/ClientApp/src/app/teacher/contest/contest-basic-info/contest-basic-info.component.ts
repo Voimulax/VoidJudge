@@ -76,7 +76,9 @@ export class ContestBasicInfoComponent implements OnInit {
 
       this.contestService.put(contestInfo).subscribe(r => {
         if (r === PutContestResultType.ok) {
-          this.dialogService.showNoticeMessage(`${editPublishState ? '发布' : '保存'}成功`);
+          this.dialogService.showNoticeMessage(`${editPublishState ? '发布' : '保存'}成功`, () => {
+            window.location.reload();
+          });
         } else {
           if (this.lastState !== undefined) {
             this.contestService.contestInfo.state = this.lastState;

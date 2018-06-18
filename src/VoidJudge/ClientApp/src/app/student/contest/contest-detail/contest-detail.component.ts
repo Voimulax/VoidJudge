@@ -19,7 +19,8 @@ export class ContestDetailComponent implements OnInit, AfterViewInit, OnDestroy 
   downloadUrl =
     'https://download.microsoft.com/download/8/8/5/88544F33-836A-49A5-8B67-451C24709A8F/dotnet-sdk-2.1.300-win-x64.zip';
 
-  private timer;
+  private progressTimer;
+  private flushTimer;
   private url = '/student/contest';
 
   get contestInfo(): ContestInfo {
@@ -50,8 +51,11 @@ export class ContestDetailComponent implements OnInit, AfterViewInit, OnDestroy 
 
   ngOnDestroy() {
     this.contestService.contestInfo = undefined;
-    if (this.timer) {
-      clearInterval(this.timer);
+    if (this.progressTimer) {
+      clearInterval(this.progressTimer);
+    }
+    if (this.flushTimer) {
+      clearInterval(this.flushTimer);
     }
   }
 
@@ -64,8 +68,17 @@ export class ContestDetailComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   private updateContestInfo() {
-    clearInterval(this.timer);
-    this.timer = setInterval(() => {
+    if (this.progressTimer) {
+      clearInterval(this.progressTimer);
+    }
+    if (this.flushTimer) {
+      clearInterval(this.flushTimer);
+    }
+
+    this.flushTimer = setInterval(() => {
+      this.getContest(this.contestInfo.id);
+    }, 15000);
+    this.progressTimer = setInterval(() => {
       const lastState = this.contestInfo.state;
       this.restTime = new Date(this.contestInfo.endTime).getTime() - Date.now();
       this.contestService.updateCurrentContestInfo();
@@ -74,7 +87,7 @@ export class ContestDetailComponent implements OnInit, AfterViewInit, OnDestroy 
       }
       if (this.restTime <= 0) {
         this.restTime = 0;
-        clearInterval(this.timer);
+        clearInterval(this.progressTimer);
       }
     }, 1000);
     this.totalTime = this.contestInfo.endTime - this.contestInfo.startTime;

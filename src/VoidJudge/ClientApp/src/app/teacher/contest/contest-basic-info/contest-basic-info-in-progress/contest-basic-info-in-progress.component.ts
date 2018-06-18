@@ -45,7 +45,9 @@ export class ContestBasicInfoInProgressComponent implements OnInit {
     } else {
       this.contestService.put(contestInfo).subscribe(r => {
         if (r === PutContestResultType.ok) {
-          this.dialogService.showNoticeMessage('保存成功');
+          this.dialogService.showNoticeMessage('保存成功', () => {
+            window.location.reload();
+          });
         } else {
           if (r === PutContestResultType.unauthorized) {
             this.dialogService.showErrorMessage('无权修改该考试的信息');

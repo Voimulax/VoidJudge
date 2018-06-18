@@ -64,6 +64,30 @@ namespace VoidJudge.Controllers.Contest
             }
         }
 
+        [HttpGet("{studentId}")]
+        public async Task<IActionResult> UnLockAsync(long contestId, long studentId)
+        {
+            var userId = _authService.GetUserIdFromRequest(Request.HttpContext.User.Claims);
+
+            var result = await _studentService.UnLockAsync(contestId, userId, studentId);
+            switch (result.Error)
+            {
+                case GetStudentResultType.Unauthorized:
+                    return new ObjectResult(result)
+                    {
+                        StatusCode = StatusCodes.Status401Unauthorized
+                    };
+                case GetStudentResultType.ContestNotFound:
+                    return NotFound(result);
+                case GetStudentResultType.Error:
+                    return BadRequest(result);
+                case GetStudentResultType.Ok:
+                    return Ok(result);
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetStudentsAsync(int contestId)
         {

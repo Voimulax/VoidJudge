@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { map, tap, catchError, finalize } from 'rxjs/operators';
 import { of } from 'rxjs';
 
@@ -11,7 +11,8 @@ import {
   AddContestResultType,
   PutContestResultType,
   DeleteContestResultType,
-  GetContestSubmissionsResultType
+  GetContestSubmissionResultType,
+  GetContestSubmissionInfosResult
 } from './contest.model';
 import { DialogService } from '../../shared/dialog/dialog.service';
 
@@ -167,26 +168,52 @@ export class ContestService {
     );
   }
 
-  getSubmissions() {
-    return this.http.get(this.contestSubmissionsBaseUrl).pipe(
+  getSubmissionsFile() {
+    return this.http.get(this.contestSubmissionsBaseUrl, { params: new HttpParams().set('type', 'file') }).pipe(
       map(r => {
         if (r['error'] === 0) {
           this.contestInfo.submissionsFileName = r['data'];
-          return GetContestSubmissionsResultType.ok;
+          return GetContestSubmissionResultType.ok;
         }
       }),
       catchError((e: HttpErrorResponse) => {
-        if (e.status === 401 && e.error['error'] === GetContestSubmissionsResultType.unauthorized) {
-          return of(GetContestSubmissionsResultType.unauthorized);
-        } else if (e.status === 404 && e.error['error'] === GetContestSubmissionsResultType.contestNotFound) {
-          return of(GetContestSubmissionsResultType.contestNotFound);
-        } else if (e.status === 403 && e.error['error'] === GetContestSubmissionsResultType.forbiddance) {
-          return of(GetContestSubmissionsResultType.forbiddance);
+        if (e.status === 401 && e.error['error'] === GetContestSubmissionResultType.unauthorized) {
+          return of(GetContestSubmissionResultType.unauthorized);
+        } else if (e.status === 404 && e.error['error'] === GetContestSubmissionResultType.contestNotFound) {
+          return of(GetContestSubmissionResultType.contestNotFound);
+        } else if (e.status === 403 && e.error['error'] === GetContestSubmissionResultType.forbiddance) {
+          return of(GetContestSubmissionResultType.forbiddance);
         } else {
-          return of(GetContestSubmissionsResultType.error);
+          return of(GetContestSubmissionResultType.error);
         }
       })
     );
+  }
+
+  getSubmissionsInfo() {
+    return this.http
+      .get<GetContestSubmissionInfosResult>(this.contestSubmissionsBaseUrl, {
+        params: new HttpParams().set('type', 'info')
+      })
+      .pipe(
+        map(r => {
+          if (r['error'] === 0) {
+            this.contestInfo.submissionInfos = r['data'];
+            return { type: GetContestSubmissionResultType.ok, data: r['data'] };
+          }
+        }),
+        catchError((e: HttpErrorResponse) => {
+          if (e.status === 401 && e.error['error'] === GetContestSubmissionResultType.unauthorized) {
+            return of({ type: GetContestSubmissionResultType.unauthorized, data: undefined });
+          } else if (e.status === 404 && e.error['error'] === GetContestSubmissionResultType.contestNotFound) {
+            return of({ type: GetContestSubmissionResultType.contestNotFound, data: undefined });
+          } else if (e.status === 403 && e.error['error'] === GetContestSubmissionResultType.forbiddance) {
+            return of({ type: GetContestSubmissionResultType.forbiddance, data: undefined });
+          } else {
+            return of({ type: GetContestSubmissionResultType.error, data: undefined });
+          }
+        })
+      );
   }
 
   updateCurrentContestInfo() {

@@ -1,4 +1,6 @@
-﻿namespace VoidJudge.ViewModels.Contest
+﻿using System.Collections.Generic;
+
+namespace VoidJudge.ViewModels.Contest
 {
     public enum AddSubmissionResultType
     {
@@ -9,8 +11,13 @@
         Ok, Unauthorized, ContestNotFound, Forbiddance, Error
     }
 
-    public class GetSubmissionResult : ApiResult
+    public class GetSubmissionFileResult : ApiResult
     {
         public string Data { get; set; }
+    }
+
+    public class GetSubmissionInfoResult : ApiResult
+    {
+        public IList<GetSubmissionInfoViewModel> Data { get; set; }
     }
 }

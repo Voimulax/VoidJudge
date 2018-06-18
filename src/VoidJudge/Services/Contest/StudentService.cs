@@ -56,12 +56,29 @@ namespace VoidJudge.Services.Contest
         public async Task<ApiResult> GetStudentsAsync(long contestId, long userId)
         {
             var contest = await _context.Contests.Include(c => c.Owner).Include(c => c.Enrollments).ThenInclude(e => e.Student).ThenInclude(e => e.User).SingleOrDefaultAsync(c => c.Id == contestId);
-            if (contest == null) return new ApiResult { Error = AddStudentResultType.ContestNotFound };
-            if (contest.Owner.UserId != userId) return new ApiResult { Error = AddStudentResultType.Unauthorized };
+            if (contest == null) return new ApiResult { Error = GetStudentResultType.ContestNotFound };
+            if (contest.Owner.UserId != userId) return new ApiResult { Error = GetStudentResultType.Unauthorized };
 
             var result = contest.Enrollments.Select(e => e.Student)
                 .Select(s => _mapper.Map<StudentModel, GetStudentViewModel>(s)).ToList();
             return new GetStudentResult { Error = GetStudentResultType.Ok, Data = result };
+        }
+
+        public async Task<ApiResult> UnLockAsync(long contestId, long userId, long studentId)
+        {
+            var contest = await _context.Contests.Include(c => c.Owner).Include(c => c.Enrollments).ThenInclude(e => e.Student).ThenInclude(e => e.User).SingleOrDefaultAsync(c => c.Id == contestId);
+            if (contest == null) return new ApiResult { Error = GetStudentResultType.ContestNotFound };
+            if (contest.Owner.UserId != userId) return new ApiResult { Error = GetStudentResultType.Unauthorized };
+
+            var enrollment = contest.Enrollments.SingleOrDefault(e => e.Student.UserId == studentId);
+            if (enrollment == null) return new ApiResult { Error = GetStudentResultType.Error };
+
+            if (enrollment.Token != null)
+            {
+                enrollment.Token = "";
+                await _context.SaveChangesAsync();
+            }
+            return new ApiResult { Error = GetStudentResultType.Ok };
         }
     }
 }

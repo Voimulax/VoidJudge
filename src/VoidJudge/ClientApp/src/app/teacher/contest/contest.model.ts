@@ -1,5 +1,4 @@
 import { ContestStudentInfo } from './contest-student/contest-student.model';
-import { ContestProblemInfo } from './contest-problem/contest-problem.model';
 
 export enum ContestState {
   noPublished,
@@ -15,8 +14,24 @@ export interface ContestInfo {
   endTime?: number;
   notice?: string;
   students?: ContestStudentInfo[];
+  submissionInfos?: SubmissionInfo[];
   state?: ContestState;
   submissionsFileName?: string;
+}
+
+export interface SubmissionState {
+  problemName: string;
+  isSubmitted: boolean;
+}
+
+export interface SubmissionInfo {
+  id: number;
+  studentId: number;
+  userName: string;
+  group: string;
+  isLogged: boolean;
+  submissionStates?: SubmissionState[];
+  isSubmitted?: boolean;
 }
 
 export enum GetContestResultType {
@@ -53,10 +68,15 @@ export enum DeleteContestResultType {
   error
 }
 
-export enum GetContestSubmissionsResultType {
+export enum GetContestSubmissionResultType {
   ok,
   unauthorized,
   contestNotFound,
   forbiddance,
   error
+}
+
+export interface GetContestSubmissionInfosResult {
+  type: GetContestSubmissionResultType;
+  data?: SubmissionInfo[];
 }

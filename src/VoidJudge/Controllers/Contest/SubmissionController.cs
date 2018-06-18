@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using VoidJudge.Services.Auth;
 using VoidJudge.Services.Contest;
+using VoidJudge.ViewModels;
 using VoidJudge.ViewModels.Contest;
 
 namespace VoidJudge.Controllers.Contest
@@ -64,31 +65,63 @@ namespace VoidJudge.Controllers.Contest
         [HttpGet]
         [Authorize(Roles = "1")]
         [Route("submissions")]
-        public async Task<IActionResult> GetSubmissionsAsync(long contestId)
+        public async Task<IActionResult> GetSubmissionsAsync(long contestId, [FromQuery] string type)
         {
             var userId = _authService.GetUserIdFromRequest(Request.HttpContext.User.Claims);
 
-            var result = await _submissionService.GetSubmissionsAsync(contestId, userId);
-            switch (result.Error)
+            if (type == "file")
             {
-                case GetSubmissionResultType.Unauthorized:
-                    return new ObjectResult(result)
-                    {
-                        StatusCode = StatusCodes.Status401Unauthorized
-                    };
-                case GetSubmissionResultType.ContestNotFound:
-                    return NotFound(result);
-                case AddSubmissionResultType.Forbiddance:
-                    return new ObjectResult(result)
-                    {
-                        StatusCode = StatusCodes.Status403Forbidden
-                    };
-                case GetSubmissionResultType.Error:
-                    return BadRequest(result);
-                case GetSubmissionResultType.Ok:
-                    return Ok(result);
-                default:
-                    throw new ArgumentOutOfRangeException();
+                var result = await _submissionService.GetSubmissionsFileAsync(contestId, userId);
+                switch (result.Error)
+                {
+                    case GetSubmissionResultType.Unauthorized:
+                        return new ObjectResult(result)
+                        {
+                            StatusCode = StatusCodes.Status401Unauthorized
+                        };
+                    case GetSubmissionResultType.ContestNotFound:
+                        return NotFound(result);
+                    case AddSubmissionResultType.Forbiddance:
+                        return new ObjectResult(result)
+                        {
+                            StatusCode = StatusCodes.Status403Forbidden
+                        };
+                    case GetSubmissionResultType.Error:
+                        return BadRequest(result);
+                    case GetSubmissionResultType.Ok:
+                        return Ok(result);
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+            else if (type == "info")
+            {
+                var result = await _submissionService.GetSubmissionsInfoAsync(contestId, userId);
+                switch (result.Error)
+                {
+                    case GetSubmissionResultType.Unauthorized:
+                        return new ObjectResult(result)
+                        {
+                            StatusCode = StatusCodes.Status401Unauthorized
+                        };
+                    case GetSubmissionResultType.ContestNotFound:
+                        return NotFound(result);
+                    case AddSubmissionResultType.Forbiddance:
+                        return new ObjectResult(result)
+                        {
+                            StatusCode = StatusCodes.Status403Forbidden
+                        };
+                    case GetSubmissionResultType.Error:
+                        return BadRequest(result);
+                    case GetSubmissionResultType.Ok:
+                        return Ok(result);
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+            else
+            {
+                return BadRequest(new ApiResult { Error = GetSubmissionResultType.Error });
             }
         }
     }
