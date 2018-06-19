@@ -235,18 +235,20 @@ export class ContestService {
   }
 
   updateContestState(x: ContestInfo) {
-    if (x.state === ContestState.noPublished) {
-      return x;
-    }
-    const d = Date.now();
-    const s = new Date(x.startTime).getTime();
-    const e = new Date(x.endTime).getTime();
-    if (d < s) {
-      x.state = ContestState.noStarted;
-    } else if (d >= s && d <= e) {
-      x.state = ContestState.inProgress;
-    } else {
-      x.state = ContestState.ended;
+    if (x !== undefined) {
+      if (x.state === ContestState.noPublished) {
+        return x;
+      }
+      const d = Date.now();
+      const s = new Date(x.startTime).getTime();
+      const e = new Date(x.endTime).getTime();
+      if (d < s) {
+        x.state = ContestState.noStarted;
+      } else if (d >= s && d <= e) {
+        x.state = ContestState.inProgress;
+      } else {
+        x.state = ContestState.ended;
+      }
     }
     return x;
   }

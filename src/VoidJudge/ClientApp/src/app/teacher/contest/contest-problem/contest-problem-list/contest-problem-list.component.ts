@@ -1,4 +1,4 @@
-import { Component, OnInit, ElementRef, ViewChild, Input } from '@angular/core';
+import { Component, OnInit, ElementRef, ViewChild, Input, AfterViewInit } from '@angular/core';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatTableDataSource, MatPaginator } from '@angular/material';
 import { finalize } from 'rxjs/operators';
@@ -18,7 +18,7 @@ import { ContestProblemService } from '../contest-problem.service';
   templateUrl: './contest-problem-list.component.html',
   styleUrls: ['./contest-problem-list.component.css']
 })
-export class ContestProblemListComponent implements OnInit {
+export class ContestProblemListComponent implements OnInit, AfterViewInit {
   @ViewChild(MatPaginator) paginator: MatPaginator;
   @ViewChild('downloada') downloada: ElementRef;
   @Input('canDelete') canDelete: boolean;
@@ -44,6 +44,10 @@ export class ContestProblemListComponent implements OnInit {
 
   ngOnInit() {
     this.dataSource.paginator = this.paginator;
+  }
+
+  ngAfterViewInit() {
+    this.displayedColumns = this.canDelete ? ['select', 'name', 'type', 'content'] : ['name', 'type', 'content'];
   }
 
   isImported() {
