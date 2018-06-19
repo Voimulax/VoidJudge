@@ -76,7 +76,7 @@ export interface UserInfoWithSymbol {
   userName: string;
   password?: string;
   roleType?: RoleType;
-  sid: symbol;
+  sid: number;
 }
 
 export interface StudentInfoWithSymbol extends UserInfoWithSymbol {

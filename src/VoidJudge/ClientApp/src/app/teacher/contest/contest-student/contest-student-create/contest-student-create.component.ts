@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { SelectionModel } from '@angular/cdk/collections';
-import { MatDialog, MatTableDataSource } from '@angular/material';
+import { MatDialog, MatTableDataSource, MatPaginator } from '@angular/material';
 
 import { DialogService } from '../../../../shared/dialog/dialog.service';
 import {
@@ -13,6 +13,7 @@ import { ContestStudentListDialogComponent } from '../contest-student-list-dialo
 import { ContestService } from '../../contest.service';
 import { FileService } from '../../../../shared/file/file.service';
 import { ContestStudentService } from '../contest-student.service';
+import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-contest-student-create',
@@ -20,13 +21,17 @@ import { ContestStudentService } from '../contest-student.service';
   styleUrls: ['./contest-student-create.component.css']
 })
 export class ContestStudentCreateComponent implements OnInit {
+  @ViewChild(MatPaginator) paginator: MatPaginator;
   displayedColumns = ['select', 'studentId', 'userName', 'group'];
   dataSource = new MatTableDataSource<ContestStudentInfo>();
   selection = new SelectionModel<ContestStudentInfo>(true, []);
+  isLoading = false;
 
   get contestInfo() {
     return this.contestService.contestInfo;
   }
+
+  private num = 1;
 
   constructor(
     private dialog: MatDialog,
@@ -40,7 +45,9 @@ export class ContestStudentCreateComponent implements OnInit {
     }
   }
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.dataSource.paginator = this.paginator;
+  }
 
   isImported() {
     return this.dataSource.data && this.dataSource.data.length > 0;
@@ -60,16 +67,30 @@ export class ContestStudentCreateComponent implements OnInit {
     this.isAllSelected() ? this.selection.clear() : this.dataSource.data.forEach(row => this.selection.select(row));
   }
 
+  applyFilter(filterValue: string) {
+    filterValue = filterValue.trim();
+    filterValue = filterValue.toLowerCase();
+    this.dataSource.filter = filterValue;
+  }
+
   gets() {
-    this.contestStudentService.gets().subscribe(r => {
-      if (r.type === GetContestStudentResultType.ok) {
-        this.contestService.contestInfo.students = r.data;
-        this.dataSource.data = r.data;
-      } else {
-        this.contestService.contestInfo.students = [];
-        this.dataSource.data = [];
-      }
-    });
+    this.isLoading = true;
+    this.contestStudentService
+      .gets()
+      .pipe(
+        finalize(() => {
+          this.isLoading = false;
+        })
+      )
+      .subscribe(r => {
+        if (r.type === GetContestStudentResultType.ok) {
+          this.contestService.contestInfo.students = r.data;
+          this.dataSource.data = r.data;
+        } else {
+          this.contestService.contestInfo.students = [];
+          this.dataSource.data = [];
+        }
+      });
   }
 
   import(evt: any, fileForm: HTMLFormElement) {
@@ -97,7 +118,7 @@ export class ContestStudentCreateComponent implements OnInit {
           const list = this.dataSource.data.concat(
             data.map(x => {
               x.studentId = Number(x.studentId);
-              x['sid'] = Symbol();
+              x['sid'] = this.num++;
               return x;
             })
           );
@@ -118,21 +139,29 @@ export class ContestStudentCreateComponent implements OnInit {
   }
 
   save() {
-    return this.contestStudentService.adds(this.contestService.contestInfo.students).subscribe(scr => {
-      if (scr.type === AddContestStudentResultType.ok) {
-        this.dialogService.showNoticeMessage('保存成功');
-      } else if (scr.type === AddContestStudentResultType.studentsNotFound) {
-        const nfIds = new Set(scr['notFoundList'].map(x => x.studentId));
-        const data: ContestStudentListDialogData = {
-          notFoundList: this.contestInfo.students.filter(x => nfIds.has(x.studentId))
-        };
-        this.dialogService.showErrorMessage('上传学生中有系统中不存在的，保存失败', () => {
-          this.dialog.open(ContestStudentListDialogComponent, { data: data });
-        });
-      } else {
-        this.dialogService.showErrorMessage('网路错误，保存失败');
-      }
-    });
+    this.isLoading = true;
+    return this.contestStudentService
+      .adds(this.contestService.contestInfo.students)
+      .pipe(
+        finalize(() => {
+          this.isLoading = false;
+        })
+      )
+      .subscribe(scr => {
+        if (scr.type === AddContestStudentResultType.ok) {
+          this.dialogService.showNoticeMessage('保存成功');
+        } else if (scr.type === AddContestStudentResultType.studentsNotFound) {
+          const nfIds = new Set(scr['notFoundList'].map(x => x.studentId));
+          const data: ContestStudentListDialogData = {
+            notFoundList: this.contestInfo.students.filter(x => nfIds.has(x.studentId))
+          };
+          this.dialogService.showErrorMessage('上传学生中有系统中不存在的，保存失败', () => {
+            this.dialog.open(ContestStudentListDialogComponent, { data: data });
+          });
+        } else {
+          this.dialogService.showErrorMessage('网路错误，保存失败');
+        }
+      });
   }
 
   delete() {

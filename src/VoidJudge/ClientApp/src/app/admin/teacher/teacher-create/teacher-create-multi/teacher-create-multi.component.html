@@ -1,61 +1,64 @@
 <div fxLayout="column" fxLayoutAlign="start stretch" fxLayoutGap="25px">
   <div fxLayout="row" fxLayoutAlign="space-between center" fxLayoutGap="0px">
     <form #fileForm>
-      <button mat-raised-button color="primary" (click)="importInput.click()">
+      <button mat-raised-button color="primary" (click)="importInput.click()" [disabled]="isLoading">
         导入
         <input hidden #importInput type="file" (change)="import($event, fileForm)" accept=".csv, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
       </button>
     </form>
-    <button mat-raised-button color="accent" (click)="create()" *ngIf="isImported()">创建</button>
+    <button mat-raised-button color="accent" (click)="create()" *ngIf="isImported()" [disabled]="isLoading">创建</button>
   </div>
 
-  <div fxLayout="column" fxLayoutAlign="start stretch" fxLayoutGap="0px" class="table-container mat-elevation-z4" *ngIf="isImported()">
-    <div class="table-loading-shade" *ngIf="isLoading" fxFlexFill>
-      <mat-spinner></mat-spinner>
+  <div fxLayout="column" fxLayoutAlign="start stretch" fxLayoutGap="0px">
+    <mat-form-field *ngIf="isImported()" fxFlexFill>
+      <input matInput (keyup)="applyFilter($event.target.value)" placeholder="查询">
+    </mat-form-field>
+    <div fxLayout="column" fxLayoutAlign="start stretch" fxLayoutGap="0px" class="table-container mat-elevation-z4">
+      <table mat-table #table [dataSource]="dataSource" *ngIf="isImported()" fxFlexFill>
+        <ng-container matColumnDef="select">
+          <th mat-header-cell *matHeaderCellDef>
+            <mat-checkbox color="warn" (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
+              [indeterminate]="selection.hasValue() && !isAllSelected()">
+            </mat-checkbox>
+          </th>
+          <td mat-cell *matCellDef="let row">
+            <mat-checkbox color="warn" (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
+            </mat-checkbox>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="loginName">
+          <th mat-header-cell *matHeaderCellDef style="width: 20%"> 用户名 </th>
+          <td mat-cell *matCellDef="let element"> {{element.loginName}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="userName">
+          <th mat-header-cell *matHeaderCellDef style="width: 20%"> 姓名 </th>
+          <td mat-cell *matCellDef="let element"> {{element.userName}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="password">
+          <th mat-header-cell *matHeaderCellDef style="width: 20%"> 初始密码 </th>
+          <td mat-cell *matCellDef="let element"> {{element.password}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="roleType">
+          <th mat-header-cell *matHeaderCellDef style="width: 20%"> 用户类型 </th>
+          <td mat-cell *matCellDef="let element"> {{element.roleType===0 ? '管理员' : '教师'}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="sid">
+          <th mat-header-cell *matHeaderCellDef style="width: 10%"> 操作 </th>
+          <td mat-cell *matCellDef="let element">
+            <button mat-button (click)="edit(element, $event)">编辑</button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;" (click)="selection.toggle(row)"></tr>
+      </table>
+      <mat-paginator [pageSizeOptions]="[10, 20, 50, 100]" showFirstLastButtons [style.display]="isImported()?'block':'none'"></mat-paginator>
     </div>
-    <table mat-table #table [dataSource]="dataSource" fxFlexFill>
-      <ng-container matColumnDef="select">
-        <th mat-header-cell *matHeaderCellDef>
-          <mat-checkbox color="warn" (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
-            [indeterminate]="selection.hasValue() && !isAllSelected()">
-          </mat-checkbox>
-        </th>
-        <td mat-cell *matCellDef="let row">
-          <mat-checkbox color="warn" (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
-          </mat-checkbox>
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="loginName">
-        <th mat-header-cell *matHeaderCellDef style="width: 20%"> 用户名 </th>
-        <td mat-cell *matCellDef="let element"> {{element.loginName}} </td>
-      </ng-container>
-
-      <ng-container matColumnDef="userName">
-        <th mat-header-cell *matHeaderCellDef style="width: 20%"> 姓名 </th>
-        <td mat-cell *matCellDef="let element"> {{element.userName}} </td>
-      </ng-container>
-
-      <ng-container matColumnDef="password">
-        <th mat-header-cell *matHeaderCellDef style="width: 20%"> 初始密码 </th>
-        <td mat-cell *matCellDef="let element"> {{element.password}} </td>
-      </ng-container>
-
-      <ng-container matColumnDef="roleType">
-        <th mat-header-cell *matHeaderCellDef style="width: 20%"> 用户类型 </th>
-        <td mat-cell *matCellDef="let element"> {{element.roleType===0 ? '管理员' : '教师'}} </td>
-      </ng-container>
-
-      <ng-container matColumnDef="sid">
-        <th mat-header-cell *matHeaderCellDef style="width: 10%"> 操作 </th>
-        <td mat-cell *matCellDef="let element">
-          <button mat-button (click)="edit(element, $event)">编辑</button>
-        </td>
-      </ng-container>
-
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns;" (click)="selection.toggle(row)"></tr>
-    </table>
   </div>
 
   <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="0px">

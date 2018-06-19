@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Http;
 using VoidJudge.Models.Contest;
 
@@ -16,6 +17,7 @@ namespace VoidJudge.ViewModels.Contest
     {
         public string ProblemName { get; set; }
         public bool IsSubmitted { get; set; }
+        public DateTime? LastSubmitted { get; set; }
     }
 
     public class GetSubmissionInfoViewModel

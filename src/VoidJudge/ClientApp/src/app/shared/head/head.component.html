@@ -14,7 +14,7 @@
     </div>
     <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="0px" *ngIf="authService.isLoggedIn">
       <ng-container [ngSwitch]="authService.user.roleType?authService.user.roleType:0">
-        <button class="head-label" *ngSwitchCase="2" matTooltip="{{group}}" mat-button>{{authService.user.userName}}</button>
+        <button class="head-label" *ngSwitchCase="2" mat-button>{{authService.user.userName}}</button>
         <button class="head-label" *ngSwitchDefault mat-button>{{authService.user.userName}}</button>
       </ng-container>
       <button class="head-label" mat-button color="warn" (click)="logout()">注销</button>

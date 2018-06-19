@@ -239,5 +239,5 @@ _Pvt_Extensions
 appsettings.Production.json
 
 # Others
-wwwroot/Uploads
-wwwroot/Builds
+wwwroot/Uploads/
+wwwroot/Builds/

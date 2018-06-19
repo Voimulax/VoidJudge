@@ -7,7 +7,6 @@
   display: flex;
   position: relative;
   flex-direction: column;
-  max-height: 300px;
   min-width: 300px;
   overflow-y: auto;
 }

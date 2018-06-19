@@ -1,5 +1,5 @@
-import { Component, OnInit, AfterViewInit } from '@angular/core';
-import { MatTableDataSource } from '@angular/material';
+import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
+import { MatTableDataSource, MatPaginator } from '@angular/material';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs/operators';
 
@@ -13,6 +13,7 @@ import { DialogService } from '../../../shared/dialog/dialog.service';
   styleUrls: ['./contest-list.component.css']
 })
 export class ContestListComponent implements OnInit, AfterViewInit {
+  @ViewChild(MatPaginator) paginator: MatPaginator;
   displayedColumns = ['name', 'ownerName', 'startTime', 'endTime', 'state'];
   dataSource = new MatTableDataSource();
   isLoading = true;
@@ -21,14 +22,22 @@ export class ContestListComponent implements OnInit, AfterViewInit {
 
   constructor(private contestService: ContestService, private dialogService: DialogService, private router: Router) {}
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.dataSource.paginator = this.paginator;
+  }
 
   ngAfterViewInit() {
     this.getContests();
   }
 
-  isNotEmpty() {
-    return this.dataSource.data && this.dataSource.data.length > 0;
+  isEmpty() {
+    return !this.dataSource.data || this.dataSource.data.length <= 0;
+  }
+
+  applyFilter(filterValue: string) {
+    filterValue = filterValue.trim();
+    filterValue = filterValue.toLowerCase();
+    this.dataSource.filter = filterValue;
   }
 
   goContestDetail(x: ContestInfo) {

@@ -197,9 +197,16 @@ namespace VoidJudge.Services.Identity
 
             if (user.Role.Type == RoleType.Teacher)
             {
-                var count = (await _context.Teachers.Include(t => t.Contests).Where(t => t.UserId == id)
-                    .SingleOrDefaultAsync()).Contests.Count;
+                var count = (await _context.Teachers.Include(t => t.Contests).SingleOrDefaultAsync(t => t.UserId == id)).Contests.Count;
                 if (count > 0)
+                {
+                    return new ApiResult { Error = DeleteUserResultType.Forbiddance };
+                }
+            }
+            else
+            {
+                var count = (await _context.Roles.Include(r => r.Users).SingleOrDefaultAsync(r => r.Type == RoleType.Admin)).Users.Count;
+                if (count == 1)
                 {
                     return new ApiResult { Error = DeleteUserResultType.Forbiddance };
                 }

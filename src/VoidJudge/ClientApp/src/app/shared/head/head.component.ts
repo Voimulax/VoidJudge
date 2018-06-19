@@ -13,15 +13,6 @@ import { StudentUser } from '../../core/auth/user.model';
 export class HeadComponent implements OnInit {
   @Input() navItems: NavItem[];
 
-  get group() {
-    const user = <StudentUser>this.authService.user;
-    if (user) {
-      return user.group;
-    } else {
-      return '';
-    }
-  }
-
   constructor(public authService: AuthService, private router: Router) {}
 
   ngOnInit() {}
@@ -30,5 +21,4 @@ export class HeadComponent implements OnInit {
     this.authService.logout();
     this.router.navigate(['/']);
   }
-
 }

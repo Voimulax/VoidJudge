@@ -1,6 +1,6 @@
-import { Component, OnInit, AfterViewInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
 import { SelectionModel } from '@angular/cdk/collections';
-import { MatTableDataSource } from '@angular/material';
+import { MatTableDataSource, MatPaginator } from '@angular/material';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs/operators';
 
@@ -14,6 +14,7 @@ import { StudentInfo, DeleteUserResultType } from '../../../core/auth/user.model
   styleUrls: ['./student-list.component.css']
 })
 export class StudentListComponent implements OnInit, AfterViewInit {
+  @ViewChild(MatPaginator) paginator: MatPaginator;
   displayedColumns = ['select', 'loginName', 'userName', 'group', 'id'];
   dataSource = new MatTableDataSource<StudentInfo>();
   selection = new SelectionModel<StudentInfo>(true, []);
@@ -23,10 +24,16 @@ export class StudentListComponent implements OnInit, AfterViewInit {
 
   constructor(private dialogService: DialogService, private studentService: StudentService, private router: Router) {}
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.dataSource.paginator = this.paginator;
+  }
 
   ngAfterViewInit() {
     this.getStudents();
+  }
+
+  isEmpty() {
+    return !this.dataSource.data || this.dataSource.data.length <= 0;
   }
 
   isSelected() {
@@ -41,6 +48,12 @@ export class StudentListComponent implements OnInit, AfterViewInit {
 
   masterToggle() {
     this.isAllSelected() ? this.selection.clear() : this.dataSource.data.forEach(row => this.selection.select(row));
+  }
+
+  applyFilter(filterValue: string) {
+    filterValue = filterValue.trim();
+    filterValue = filterValue.toLowerCase();
+    this.dataSource.filter = filterValue;
   }
 
   delete() {

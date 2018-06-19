@@ -55,10 +55,13 @@ export class ContestCreateComponent implements OnInit {
   }
 
   create() {
+    const time = new Date().getTime();
     const startTime = new Date(this.contestForm.value.startTime).getTime();
     const endTime = new Date(this.contestForm.value.endTime).getTime();
     if (startTime >= endTime) {
       this.dialogService.showErrorMessage('考试开始时间应早于结束时间');
+    } else if (time >= startTime || time >= endTime) {
+      this.dialogService.showErrorMessage('考试时间区间应晚于当前时间');
     } else {
       this.contestService.add(this.contestForm.value).subscribe(r => {
         if (r === AddContestResultType.ok) {

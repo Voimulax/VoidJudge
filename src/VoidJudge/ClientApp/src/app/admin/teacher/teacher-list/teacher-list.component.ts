@@ -1,12 +1,12 @@
-import { Component, OnInit, AfterViewInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
 import { SelectionModel } from '@angular/cdk/collections';
-import { MatTableDataSource } from '@angular/material';
+import { MatTableDataSource, MatPaginator } from '@angular/material';
 import { Router } from '@angular/router';
-import { catchError, finalize, map, startWith } from 'rxjs/operators';
+import { finalize } from 'rxjs/operators';
 
 import { DialogService } from '../../../shared/dialog/dialog.service';
 import { TeacherService } from '../teacher.service';
-import { UserInfo, DeleteUserResultType, getRoleTypeName } from '../../../core/auth/user.model';
+import { UserInfo, DeleteUserResultType, getRoleTypeName, RoleType } from '../../../core/auth/user.model';
 
 @Component({
   selector: 'app-teacher-list',
@@ -14,6 +14,7 @@ import { UserInfo, DeleteUserResultType, getRoleTypeName } from '../../../core/a
   styleUrls: ['./teacher-list.component.css']
 })
 export class TeacherListComponent implements OnInit, AfterViewInit {
+  @ViewChild(MatPaginator) paginator: MatPaginator;
   displayedColumns = ['select', 'loginName', 'userName', 'roleType', 'id'];
   dataSource = new MatTableDataSource<UserInfo>();
   selection = new SelectionModel<UserInfo>(true, []);
@@ -23,10 +24,16 @@ export class TeacherListComponent implements OnInit, AfterViewInit {
 
   constructor(private dialogService: DialogService, private teacherService: TeacherService, private router: Router) {}
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.dataSource.paginator = this.paginator;
+  }
 
   ngAfterViewInit() {
     this.getTeachers();
+  }
+
+  isEmpty() {
+    return !this.dataSource.data || this.dataSource.data.length <= 0;
   }
 
   isSelected() {
@@ -41,6 +48,12 @@ export class TeacherListComponent implements OnInit, AfterViewInit {
 
   masterToggle() {
     this.isAllSelected() ? this.selection.clear() : this.dataSource.data.forEach(row => this.selection.select(row));
+  }
+
+  applyFilter(filterValue: string) {
+    filterValue = filterValue.trim();
+    filterValue = filterValue.toLowerCase();
+    this.dataSource.filter = filterValue;
   }
 
   delete() {
@@ -62,7 +75,11 @@ export class TeacherListComponent implements OnInit, AfterViewInit {
                 this.getTeachers();
               });
             } else if (x === DeleteUserResultType.forbiddance) {
-              this.dialogService.showErrorMessage('此教师拥有未删除的考试，暂时无法进行删除');
+              if (this.selection.selected[0].roleType === RoleType.admin) {
+                this.dialogService.showErrorMessage('此管理员是系统中唯一的管理员，暂时无法进行删除');
+              } else {
+                this.dialogService.showErrorMessage('此教师拥有未删除的考试，暂时无法进行删除');
+              }
             } else if (x === DeleteUserResultType.userNotFound) {
               this.dialogService.showErrorMessage('此用户不存在');
             } else {

@@ -1,5 +1,5 @@
 export interface ContestStudentInfo {
-  sid?: symbol;
+  sid?: number;
   studentId: number;
   userName: string;
   group: string;

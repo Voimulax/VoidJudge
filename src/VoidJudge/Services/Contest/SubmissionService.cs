@@ -155,8 +155,8 @@ namespace VoidJudge.Services.Contest
                 submissionStates.AddRange(from problem in contest.Problems.OrderBy(p => p.Id)
                                           let submission = problem.Submissions.SingleOrDefault(s => s.StudentId == enrollment.StudentId)
                                           select submission == null
-                                              ? new SubmissionStateViewModel { ProblemName = problem.Name, IsSubmitted = false }
-                                              : new SubmissionStateViewModel { ProblemName = problem.Name, IsSubmitted = true });
+                                              ? new SubmissionStateViewModel { ProblemName = problem.Name, IsSubmitted = false, LastSubmitted = null }
+                                              : new SubmissionStateViewModel { ProblemName = problem.Name, IsSubmitted = true, LastSubmitted = submission.CreateTime });
 
                 submissionInfos.Add(submissionInfo);
             }

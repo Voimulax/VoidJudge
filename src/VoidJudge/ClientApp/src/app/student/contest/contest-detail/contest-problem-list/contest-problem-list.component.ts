@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
-import { MatTableDataSource } from '@angular/material';
+import { MatTableDataSource, MatPaginator } from '@angular/material';
 import { finalize } from 'rxjs/operators';
 
 import { DialogService } from '../../../../shared/dialog/dialog.service';
@@ -15,6 +15,7 @@ import { AuthService } from '../../../../core/auth/auth.service';
   styleUrls: ['./contest-problem-list.component.css']
 })
 export class ContestProblemListComponent implements OnInit {
+  @ViewChild(MatPaginator) paginator: MatPaginator;
   @ViewChild('downloada') downloada: ElementRef;
   displayedColumns = ['name', 'type', 'content', 'isSubmitted'];
   dataSource = new MatTableDataSource<ContestProblemInfo>();
@@ -35,10 +36,18 @@ export class ContestProblemListComponent implements OnInit {
     }
   }
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.dataSource.paginator = this.paginator;
+  }
 
-  isNotEmpty() {
-    return this.dataSource.data && this.dataSource.data.length > 0;
+  isEmpty() {
+    return !this.dataSource.data || this.dataSource.data.length <= 0;
+  }
+
+  applyFilter(filterValue: string) {
+    filterValue = filterValue.trim();
+    filterValue = filterValue.toLowerCase();
+    this.dataSource.filter = filterValue;
   }
 
   download(event: MouseEvent, content: string) {

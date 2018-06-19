@@ -1,5 +1,6 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { Router } from '@angular/router';
+import * as moment from 'moment';
 
 import { ContestInfo, GetContestSubmissionResultType } from '../../contest.model';
 import { ContestService } from '../../contest.service';
@@ -66,6 +67,8 @@ export class ContestDetailEndedComponent implements OnInit {
           y['登录情况'] = x['isLogged'] === true ? '已登录' : '未登录';
           x['submissionStates'].forEach(s => {
             y[s['problemName']] = s['isSubmitted'] === true ? '已提交' : '未提交';
+            y[`${s['problemName']}最后提交时间`] =
+              s['isSubmitted'] === true ? moment(s['lastSubmitted']).format('YYYY-MM-DD HH:mm:ss') : '无';
           });
           return y;
         });

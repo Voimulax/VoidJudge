@@ -21,8 +21,6 @@ export class ContestBasicInfoComponent implements OnInit {
   contestForm: FormGroup;
   matcher = new FormErrorStateMatcher();
 
-  private lastState: ContestState;
-
   get contestInfo() {
     return this.contestService.contestInfo;
   }
@@ -58,21 +56,23 @@ export class ContestBasicInfoComponent implements OnInit {
     contestInfo.id = this.contestInfo.id;
     contestInfo.state = this.contestInfo.state;
 
+    const time = new Date().getTime();
     const startTime = new Date(contestInfo.startTime).getTime();
     const endTime = new Date(contestInfo.endTime).getTime();
     if (startTime >= endTime) {
-      this.contestService.contestInfo.state = this.lastState;
-      this.lastState = undefined;
       this.dialogService.showErrorMessage('考试开始时间应早于结束时间');
+    } else if (startTime <= time || endTime <= time) {
+      this.dialogService.showErrorMessage('考试时间区间应晚于当前时间');
     } else {
       const editPublishState =
         this.publishSlideToggle.checked === true ? ContestState.noStarted : ContestState.noPublished;
       if (editPublishState !== this.contestInfo.state) {
-        if (!this.publish(this.publishSlideToggle.checked)) {
-          return;
+        if (this.publishSlideToggle.checked) {
+          contestInfo.state = ContestState.noStarted;
+        } else {
+          contestInfo.state = ContestState.noPublished;
         }
       }
-      contestInfo.state = this.contestInfo.state;
 
       this.contestService.put(contestInfo).subscribe(r => {
         if (r === PutContestResultType.ok) {
@@ -80,10 +80,6 @@ export class ContestBasicInfoComponent implements OnInit {
             window.location.reload();
           });
         } else {
-          if (this.lastState !== undefined) {
-            this.contestService.contestInfo.state = this.lastState;
-            this.lastState = undefined;
-          }
           if (r === PutContestResultType.unauthorized) {
             this.dialogService.showErrorMessage('无权修改该考试的信息');
           } else if (r === PutContestResultType.concurrencyException) {
@@ -97,22 +93,6 @@ export class ContestBasicInfoComponent implements OnInit {
           }
         }
       });
-    }
-  }
-
-  publish(flag: boolean) {
-    const date = new Date().getTime();
-    if (date >= this.contestForm.value['startTime'] || date >= this.contestForm.value['endTime']) {
-      this.dialogService.showErrorMessage('请确保考试时间区间晚于当前时间再修改发布状态');
-      return false;
-    } else {
-      this.lastState = this.contestInfo.state;
-      if (flag) {
-        this.contestService.contestInfo.state = ContestState.noStarted;
-      } else {
-        this.contestService.contestInfo.state = ContestState.noPublished;
-      }
-      return true;
     }
   }
 

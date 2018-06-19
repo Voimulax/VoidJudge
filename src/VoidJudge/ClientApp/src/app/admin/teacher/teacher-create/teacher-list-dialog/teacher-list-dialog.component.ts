@@ -1,5 +1,5 @@
-import { Component, OnInit, Inject } from '@angular/core';
-import { MAT_DIALOG_DATA, MatTableDataSource } from '@angular/material';
+import { Component, OnInit, Inject, ViewChild } from '@angular/core';
+import { MAT_DIALOG_DATA, MatTableDataSource, MatPaginator } from '@angular/material';
 import { UserInfoWithSymbol, UserListDialogData } from '../../../../core/auth/user.model';
 
 @Component({
@@ -8,6 +8,7 @@ import { UserInfoWithSymbol, UserListDialogData } from '../../../../core/auth/us
   styleUrls: ['./teacher-list-dialog.component.css']
 })
 export class TeacherListDialogComponent implements OnInit {
+  @ViewChild(MatPaginator) paginator: MatPaginator;
   displayedColumns = ['loginName', 'userName', 'password', 'roleType'];
   repeatSource = new MatTableDataSource<UserInfoWithSymbol>();
   errorSource = new MatTableDataSource<UserInfoWithSymbol>();
@@ -16,5 +17,13 @@ export class TeacherListDialogComponent implements OnInit {
     this.repeatSource.data = data.repeatList;
   }
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.repeatSource.paginator = this.paginator;
+  }
+
+  applyFilter(filterValue: string) {
+    filterValue = filterValue.trim();
+    filterValue = filterValue.toLowerCase();
+    this.repeatSource.filter = filterValue;
+  }
 }

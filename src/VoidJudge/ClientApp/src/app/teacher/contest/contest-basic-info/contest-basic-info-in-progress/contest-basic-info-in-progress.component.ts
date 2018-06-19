@@ -38,10 +38,13 @@ export class ContestBasicInfoInProgressComponent implements OnInit {
     const contestInfo: ContestInfo = this.contestForm.value;
     contestInfo.id = this.contestInfo.id;
 
+    const time = new Date().getTime();
     const startTime = new Date(this.contestInfo.startTime).getTime();
     const endTime = new Date(contestInfo.endTime).getTime();
     if (startTime >= endTime) {
       this.dialogService.showErrorMessage('考试结束时间应晚于开始时间');
+    } else if (endTime <= time) {
+      this.dialogService.showErrorMessage('考试结束时间应晚于当前时间');
     } else {
       this.contestService.put(contestInfo).subscribe(r => {
         if (r === PutContestResultType.ok) {

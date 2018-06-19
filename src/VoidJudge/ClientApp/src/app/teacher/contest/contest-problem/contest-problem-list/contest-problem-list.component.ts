@@ -1,6 +1,6 @@
 import { Component, OnInit, ElementRef, ViewChild, Input } from '@angular/core';
 import { SelectionModel } from '@angular/cdk/collections';
-import { MatDialog, MatTableDataSource } from '@angular/material';
+import { MatTableDataSource, MatPaginator } from '@angular/material';
 import { finalize } from 'rxjs/operators';
 
 import { DialogService } from '../../../../shared/dialog/dialog.service';
@@ -19,6 +19,7 @@ import { ContestProblemService } from '../contest-problem.service';
   styleUrls: ['./contest-problem-list.component.css']
 })
 export class ContestProblemListComponent implements OnInit {
+  @ViewChild(MatPaginator) paginator: MatPaginator;
   @ViewChild('downloada') downloada: ElementRef;
   @Input('canDelete') canDelete: boolean;
   displayedColumns = this.canDelete ? ['select', 'name', 'type', 'content'] : ['name', 'type', 'content'];
@@ -31,7 +32,6 @@ export class ContestProblemListComponent implements OnInit {
   }
 
   constructor(
-    private dialog: MatDialog,
     private dialogService: DialogService,
     private fileService: FileService,
     private contestService: ContestService,
@@ -42,7 +42,9 @@ export class ContestProblemListComponent implements OnInit {
     }
   }
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.dataSource.paginator = this.paginator;
+  }
 
   isImported() {
     return this.dataSource.data && this.dataSource.data.length > 0;
@@ -60,6 +62,12 @@ export class ContestProblemListComponent implements OnInit {
 
   masterToggle() {
     this.isAllSelected() ? this.selection.clear() : this.dataSource.data.forEach(row => this.selection.select(row));
+  }
+
+  applyFilter(filterValue: string) {
+    filterValue = filterValue.trim();
+    filterValue = filterValue.toLowerCase();
+    this.dataSource.filter = filterValue;
   }
 
   download(event: MouseEvent, content: string) {

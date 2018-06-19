@@ -198,8 +198,22 @@ export class ContestService {
       .pipe(
         map(r => {
           if (r['error'] === 0) {
-            this.contestInfo.submissionInfos = r['data'];
-            return { type: GetContestSubmissionResultType.ok, data: r['data'] };
+            const data = r['data'].map(d => {
+              if (d['submissionStates']) {
+                d['submissionStates'] = d['submissionStates'].map(ss => {
+                  if (ss['isSubmitted']) {
+                    ss['lastSubmitted'] = new Date(ss['lastSubmitted']).getTime();
+                    return ss;
+                  } else {
+                    ss['lastSubmitted'] = undefined;
+                    return ss;
+                  }
+                });
+                return d;
+              }
+            });
+            this.contestInfo.submissionInfos = data;
+            return { type: GetContestSubmissionResultType.ok, data: data };
           }
         }),
         catchError((e: HttpErrorResponse) => {

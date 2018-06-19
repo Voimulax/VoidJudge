@@ -1,5 +1,5 @@
-import { Component, OnInit, Inject } from '@angular/core';
-import { MAT_DIALOG_DATA, MatTableDataSource } from '@angular/material';
+import { Component, OnInit, Inject, ViewChild } from '@angular/core';
+import { MAT_DIALOG_DATA, MatTableDataSource, MatPaginator } from '@angular/material';
 
 import { ContestStudentInfo } from '../contest-student.model';
 import { ContestStudentListDialogData } from '../contest-student.model';
@@ -10,6 +10,8 @@ import { ContestStudentListDialogData } from '../contest-student.model';
   styleUrls: ['./contest-student-list-dialog.component.css']
 })
 export class ContestStudentListDialogComponent implements OnInit {
+  @ViewChild('repeatPaginator') repeatPaginator: MatPaginator;
+  @ViewChild('notFoundPaginator') notFoundPaginator: MatPaginator;
   displayedColumns = ['studentId', 'userName', 'group'];
   repeatSource = new MatTableDataSource<ContestStudentInfo>();
   notFoundSource = new MatTableDataSource<ContestStudentInfo>();
@@ -23,7 +25,21 @@ export class ContestStudentListDialogComponent implements OnInit {
     }
   }
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.repeatSource.paginator = this.repeatPaginator;
+    this.notFoundSource.paginator = this.notFoundPaginator;
+  }
+
+  applyFilter(filterValue: string, type: string) {
+    filterValue = filterValue.trim();
+    filterValue = filterValue.toLowerCase();
+    if (type === 'repeat') {
+      this.repeatSource.filter = filterValue;
+    }
+    if (type === 'notFound') {
+      this.notFoundSource.filter = filterValue;
+    }
+  }
 
   isRepeat() {
     return this.data.repeatList !== undefined;

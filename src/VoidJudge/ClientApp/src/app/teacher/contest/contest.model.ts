@@ -22,6 +22,7 @@ export interface ContestInfo {
 export interface SubmissionState {
   problemName: string;
   isSubmitted: boolean;
+  lastSubmitted?: number;
 }
 
 export interface SubmissionInfo {

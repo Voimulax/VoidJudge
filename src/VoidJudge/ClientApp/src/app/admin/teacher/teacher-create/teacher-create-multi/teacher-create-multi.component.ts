@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { SelectionModel } from '@angular/cdk/collections';
-import { MatDialog, MatTableDataSource } from '@angular/material';
+import { MatDialog, MatTableDataSource, MatPaginator } from '@angular/material';
 
 import { DialogService } from '../../../../shared/dialog/dialog.service';
 import { FileService } from '../../../../shared/file/file.service';
@@ -23,18 +23,14 @@ import { finalize } from 'rxjs/operators';
   styleUrls: ['./teacher-create-multi.component.css']
 })
 export class TeacherCreateMultiComponent implements OnInit {
+  @ViewChild(MatPaginator) paginator: MatPaginator;
   @ViewChild('fileForm') fileForm: ElementRef;
-  displayedColumns = [
-    'select',
-    'loginName',
-    'userName',
-    'password',
-    'roleType',
-    'sid'
-  ];
+  displayedColumns = ['select', 'loginName', 'userName', 'password', 'roleType', 'sid'];
   dataSource = new MatTableDataSource<UserInfoWithSymbol>();
   selection = new SelectionModel<UserInfoWithSymbol>(true, []);
   isLoading = false;
+
+  private num = 1;
 
   constructor(
     private dialog: MatDialog,
@@ -43,7 +39,9 @@ export class TeacherCreateMultiComponent implements OnInit {
     private teacherService: TeacherService
   ) {}
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.dataSource.paginator = this.paginator;
+  }
 
   isImported() {
     const flag = this.dataSource.data.length > 0;
@@ -64,12 +62,17 @@ export class TeacherCreateMultiComponent implements OnInit {
   }
 
   masterToggle() {
-    this.isAllSelected()
-      ? this.selection.clear()
-      : this.dataSource.data.forEach(row => this.selection.select(row));
+    this.isAllSelected() ? this.selection.clear() : this.dataSource.data.forEach(row => this.selection.select(row));
+  }
+
+  applyFilter(filterValue: string) {
+    filterValue = filterValue.trim();
+    filterValue = filterValue.toLowerCase();
+    this.dataSource.filter = filterValue;
   }
 
   create() {
+    this.isLoading = true;
     const sis: UserInfo[] = this.dataSource.data.map(x => {
       return {
         loginName: x.loginName,
@@ -78,24 +81,31 @@ export class TeacherCreateMultiComponent implements OnInit {
         roleType: x.roleType
       };
     });
-    this.teacherService.adds(sis).subscribe(x => {
-      if (x.type === AddUserResultType.ok) {
-        this.dialogService.showNoticeMessage('创建成功', () => {
-          this.selection.clear();
-          this.dataSource.data = [];
-        });
-      } else if (x.type === AddUserResultType.wrong) {
-        this.dialogService.showErrorMessage('上传内容有错，创建失败');
-      } else if (x.type === AddUserResultType.repeat) {
-        const s = new Set(x.repeat.map(xx => xx.loginName));
-        this.showTeacherListDialog({
-          type: '创建',
-          repeatList: this.dataSource.data.filter(d => s.has(d.loginName))
-        });
-      } else {
-        this.dialogService.showErrorMessage('网络错误');
-      }
-    });
+    this.teacherService
+      .adds(sis)
+      .pipe(
+        finalize(() => {
+          this.isLoading = false;
+        })
+      )
+      .subscribe(x => {
+        if (x.type === AddUserResultType.ok) {
+          this.dialogService.showNoticeMessage('创建成功', () => {
+            this.selection.clear();
+            this.dataSource.data = [];
+          });
+        } else if (x.type === AddUserResultType.wrong) {
+          this.dialogService.showErrorMessage('上传内容有错，创建失败');
+        } else if (x.type === AddUserResultType.repeat) {
+          const s = new Set(x.repeat.map(xx => xx.loginName));
+          this.showTeacherListDialog({
+            type: '创建',
+            repeatList: this.dataSource.data.filter(d => s.has(d.loginName))
+          });
+        } else {
+          this.dialogService.showErrorMessage('网络错误');
+        }
+      });
   }
 
   import(evt: any, fileForm: HTMLFormElement) {
@@ -114,9 +124,7 @@ export class TeacherCreateMultiComponent implements OnInit {
         this.dialogService.showErrorMessage(error.message);
         fileForm.reset();
       } else {
-        const repeatList = this.dataSource.data.filter(x =>
-          data.find(y => y.loginName === x.loginName)
-        );
+        const repeatList = this.dataSource.data.filter(x => data.find(y => y.loginName === x.loginName));
         if (repeatList.length > 0) {
           this.showTeacherListDialog({
             type: '导入',
@@ -125,15 +133,12 @@ export class TeacherCreateMultiComponent implements OnInit {
         } else {
           const list = this.dataSource.data.concat(
             data.map(x => {
-              if (
-                x['roleType'].toString() === '0' ||
-                x['roleType'].toString() === '管理员'
-              ) {
+              if (x['roleType'].toString() === '0' || x['roleType'].toString() === '管理员') {
                 x['roleType'] = RoleType.admin;
               } else {
                 x['roleType'] = RoleType.teacher;
               }
-              x['sid'] = Symbol();
+              x['sid'] = this.num++;
               return x;
             })
           );

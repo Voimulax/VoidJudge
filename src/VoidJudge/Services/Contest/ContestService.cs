@@ -58,6 +58,16 @@ namespace VoidJudge.Services.Contest
 
         public async Task<ApiResult> AddContestAsync(TeacherContestViewModel addContest, long userId)
         {
+            if (addContest.StartTime >= addContest.EndTime)
+            {
+                return new ApiResult { Error = AddContestResultType.Wrong };
+            }
+            var time = DateTime.Now;
+            if (addContest.StartTime <= time || addContest.EndTime <= time)
+            {
+                return new ApiResult { Error = AddContestResultType.Wrong };
+            }
+
             var owner = await _context.Teachers.SingleOrDefaultAsync(o => o.UserId == userId);
 
             var contest = _mapper.Map<TeacherContestViewModel, ContestModel>(addContest);
@@ -106,6 +116,11 @@ namespace VoidJudge.Services.Contest
 
                 if (contest.ProgressState == ContestProgressState.NoStarted)
                 {
+                    var time = DateTime.Now;
+                    if (putContest.StartTime <= time || putContest.EndTime <= time)
+                    {
+                        return new ApiResult { Error = PutContestResultType.Wrong };
+                    }
                     contest.Name = putContest.Name;
                     contest.Notice = putContest.Notice;
                     contest.StartTime = putContest.StartTime;
@@ -114,6 +129,11 @@ namespace VoidJudge.Services.Contest
                 }
                 else if (contest.ProgressState == ContestProgressState.InProgress)
                 {
+                    var time = DateTime.Now;
+                    if (time >= putContest.EndTime || contest.StartTime >= putContest.EndTime)
+                    {
+                        return new ApiResult { Error = PutContestResultType.Wrong };
+                    }
                     contest.EndTime = putContest.EndTime;
                     contest.Notice = putContest.Notice;
                 }
