@@ -37,10 +37,3 @@ testem.log
 # System Files
 .DS_Store
 Thumbs.db
-
-# yarn
-yarn.lock
-
-# firebase
-.firebaserc
-firebase.json

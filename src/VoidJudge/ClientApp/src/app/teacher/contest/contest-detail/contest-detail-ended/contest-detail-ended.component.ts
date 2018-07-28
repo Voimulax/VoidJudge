@@ -43,7 +43,7 @@ export class ContestDetailEndedComponent implements OnInit {
               this.dialogService.showErrorMessage('下载失败');
             } else {
               this.downloada.nativeElement.href = r;
-              this.downloada.nativeElement.download = this.contestInfo.submissionsFileName;
+              this.downloada.nativeElement.download = `${this.contestInfo.name}提交答案.zip`;
               this.downloada.nativeElement.click();
               this.downloada.nativeElement.href = '';
               this.downloada.nativeElement.download = '';

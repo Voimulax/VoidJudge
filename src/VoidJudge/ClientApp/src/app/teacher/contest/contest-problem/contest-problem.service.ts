@@ -77,7 +77,11 @@ export class ContestProblemService {
   }
 
   delete(id: number) {
+    this.dialogService.isLoadingDialogActive = true;
     return this.http.delete(`${this.contestProblemBaseUrl}/${id}`).pipe(
+      finalize(() => {
+        this.dialogService.isLoadingDialogActive = false;
+      }),
       map(x => {
         if (x['error'] === 0) {
           return DeleteContestProblemResultType.ok;
